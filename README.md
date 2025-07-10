@@ -1,6 +1,6 @@
 [简体中文 | Chinese README](./README.zh-CN.md)
 
-**🌐 [Live Demo](https://franksunye.github.io/flowy/)**
+**🌐 [Live Demo](https://franksunye.github.io/flowy/demo/)**
 
 # Flowy (Forked by franksunye)
 
