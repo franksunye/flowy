@@ -1,272 +1,372 @@
-下面是针对每个 Sprint 的详细 **用户故事（User Stories）** 和 **任务分解（Tasks）**，以敏捷方式推动 Flowy 重启项目。每个 Sprint 周期为 **2 周**，故事和任务都设计为可在该周期内完成：
+# Flowy 敏捷开发 Sprint 详细计划
+
+基于当前代码库现状的详细用户故事和任务分解，每个 Sprint 周期为 2 周。
 
 ---
 
-## 📦 Sprint0：准备与规划（2 周）
+## 🏗️ Sprint 0：项目基础设施搭建（2 周）
 
-### 主题：建立项目基础环境与目标规划
+### 主题：建立现代化开发环境
 
-#### Story 0.1：项目基础搭建
-
-* **As** 项目团队，
-* **I want to** 搭建 GitHub 仓库、Monorepo 架构、CI/CD、Issue/PR 模板和贡献指南，
-* **so that** 团队快速协同、代码质量保障、并为后续开发打好基础。
-
-**Tasks**:
-
-1. 设计仓库结构（Core、Adapters、Docs、Examples）
-2. 编写 Issue/PR 模板和 CONTRIBUTING.md
-3. 配置 CI/CD（lint、测试、发布）
-4. 配置分支策略（main/dev/feature/*）
-
-#### Story 0.2：定义愿景与 MVP 范围
-
-* **As** 产品负责人，
-* **I want to** 确定项目愿景、核心功能和优先级 MVP，
-* **so that** 团队明确目标，有效推进。
+#### Story 0.1：现代化项目配置
+**As** 开发团队，  
+**I want to** 建立完整的现代化开发工具链，  
+**so that** 可以高效地进行开发、测试和部署。
 
 **Tasks**:
+1. 创建 package.json，定义项目元信息、依赖和脚本
+2. 配置 TypeScript（tsconfig.json）和构建工具（Vite）
+3. 设置代码规范工具（ESLint + Prettier）
+4. 配置 Git hooks（Husky + lint-staged）
 
-1. 撰写 Vision 文档（为何、做什么、受众、价值）
-2. 明确 MVP 范围并拆分Epic/初始 Stories
-3. 安排 Kickoff 会议并完成 Stakeholders alignment
+#### Story 0.2：测试框架搭建
+**As** 开发者，  
+**I want to** 建立完整的测试框架，  
+**so that** 可以确保代码质量和功能稳定性。
+
+**Tasks**:
+1. 配置 Jest 测试框架
+2. 设置测试覆盖率报告
+3. 创建基础测试模板和工具函数
+4. 配置 GitHub Actions CI/CD
+
+#### Story 0.3：项目文档框架
+**As** 用户和贡献者，  
+**I want to** 有清晰的项目文档和贡献指南，  
+**so that** 可以快速了解项目并参与贡献。
+
+**Tasks**:
+1. 更新 README.md，包含开发指南
+2. 创建 CONTRIBUTING.md 贡献指南
+3. 建立 API 文档框架
+4. 设置 Issue 和 PR 模板
 
 ---
 
-## ⚙️ Sprint1：Walking Skeleton（2 周）
+## 🔧 Sprint 1：核心代码模块化重构（2 周）
 
-### 主题：端到端 PoC 可用版本
+### 主题：将单文件架构重构为模块化 TypeScript
 
-#### Story 1.1：实现拖拽+连线核心功能
-
-* **As** 用户，
-* **I want to** 在页面中拖放节点、能够连线形成流程结构，
-* **so that** 能看到流程 UI 的工作效果。
-
-**Tasks**:
-
-1. 搭建 HTML Canvas 或 SVG 基础容器
-2. 实现节点拖拽行为（mousedown, move, drop）
-3. 实现线条连接逻辑（自动断线/吸附）
-4. 编写简易集成测试验证连接
-5. Demo 页面上线（PoC）
-
-#### Story 1.2：流程 JSON 导入导出
-
-* **As** 用户，
-* **I want to** 能以 JSON 保存/加载流程图，
-* **so that** 可持久化编辑结果。
+#### Story 1.1：代码架构重构
+**As** 开发者，  
+**I want to** 将现有的单文件 JavaScript 拆分为模块化的 TypeScript 代码，  
+**so that** 代码更易维护和扩展。
 
 **Tasks**:
+1. 分析现有 engine/flowy.js 的功能模块
+2. 设计新的模块结构（core、renderer、types、utils）
+3. 创建 TypeScript 类型定义
+4. 逐步迁移功能到新模块
 
-1. 设计流程数据结构
-2. 实现 exportToJson() 与 importFromJson()
-3. 添加 JSON 文本框用于测试加载和展示
-4. 编写单元测试
+#### Story 1.2：API 兼容性保证
+**As** 现有用户，  
+**I want to** 新版本保持 API 向后兼容，  
+**so that** 可以无缝升级而不破坏现有代码。
+
+**Tasks**:
+1. 定义公共 API 接口
+2. 创建兼容性适配层
+3. 编写 API 兼容性测试
+4. 验证 Demo 页面正常工作
+
+#### Story 1.3：基础功能测试
+**As** 开发者，  
+**I want to** 为核心功能编写单元测试，  
+**so that** 确保重构过程中功能不丢失。
+
+**Tasks**:
+1. 为拖拽功能编写测试
+2. 为连线功能编写测试
+3. 为导入导出功能编写测试
+4. 达到 60% 测试覆盖率
 
 ---
 
-## 🧩 Sprint2：模块化与测试（2 周）
+## 🧪 Sprint 2：测试完善与质量保证（2 周）
 
-### 主题：重构为模块，可测试兼容现代构建环境
+### 主题：建立完整的测试体系和质量保证
 
-#### Story 2.1：源码模块化重构
-
-* **As** 开发者，
-* **I want to** 拆分 core engine、view renderer、API interface，
-* **so that** 代码可独立维护与复用。
-
-**Tasks**:
-
-1. 将拖拽/连线逻辑抽离至 `core/`
-2. 渲染逻辑抽离至 `renderer/`
-3. 提供对外 API（init、addNode、removeNode、connect）
-4. 配置 Rollup/Vite 构建多种输出（esm/cjs/umd）
-
-#### Story 2.2：引入 TypeScript + 单元测试
-
-* **As** 开发者，
-* **I want to** 用 TS 提供类型保证并增加 Jest 测试覆盖，
-* **so that** 代码更健壮、安全。
+#### Story 2.1：测试覆盖率提升
+**As** 开发团队，  
+**I want to** 提高测试覆盖率到 80%+，  
+**so that** 确保代码质量和功能稳定性。
 
 **Tasks**:
+1. 补充核心模块的单元测试
+2. 添加集成测试（拖拽+连线完整流程）
+3. 编写边界条件和错误处理测试
+4. 设置测试覆盖率门槛
 
-1. 全项目迁移为 TypeScript
-2. 编写核心模块单元测试（drag, connect, export/import）
-3. 配置 CI 运行 Jest 并通过所有测试
+#### Story 2.2：端到端测试
+**As** 用户，  
+**I want to** 确保完整的用户流程正常工作，  
+**so that** 获得稳定可靠的使用体验。
+
+**Tasks**:
+1. 使用 Playwright 或 Cypress 设置 E2E 测试
+2. 测试完整的拖拽创建流程
+3. 测试数据导入导出功能
+4. 测试移动端触控操作
+
+#### Story 2.3：性能基准建立
+**As** 开发者，  
+**I want to** 建立性能基准和监控，  
+**so that** 确保重构不影响性能。
+
+**Tasks**:
+1. 建立性能测试套件
+2. 测量关键操作的性能指标
+3. 设置性能回归检测
+4. 优化发现的性能瓶颈
 
 ---
 
-## ✅ Sprint3：React & Vue 组件封装（2 周）
+## ⚛️ Sprint 3：React 适配器开发（2 周）
 
-### 主题：提供主流前端栈支持
+### 主题：开发第一个框架适配器
 
-#### Story 3.1：React 集成组件
-
-* **As** React 开发者，
-* **I want to** 使用 `<FlowyReact />` 组件，并能通过 props 控制流程展示与交互，
-* **so that** 可无缝在 React 项目中集成。
-
-**Tasks**:
-
-1. 封装 React Hook 支持所有 API
-2. 支持 children 传入自定义节点内容
-3. 编写集成 Demo（CRA + Component）
-4. 编写 React 适配器单元测试
-
-#### Story 3.2：Vue 集成组件
-
-* **As** Vue 开发者，
-* **I want to** 使用 `<FlowyVue />` 同样方式集成，
-* **so that** Vue 项目也能轻松使用。
+#### Story 3.1：React 组件封装
+**As** React 开发者，  
+**I want to** 使用 `<Flowy />` 组件在 React 项目中集成流程图，  
+**so that** 可以无缝集成到 React 应用中。
 
 **Tasks**:
+1. 设计 React 组件 API 和 Props 接口
+2. 实现 React 组件和 Hooks
+3. 处理 React 生命周期和状态管理
+4. 添加 TypeScript 类型定义
 
-1. 封装 Vue Component（Composition API）
-2. Props 支持同 React 适配
-3. 编写 Vue Demo
-4. 添加 Vue 适配器单元测试
+#### Story 3.2：React 示例应用
+**As** React 开发者，  
+**I want to** 看到完整的 React 集成示例，  
+**so that** 可以快速了解如何在项目中使用。
+
+**Tasks**:
+1. 创建 Create React App 示例项目
+2. 实现常见使用场景（基础流程图、数据绑定）
+3. 添加样式定制示例
+4. 编写 React 集成文档
+
+#### Story 3.3：React 组件测试
+**As** 开发者，  
+**I want to** 确保 React 组件功能正确，  
+**so that** React 用户获得稳定的体验。
+
+**Tasks**:
+1. 编写 React 组件单元测试
+2. 测试 Props 传递和事件处理
+3. 测试组件生命周期
+4. 集成测试 React 示例应用
 
 ---
 
-## 📱 Sprint4：移动端优化 & 插件机制（2 周）
+## 🎨 Sprint 4：Vue 适配器与移动端优化（2 周）
 
-### 主题：提升 UX 并开放扩展能力
+### 主题：扩展框架支持和移动端体验
 
-#### Story 4.1：移动触控优化
-
-* **As** 用户，
-* **I want to** 可在移动端用手指拖拽/缩放/平移流程图，
-* **so that** 在手机/平板上也能流畅使用。
-
-**Tasks**:
-
-1. 引入触控事件（touchstart, touchmove, touchend）
-2. 实现双指缩放与容器平移
-3. 增加 CSS Media 适配样式
-4. 编写移动端 Demo 与测试
-
-#### Story 4.2：插件化机制设计
-
-* **As** 开发者，
-* **I want to** 注册自定义节点类型、钩子扩展 API，
-* **so that** 能丰富定制功能。
+#### Story 4.1：Vue 组件开发
+**As** Vue 开发者，  
+**I want to** 使用 Vue 组件集成流程图，  
+**so that** 可以在 Vue 项目中使用 Flowy。
 
 **Tasks**:
+1. 基于 Vue 3 Composition API 开发组件
+2. 实现响应式数据绑定
+3. 添加 TypeScript 支持
+4. 创建 Vue 示例项目
 
-1. 针对节点注册 plugin API
-2. 开放钩子 onNodeRender, onNodeClick...
-3. 编写插件示例
-4. 增加文档说明与测试
+#### Story 4.2：移动端体验优化
+**As** 移动端用户，  
+**I want to** 在手机和平板上流畅使用流程图，  
+**so that** 可以随时随地进行流程设计。
+
+**Tasks**:
+1. 优化触控手势处理
+2. 改进响应式布局
+3. 优化移动端性能
+4. 测试各种移动设备
+
+#### Story 4.3：跨平台兼容性
+**As** 用户，  
+**I want to** 在不同浏览器和设备上获得一致体验，  
+**so that** 不受平台限制。
+
+**Tasks**:
+1. 多浏览器兼容性测试
+2. 不同屏幕尺寸适配
+3. 性能基准对比
+4. 兼容性文档编写
 
 ---
 
-## 🤖 Sprint5：AI/Agent 特性 I（2 周）
+## 🔌 Sprint 5：插件机制设计（2 周）
 
-### 主题：引入 Agent 所需的结构化能力
+### 主题：建立可扩展的插件架构
 
-#### Story 5.1：节点输入/输出参数 UI
-
-* **As** 用户，
-* **I want to** 配置每个节点的参数输入/输出端口，
-* **so that** 能定义 Agent 的数据流。
-
-**Tasks**:
-
-1. 设计节点 schema（输入输出字段）
-2. 增加 UI 配置界面（右侧面板）
-3. 流程 JSON 中支持 IO 配置持久化
-4. 添加集成测试
-
-#### Story 5.2：状态持久化、恢复机制
-
-* **As** 用户，
-* **I want to** 保存流程当前状态并在页面重载后恢复，
-* **so that** 不用重新编辑流程。
+#### Story 5.1：插件系统架构
+**As** 开发者，  
+**I want to** 通过插件扩展 Flowy 功能，  
+**so that** 可以满足特定需求而不修改核心代码。
 
 **Tasks**:
+1. 设计插件注册和生命周期机制
+2. 实现事件系统和钩子函数
+3. 创建插件 API 接口
+4. 建立插件隔离机制
 
-1. 设计 runtime 状态模型
-2. 实现 saveState()/loadState()
-3. Demo 中实现自动保存功能
-4. 测试状态恢复能力
+#### Story 5.2：核心插件开发
+**As** 用户，  
+**I want to** 使用官方插件扩展功能，  
+**so that** 可以快速实现常见需求。
+
+**Tasks**:
+1. 开发自定义节点类型插件
+2. 开发主题系统插件
+3. 开发高级导入导出插件
+4. 开发调试工具插件
+
+#### Story 5.3：插件开发工具
+**As** 插件开发者，  
+**I want to** 有完整的开发工具和文档，  
+**so that** 可以高效开发高质量插件。
+
+**Tasks**:
+1. 创建插件模板生成器
+2. 开发插件调试工具
+3. 编写插件开发指南
+4. 建立插件示例库
 
 ---
 
-## 🧩 Sprint6：AI/Agent 特性 II（2 周）
+## 🤖 Sprint 6：AI/Agent 特性集成 I（2 周）
 
-### 主题：调试能力 + 与 Agent 框架集成
+### 主题：开始集成 AI/Agent 专用功能
 
-#### Story 6.1：可视化调试面板
-
-* **As** 用户，
-* **I want to** 点击执行中的节点查看输入/输出日志和状态，
-* **so that** 能调试 Agent 流程。
-
-**Tasks**:
-
-1. 调试面板 UI 设计
-2. 实现节点点击触发日志弹窗
-3. 支持流事件打印（start, success, error）
-4. 添加调试模式 Demo 与测试
-
-#### Story 6.2：Agent 框架集成示例
-
-* **As** 开发者，
-* **I want to** 在流程节点中调用 LangChain 或 OpenAI Function，
-* **so that** 能展示实际 Agent 工作模块。
+#### Story 6.1：节点参数配置系统
+**As** AI 开发者，  
+**I want to** 为每个节点配置输入输出参数，  
+**so that** 可以定义 Agent 的数据流。
 
 **Tasks**:
+1. 设计节点 Schema 定义格式
+2. 开发参数配置 UI 界面
+3. 实现数据类型验证
+4. 支持参数的持久化存储
 
-1. 插件或示例集成 LangChain chain 节点
-2. 示例流程：输入 -> LLM -> 输出
-3. Demo 文档说明与部署
-4. 验证流程运行正确，并加入测试
+#### Story 6.2：数据流管理
+**As** AI 开发者，  
+**I want to** 管理节点间的数据传递，  
+**so that** 可以构建复杂的 Agent 工作流。
+
+**Tasks**:
+1. 实现节点间数据传递机制
+2. 添加数据类型转换功能
+3. 实现数据流验证
+4. 支持异步数据处理
+
+#### Story 6.3：基础状态管理
+**As** AI 开发者，  
+**I want to** 追踪流程执行状态，  
+**so that** 可以监控和调试 Agent 行为。
+
+**Tasks**:
+1. 实现执行状态追踪
+2. 添加错误状态处理
+3. 支持状态持久化
+4. 创建状态查看界面
 
 ---
 
-## 📚 Sprint7：生态建设与文档（2 周）
+## 🔍 Sprint 7：可视化调试与监控（2 周）
 
-### 主题：开放使用、吸引社区贡献
+### 主题：提供强大的调试和监控能力
 
-#### Story 7.1：文档网站 + 示例中心
-
-* **As** 开发者/用户，
-* **I want to** 浏览完整文档和 Live Demo，
-* **so that** 快速上手并理解 API。
-
-**Tasks**:
-
-1. 构建 Docusaurus 或 VitePress 文档网站
-2. 添加 Getting Started、Installation、API、Adapters、Agent 示例章节
-3. 部署 Netlify/Vercel
-4. 撰写首次 Release Note
-
-#### Story 7.2：社区与版本节奏规范
-
-* **As** 项目维护者，
-* **I want to** 提供友好贡献流程、标签 policy、Discord/Slack 社区，
-* **so that** 吸引贡献，规范运维。
+#### Story 7.1：实时调试面板
+**As** AI 开发者，  
+**I want to** 实时查看流程执行状态和数据，  
+**so that** 可以快速定位和解决问题。
 
 **Tasks**:
+1. 开发实时状态监控面板
+2. 实现数据流可视化
+3. 添加性能指标显示
+4. 支持断点调试功能
 
-1. 编写 CONTRIBUTING.md、Code of Conduct
-2. 创建 `good-first-issue` 标签并发布首批 issue
-3. 搭建 Slack/Discord 社区空间
-4. 进行 v1.0 版本发布并公告
+#### Story 7.2：日志系统
+**As** AI 开发者，  
+**I want to** 查看详细的执行日志，  
+**so that** 可以分析 Agent 行为和性能。
+
+**Tasks**:
+1. 实现结构化日志记录
+2. 开发日志查看器界面
+3. 添加日志过滤和搜索
+4. 支持日志导出功能
+
+#### Story 7.3：开发者工具集成
+**As** 开发者，  
+**I want to** 使用专业的调试工具，  
+**so that** 可以高效进行开发和调试。
+
+**Tasks**:
+1. 开发浏览器扩展
+2. 提供调试 API 接口
+3. 集成性能分析工具
+4. 编写调试工具文档
 
 ---
 
-## 🔁 后续 Sprint ≥8：持续迭代（每 2 周）
+## 🌐 Sprint 8：生态建设与正式发布（2 周）
 
-* **Story**：根据社区和用户反馈，添加如流程自动布局、多端口支持、撤销重做、国际化等功能。
-* 每 Sprint 包含若干 Story，每个 Story 分解为具体 Tasks（参考前述模板《Practice Agile》）([reddit.com][1], [atlassian.com][2], [practiceagile.com][3], [reddit.com][4])。
+### 主题：完善生态系统，准备正式发布
+
+#### Story 8.1：官方网站建设
+**As** 用户和开发者，  
+**I want to** 访问完整的官方网站和文档，  
+**so that** 可以快速学习和使用 Flowy。
+
+**Tasks**:
+1. 使用 VitePress 构建文档网站
+2. 创建在线演示和示例
+3. 编写完整的使用指南
+4. 部署到 GitHub Pages 或 Netlify
+
+#### Story 8.2：NPM 包发布
+**As** 开发者，  
+**I want to** 通过 NPM 安装和使用 Flowy，  
+**so that** 可以方便地集成到项目中。
+
+**Tasks**:
+1. 配置 NPM 包构建和发布
+2. 设置语义化版本管理
+3. 编写安装和使用文档
+4. 发布 v1.0.0 正式版本
+
+#### Story 8.3：社区建设
+**As** 开源社区成员，  
+**I want to** 参与项目贡献和讨论，  
+**so that** 可以共同改进项目。
+
+**Tasks**:
+1. 设置 GitHub Issues 和 PR 模板
+2. 建立贡献者指南和行为准则
+3. 创建 Discord 或 Slack 社区
+4. 组织首次社区活动
 
 ---
 
-### 🧠 敏捷要点回顾
+## 📈 成功验收标准
 
-* **Story 模式：** `As a … I want to … so that …`&#x20;
-* **任务粒度：** 可拆解到 5h 以下任务，Sprint 可完成
-* **Definition of Done：** 包括实现、测试、文档、代码 review ([practiceagile.com][3])
-* **滚动式规划 + Review/Retro & Demo**：确保可持续、质量优先 
+### 每个 Sprint 的通用标准
+- **功能完整性**：所有用户故事的验收条件满足
+- **代码质量**：通过所有 CI 检查，测试覆盖率达标
+- **文档完整性**：相关功能有完整文档和示例
+- **性能标准**：不低于基准性能指标
+
+### 项目整体成功标准
+- **技术指标**：90%+ 测试覆盖率，TypeScript 严格模式
+- **用户体验**：Demo 应用流畅运行，API 易于使用
+- **社区反响**：GitHub Stars 增长，积极的用户反馈
+- **生态发展**：第三方插件出现，实际项目集成案例
+
+这个详细的 Sprint 计划基于当前代码库的实际状况，提供了可执行的任务分解和明确的验收标准，确保项目能够稳步向现代化的 AI/Agent 流程可视化引擎发展。
