@@ -1,4 +1,4 @@
-# Flowy 项目愿景 - 打造下一代 AI/Agent 流程可视化引擎
+# 00_PROJECT_OVERVIEW - Flowy 项目概览
 
 基于现有的 Flowy 流程图引擎，我们致力于将其发展为 AI/Agent 系统的核心 UI 组件。
 

@@ -1,4 +1,4 @@
-# Flowy 敏捷开发 Sprint 详细计划
+# 32_DEVELOPMENT_PLAN - Flowy 敏捷开发计划
 
 基于当前代码库现状的详细用户故事和任务分解，每个 Sprint 周期为 2 周。
 
