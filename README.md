@@ -1,4 +1,16 @@
+[简体中文 | Chinese README](./README.zh-CN.md)
+
 # Flowy (Forked by franksunye)
+
+<p align="left">
+  <a href="https://github.com/franksunye/flowy/stargazers"><img src="https://img.shields.io/github/stars/franksunye/flowy?style=social" alt="Stars"></a>
+  <a href="https://github.com/franksunye/flowy/network/members"><img src="https://img.shields.io/github/forks/franksunye/flowy?style=social" alt="Forks"></a>
+  <a href="https://github.com/franksunye/flowy/issues"><img src="https://img.shields.io/github/issues/franksunye/flowy" alt="Issues"></a>
+  <a href="https://github.com/franksunye/flowy/pulls"><img src="https://img.shields.io/github/issues-pr/franksunye/flowy" alt="Pull Requests"></a>
+  <a href="https://github.com/franksunye/flowy/blob/master/LICENSE"><img src="https://img.shields.io/github/license/franksunye/flowy" alt="License"></a>
+  <a href="https://github.com/franksunye/flowy"><img src="https://img.shields.io/github/last-commit/franksunye/flowy" alt="Last Commit"></a>
+  <a href="https://github.com/franksunye/flowy"><img src="https://img.shields.io/github/languages/top/franksunye/flowy" alt="Top Language"></a>
+</p>
 
 > A minimal JavaScript library to create flowcharts, with drag-and-drop, snapping, and more.
 
