@@ -1,3 +1,5 @@
+**🌐 [在线演示 Demo](https://franksunye.github.io/flowy/)**
+
 # Flowy（franksunye 维护分支）
 
 > 一个极简的 JavaScript 流程图引擎，支持拖拽、吸附、重排等功能。
