@@ -1,4 +1,4 @@
-**🌐 [在线演示 Demo](https://franksunye.github.io/flowy/)**
+**🌐 [在线演示 Demo](https://franksunye.github.io/flowy/demo/)**
 
 # Flowy（franksunye 维护分支）
 
