@@ -105,3 +105,21 @@ addEventListener("mousemove", checkTouch, false);
 addEventListener("mouseup", doneTouch, false);
 addEventListenerMulti("touchstart", beginTouch, false, ".block");
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    var closeBtn = document.getElementById('closecard');
+    var leftCard = document.getElementById('leftcard');
+    var openBtn = document.getElementById('opencard');
+    closeBtn.addEventListener('click', function() {
+        leftCard.classList.toggle('collapsed');
+        if(leftCard.classList.contains('collapsed')) {
+            openBtn.style.display = 'flex';
+        } else {
+            openBtn.style.display = 'none';
+        }
+    });
+    openBtn.addEventListener('click', function() {
+        leftCard.classList.remove('collapsed');
+        openBtn.style.display = 'none';
+    });
+});

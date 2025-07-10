@@ -628,6 +628,40 @@ body, html {
     box-shadow: 0px 4px 30px rgba(22, 33, 74, 0.08);
 }
 
+#leftcard.collapsed {
+    transform: translateX(-110%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.3s cubic-bezier(.05,.03,.35,1), opacity 0.3s cubic-bezier(.05,.03,.35,1);
+}
+#leftcard {
+    transition: transform 0.3s cubic-bezier(.05,.03,.35,1), opacity 0.3s cubic-bezier(.05,.03,.35,1);
+}
+#closecard {
+    cursor: pointer;
+}
+
+#opencard {
+    position: absolute;
+    top: 100px;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    background: #fff;
+    border: 1px solid #E8E8EF;
+    border-radius: 0 8px 8px 0;
+    box-shadow: 0px 2px 8px rgba(34,34,87,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 3;
+}
+#opencard img {
+    width: 24px;
+    height: 24px;
+}
+
 @media only screen and (max-width: 832px) {
     #centerswitch {
         display: none;
