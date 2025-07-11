@@ -72,7 +72,12 @@ export default class Flowy {
    * 添加节点
    */
   addNode(nodeConfig: Partial<FlowyNode>): string {
-    const id = nodeConfig.id || this.generateId();
+    let id = nodeConfig.id || this.generateId();
+
+    // 确保 ID 唯一
+    while (this.nodes.has(id)) {
+      id = this.generateId();
+    }
     const node: FlowyNode = {
       id,
       type: nodeConfig.type || 'default',

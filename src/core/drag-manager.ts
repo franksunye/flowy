@@ -100,12 +100,14 @@ export class DragManager {
 
   private handleDragStart(event: MouseEvent | TouchEvent): void {
     const target = event.target as HTMLElement;
-    const createFlowy = target.closest('.create-flowy') as HTMLElement;
+
+    // 安全地查找最近的元素
+    const createFlowy = this.findClosest(target, '.create-flowy');
 
     if (createFlowy) {
       this.startNewBlockDrag(createFlowy, event);
     } else {
-      const block = target.closest('.block') as HTMLElement;
+      const block = this.findClosest(target, '.block');
       if (block) {
         this.startBlockRearrange(block);
       }
@@ -292,6 +294,28 @@ export class DragManager {
       offsetY: 0,
       originalElement: null,
     };
+  }
+
+  /**
+   * 安全地查找最近的匹配元素
+   */
+  private findClosest(
+    element: HTMLElement,
+    selector: string
+  ): HTMLElement | null {
+    if (!element || typeof element.closest !== 'function') {
+      // 手动实现 closest 功能
+      let current: HTMLElement | null = element;
+      while (current && current.nodeType === Node.ELEMENT_NODE) {
+        if (current.matches && current.matches(selector)) {
+          return current;
+        }
+        current = current.parentElement;
+      }
+      return null;
+    }
+
+    return element.closest(selector) as HTMLElement | null;
   }
 
   // 公共方法

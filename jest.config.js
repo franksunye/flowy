@@ -5,6 +5,7 @@ module.exports = {
   // Test files
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/?(*.)+(spec|test).ts'],
+  testPathIgnorePatterns: ['<rootDir>/tests/e2e/'],
 
   // Module resolution
   moduleNameMapper: {
@@ -30,10 +31,10 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'html', 'json'],
   coverageThreshold: {
     global: {
-      branches: 55,
-      functions: 55,
-      lines: 55,
-      statements: 55,
+      branches: 78,
+      functions: 85,
+      lines: 85,
+      statements: 83,
     },
   },
 

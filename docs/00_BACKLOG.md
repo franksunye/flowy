@@ -4,9 +4,9 @@
 
 **Product Goal**: 将 Flowy 发展为 AI/Agent 生态系统的标准流程可视化引擎
 
-**Current Sprint**: Sprint 2 - 测试完善与质量保证
+**Current Sprint**: Sprint 3 - 拖拽功能实现
 **Sprint Duration**: 2 weeks
-**Team Velocity**: 21 story points (Sprint 0: 10, Sprint 1: 21)
+**Team Velocity**: 23 story points (Sprint 0: 10, Sprint 1: 21, Sprint 2: 23)
 
 ---
 
@@ -62,11 +62,11 @@
 
 **Sprint Goal**: 建立完整测试体系，确保代码质量
 
-| User Story                                                   | Story Points | Priority    | Acceptance Criteria                                     | Status   |
-| ------------------------------------------------------------ | ------------ | ----------- | ------------------------------------------------------- | -------- |
-| **US-007**: 作为开发者，我需要完整测试覆盖，以便确保代码质量 | 8            | Must Have   | ✅ 80%+ 测试覆盖率<br/>✅ 单元+集成测试<br/>✅ 测试报告 | 📋 Ready |
-| **US-008**: 作为用户，我需要端到端测试，以便确保功能完整     | 5            | Should Have | ✅ E2E 测试套件<br/>✅ 关键流程测试<br/>✅ 跨浏览器测试 | 📋 Ready |
-| **US-009**: 作为开发者，我需要性能基准，以便监控性能         | 3            | Could Have  | ✅ 性能测试套件<br/>✅ 基准指标<br/>✅ 回归检测         | 📋 Ready |
+| User Story                                                   | Story Points | Priority    | Acceptance Criteria                                     | Status  |
+| ------------------------------------------------------------ | ------------ | ----------- | ------------------------------------------------------- | ------- |
+| **US-007**: 作为开发者，我需要完整测试覆盖，以便确保代码质量 | 8            | Must Have   | ✅ 84%+ 测试覆盖率<br/>✅ 单元+集成测试<br/>✅ 测试报告 | ✅ Done |
+| **US-008**: 作为用户，我需要端到端测试，以便确保功能完整     | 5            | Should Have | ✅ E2E 测试套件<br/>✅ 关键流程测试<br/>✅ 跨浏览器测试 | ✅ Done |
+| **US-009**: 作为开发者，我需要性能基准，以便监控性能         | 3            | Could Have  | ✅ 性能测试套件<br/>✅ 基准指标<br/>✅ 回归检测         | ✅ Done |
 
 ### Epic 2: 框架生态支持
 

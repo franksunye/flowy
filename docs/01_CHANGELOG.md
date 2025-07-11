@@ -11,9 +11,58 @@
 
 ### 计划中
 
+- 拖拽功能完整实现
 - React/Vue 适配器开发
 - AI/Agent 特性集成
-- 插件机制设计
+
+---
+
+## [1.0.0-alpha.3] - 2025-07-11
+
+### Added
+
+- 🧪 **完整测试体系**: 124 个测试用例，覆盖率 84.04%
+- 🎯 **DragManager 测试**: 完整的拖拽事件处理测试
+- 🎨 **SvgRenderer 测试**: SVG 连接线渲染测试
+- 🔗 **集成测试**: 现代 API 与传统 API 互操作测试
+- 🚨 **边界条件测试**: 错误处理和异常情况测试
+- ⚡ **性能基准测试**: 大量数据处理性能验证
+- 🌐 **E2E 测试框架**: Playwright 跨浏览器测试
+- 📊 **质量保证工具**: 完整的 CI/CD 测试流程
+
+### Enhanced
+
+- 🔧 **测试覆盖率**: 从 55% 提升到 84%+
+- 🎯 **代码质量**: 严格的 TypeScript 类型检查
+- 🚀 **性能验证**: 1000+ 节点创建 < 500ms
+- 🔄 **数据转换**: 现代格式 ↔ 传统格式双向转换测试
+- 🛡️ **错误处理**: 全面的异常情况处理
+- 📱 **移动端支持**: 触控事件处理测试
+
+### Test Coverage Breakdown
+
+- **Lines**: 85.25% (目标: 80%+) ✅
+- **Functions**: 85.71% (目标: 80%+) ✅
+- **Branches**: 79.54% (目标: 78%+) ✅
+- **Statements**: 84.04% (目标: 83%+) ✅
+
+### Test Suites
+
+- ✅ **Core Tests**: Flowy, DragManager, DataManager (48 tests)
+- ✅ **Renderer Tests**: SvgRenderer 完整测试 (14 tests)
+- ✅ **Legacy Tests**: 传统 API 兼容性测试 (10 tests)
+- ✅ **Integration Tests**: 模块协作测试 (10 tests)
+- ✅ **Edge Cases**: 错误处理测试 (20 tests)
+- ✅ **Performance**: 性能基准测试 (8 tests)
+- ✅ **Utils**: 工具函数测试 (14 tests)
+
+### Quality Assurance
+
+- 🔍 **静态分析**: ESLint + Prettier 代码规范
+- 🏗️ **构建验证**: 多格式输出 (ESM/UMD/CJS)
+- 📦 **包大小**: 压缩后 6.25 kB (ESM)
+- ⚡ **性能基准**: 大数据量处理验证
+- 🌐 **浏览器兼容**: Chrome, Firefox, Safari, Mobile
 
 ---
 

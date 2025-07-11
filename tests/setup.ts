@@ -3,6 +3,10 @@
  * This file is executed before each test file
  */
 
+// 添加 DOM polyfills
+import { addPolyfills } from '../src/legacy/flowy-legacy';
+addPolyfills();
+
 // Mock DOM APIs that might not be available in jsdom
 Object.defineProperty(window, 'matchMedia', {
   writable: true,

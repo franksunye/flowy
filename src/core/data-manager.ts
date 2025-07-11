@@ -90,7 +90,7 @@ export class DataManager {
 
     // 转换块数据
     const blocks: BlockData[] = [];
-    if (data.blockarr) {
+    if (data.blockarr && Array.isArray(data.blockarr)) {
       data.blockarr.forEach(blockData => {
         blocks.push({
           id: blockData.id,
@@ -227,6 +227,8 @@ export class DataManager {
 
     // 检查是否为现代格式
     if (
+      data &&
+      typeof data === 'object' &&
       data.nodes &&
       Array.isArray(data.nodes) &&
       data.connections &&
@@ -260,7 +262,13 @@ export class DataManager {
     }
 
     // 检查是否为传统格式
-    if (data.html && data.blockarr && Array.isArray(data.blockarr)) {
+    if (
+      data &&
+      typeof data === 'object' &&
+      data.html &&
+      data.blockarr &&
+      Array.isArray(data.blockarr)
+    ) {
       // 验证块格式
       for (const block of data.blockarr) {
         if (
