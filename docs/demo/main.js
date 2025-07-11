@@ -1,9 +1,26 @@
 document.addEventListener("DOMContentLoaded", function(){
+    // 🎯 新架构 Demo - 展示 Sprint 3 完成的功能
     var rightcard = false;
     var tempblock;
     var tempblock2;
+
+    // 使用新架构的 Flowy 类
+    const modernFlowy = new Flowy.Flowy(document.getElementById("canvas"), {
+        spacing: { x: 20, y: 80 },
+        onGrab: drag,
+        onRelease: release,
+        onSnap: snapping
+    });
+
+    // 显示新功能介绍弹窗
+    setTimeout(() => {
+        document.getElementById("feature-modal").style.display = "flex";
+    }, 1000);
+
     document.getElementById("blocklist").innerHTML = '<div class="blockelem create-flowy noselect"><input type="hidden" name="blockelemtype" class="blockelemtype" value="1"><div class="grabme"><img src="assets/grabme.svg"></div><div class="blockin">                  <div class="blockico"><span></span><img src="assets/eye.svg"></div><div class="blocktext">                        <p class="blocktitle">New visitor</p><p class="blockdesc">Triggers when somebody visits a specified page</p>        </div></div></div><div class="blockelem create-flowy noselect"><input type="hidden" name="blockelemtype" class="blockelemtype" value="2"><div class="grabme"><img src="assets/grabme.svg"></div><div class="blockin">                    <div class="blockico"><span></span><img src="assets/action.svg"></div><div class="blocktext">                        <p class="blocktitle">Action is performed</p><p class="blockdesc">Triggers when somebody performs a specified action</p></div></div></div><div class="blockelem create-flowy noselect"><input type="hidden" name="blockelemtype" class="blockelemtype" value="3"><div class="grabme"><img src="assets/grabme.svg"></div><div class="blockin">                    <div class="blockico"><span></span><img src="assets/time.svg"></div><div class="blocktext">                        <p class="blocktitle">Time has passed</p><p class="blockdesc">Triggers after a specified amount of time</p>          </div></div></div><div class="blockelem create-flowy noselect"><input type="hidden" name="blockelemtype" class="blockelemtype" value="4"><div class="grabme"><img src="assets/grabme.svg"></div><div class="blockin">                    <div class="blockico"><span></span><img src="assets/error.svg"></div><div class="blocktext">                        <p class="blocktitle">Error prompt</p><p class="blockdesc">Triggers when a specified error happens</p>              </div></div></div>';
-    flowy(document.getElementById("canvas"), drag, release, snapping);
+
+    // 兼容旧的 flowy 函数调用（用于现有的 snapping 逻辑）
+    window.flowy = Flowy.flowy;
     function addEventListenerMulti(type, listener, capture, selector) {
         var nodes = document.querySelectorAll(selector);
         for (var i = 0; i < nodes.length; i++) {
@@ -122,4 +139,142 @@ document.addEventListener('DOMContentLoaded', function() {
         leftCard.classList.remove('collapsed');
         openBtn.style.display = 'none';
     });
+
+    // 🎯 新架构功能：撤销重做按钮
+    document.getElementById("undo").addEventListener("click", function() {
+        const result = modernFlowy.undo();
+        if (result) {
+            console.log("撤销操作:", result.description);
+            updateStatusPanel();
+        }
+    });
+
+    document.getElementById("redo").addEventListener("click", function() {
+        const result = modernFlowy.redo();
+        if (result) {
+            console.log("重做操作:", result.description);
+            updateStatusPanel();
+        }
+    });
+
+    // 🎯 新架构功能：数据导出
+    document.getElementById("export-data").addEventListener("click", function() {
+        const data = modernFlowy.export();
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'flowy-diagram.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        alert(`导出成功！\n节点数量: ${data.nodes.length}\n连接数量: ${data.connections.length}`);
+    });
+
+    // 🎯 新架构功能：数据导入
+    document.getElementById("import-data").addEventListener("click", function() {
+        document.getElementById("file-input").click();
+    });
+
+    document.getElementById("file-input").addEventListener("change", function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    modernFlowy.import(data);
+                    updateStatusPanel();
+                    alert(`导入成功！\n节点数量: ${data.nodes.length}\n连接数量: ${data.connections.length}`);
+                } catch (error) {
+                    alert("导入失败：文件格式不正确");
+                }
+            };
+            reader.readAsText(file);
+        }
+    });
+
+    // 🎯 新架构功能：键盘快捷键
+    document.addEventListener("keydown", function(e) {
+        if (e.ctrlKey || e.metaKey) {
+            if (e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById("undo").click();
+            } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
+                e.preventDefault();
+                document.getElementById("redo").click();
+            }
+        }
+    });
+
+    // 🎯 新架构功能：状态面板控制
+    document.getElementById("toggle-status").addEventListener("click", function() {
+        const content = document.querySelector(".status-content");
+        const toggle = document.getElementById("toggle-status");
+
+        if (content.classList.contains("collapsed")) {
+            content.classList.remove("collapsed");
+            toggle.textContent = "−";
+        } else {
+            content.classList.add("collapsed");
+            toggle.textContent = "+";
+        }
+    });
+
+    // 🎯 新架构功能：关闭弹窗
+    document.querySelector(".close").addEventListener("click", function() {
+        document.getElementById("feature-modal").style.display = "none";
+    });
+
+    document.getElementById("feature-modal").addEventListener("click", function(e) {
+        if (e.target === this) {
+            this.style.display = "none";
+        }
+    });
+
+    // 🎯 新架构功能：更新状态面板
+    function updateStatusPanel() {
+        const historyInfo = modernFlowy.getHistoryInfo();
+        const exportData = modernFlowy.export();
+
+        document.getElementById("history-count").textContent =
+            `${historyInfo.currentIndex + 1}/${historyInfo.maxSize}`;
+        document.getElementById("node-count").textContent = exportData.nodes.length;
+        document.getElementById("connection-count").textContent = exportData.connections.length;
+        document.getElementById("can-undo").textContent =
+            modernFlowy.getUndoDescription() ? "✅" : "❌";
+        document.getElementById("can-redo").textContent =
+            modernFlowy.getRedoDescription() ? "✅" : "❌";
+
+        // 更新按钮状态
+        const undoBtn = document.getElementById("undo");
+        const redoBtn = document.getElementById("redo");
+
+        if (modernFlowy.getUndoDescription()) {
+            undoBtn.classList.remove("disabled");
+            undoBtn.title = `撤销: ${modernFlowy.getUndoDescription()}`;
+        } else {
+            undoBtn.classList.add("disabled");
+            undoBtn.title = "没有可撤销的操作";
+        }
+
+        if (modernFlowy.getRedoDescription()) {
+            redoBtn.classList.remove("disabled");
+            redoBtn.title = `重做: ${modernFlowy.getRedoDescription()}`;
+        } else {
+            redoBtn.classList.add("disabled");
+            redoBtn.title = "没有可重做的操作";
+        }
+    }
+
+    // 🎯 新架构功能：监听数据变化
+    modernFlowy.on('node:add', updateStatusPanel);
+    modernFlowy.on('node:remove', updateStatusPanel);
+    modernFlowy.on('connection:add', updateStatusPanel);
+    modernFlowy.on('connection:remove', updateStatusPanel);
+
+    // 初始化状态面板
+    updateStatusPanel();
 });
