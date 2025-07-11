@@ -60,6 +60,7 @@ describe('Flowy', () => {
       expect(node?.x).toBe(100);
       expect(node?.y).toBe(200);
       expect(node?.data?.['name']).toBe('Test Node');
+      expect(node?.childwidth).toBe(0);
     });
 
     it('应该能够移除节点', () => {

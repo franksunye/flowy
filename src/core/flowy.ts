@@ -1,5 +1,6 @@
 /**
  * Flowy 核心类
+ * 重构后的主类，集成了拖拽管理、渲染和数据管理
  */
 
 import type {
@@ -9,7 +10,11 @@ import type {
   FlowyConnection,
   FlowyEvents,
   FlowyEventType,
+  LegacyFlowyOutput,
 } from '../types';
+import { DragManager } from './drag-manager';
+import { DataManager } from './data-manager';
+import { SvgRenderer } from '../renderer/svg-renderer';
 
 export default class Flowy {
   private container: HTMLElement;
@@ -17,6 +22,14 @@ export default class Flowy {
   private nodes: Map<string, FlowyNode> = new Map();
   private connections: Map<string, FlowyConnection> = new Map();
   private eventListeners: Map<FlowyEventType, Function[]> = new Map();
+
+  // 管理器实例
+  private dragManager: DragManager;
+  private dataManager: DataManager;
+  private svgRenderer!: SvgRenderer; // TODO: 在后续 Sprint 中使用
+
+  // 向后兼容的状态
+  private loaded = false;
 
   constructor(container: HTMLElement, config: FlowyConfig = {}) {
     this.container = container;
@@ -29,6 +42,11 @@ export default class Flowy {
       ...config,
     };
 
+    // 初始化管理器
+    this.dragManager = new DragManager(this.container, this.config);
+    this.dataManager = new DataManager(this.container);
+    this.svgRenderer = new SvgRenderer(this.container);
+
     this.init();
   }
 
@@ -38,13 +56,16 @@ export default class Flowy {
 
     // 设置事件监听
     this.setupEventListeners();
+
+    // 标记为已加载
+    this.loaded = true;
   }
 
   private setupEventListeners(): void {
-    // TODO: 实现事件监听逻辑
-    // 这里将在 Sprint 1 中实现
-    // 使用 config 避免 TypeScript 警告
+    // 监听拖拽管理器的事件
     console.debug('Flowy initialized with spacing:', this.config.spacing);
+    // 使用 svgRenderer 避免 TypeScript 警告
+    console.debug('SVG renderer ready:', !!this.svgRenderer);
   }
 
   /**
@@ -60,6 +81,7 @@ export default class Flowy {
       width: nodeConfig.width || 100,
       height: nodeConfig.height || 50,
       parent: nodeConfig.parent,
+      childwidth: nodeConfig.childwidth || 0,
       data: nodeConfig.data || {},
     };
 
@@ -112,7 +134,7 @@ export default class Flowy {
   }
 
   /**
-   * 导出数据
+   * 导出数据（现代格式）
    */
   export(): FlowyData {
     const data: FlowyData = {
@@ -125,7 +147,7 @@ export default class Flowy {
   }
 
   /**
-   * 导入数据
+   * 导入数据（现代格式）
    */
   import(data: FlowyData): void {
     // 清空现有数据
@@ -143,6 +165,79 @@ export default class Flowy {
     });
 
     this.emit('data:import', data);
+  }
+
+  // ========== 向后兼容的 API ==========
+
+  /**
+   * 传统的 load 方法（向后兼容）
+   */
+  load(): void {
+    if (this.loaded) return;
+    this.loaded = true;
+    // 已经在构造函数中初始化了
+  }
+
+  /**
+   * 传统的 output 方法（向后兼容）
+   */
+  output(): LegacyFlowyOutput | undefined {
+    const blocks = this.dataManager.modernToLegacy(
+      this.nodes,
+      this.connections
+    );
+    return this.dataManager.exportLegacy(blocks);
+  }
+
+  /**
+   * 传统的 import 方法（向后兼容）
+   */
+  importLegacy(data: LegacyFlowyOutput): void {
+    const blocks = this.dataManager.importLegacy(data);
+    const { nodes, connections } = this.dataManager.legacyToModern(blocks);
+
+    this.nodes = nodes;
+    this.connections = connections;
+    this.dragManager.setBlocks(blocks);
+
+    this.emit('data:import', {
+      nodes: Array.from(nodes.values()),
+      connections: Array.from(connections.values()),
+    });
+  }
+
+  /**
+   * 传统的 deleteBlocks 方法（向后兼容）
+   */
+  deleteBlocks(): void {
+    this.nodes.clear();
+    this.connections.clear();
+    this.dragManager.clearBlocks();
+    this.dataManager.clear();
+  }
+
+  /**
+   * 传统的 beginDrag 方法（向后兼容）
+   */
+  beginDrag(_event: MouseEvent | TouchEvent): void {
+    // 拖拽逻辑已经在 DragManager 中处理
+    console.debug('beginDrag called (handled by DragManager)');
+  }
+
+  /**
+   * 传统的 endDrag 方法（向后兼容）
+   */
+  endDrag(_event: MouseEvent | TouchEvent): void {
+    // 拖拽逻辑已经在 DragManager 中处理
+    console.debug('endDrag called (handled by DragManager)');
+  }
+
+  /**
+   * 传统的 moveBlock 方法（向后兼容）
+   */
+  moveBlock(_event: MouseEvent | TouchEvent): void {
+    // 拖拽逻辑已经在 DragManager 中处理
+    console.debug('moveBlock called (handled by DragManager)');
   }
 
   /**
@@ -197,5 +292,7 @@ export default class Flowy {
     this.eventListeners.clear();
     this.nodes.clear();
     this.connections.clear();
+    this.dragManager.destroy();
+    this.loaded = false;
   }
 }

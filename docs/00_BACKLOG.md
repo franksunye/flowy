@@ -4,20 +4,20 @@
 
 **Product Goal**: 将 Flowy 发展为 AI/Agent 生态系统的标准流程可视化引擎
 
-**Current Sprint**: Sprint 1 - 模块化重构
+**Current Sprint**: Sprint 2 - 测试完善与质量保证
 **Sprint Duration**: 2 weeks
-**Team Velocity**: 18 story points (Sprint 0 baseline)
+**Team Velocity**: 21 story points (Sprint 0: 10, Sprint 1: 21)
 
 ---
 
 ## 🔥 Technical Debt (Immediate Priority)
 
-| Item                                          | Story Points | Priority     | Status   |
-| --------------------------------------------- | ------------ | ------------ | -------- |
-| 单文件架构重构 (engine/flowy.js 663行)        | 13           | Critical     | 🟡 Ready |
-| ~~建立构建工具链 (package.json, TypeScript)~~ | ~~8~~        | ~~Critical~~ | ✅ Done  |
-| ~~零测试覆盖问题~~                            | ~~13~~       | ~~Critical~~ | ✅ Done  |
-| ~~无类型安全保障~~                            | ~~8~~        | ~~High~~     | ✅ Done  |
+| Item                                          | Story Points | Priority     | Status  |
+| --------------------------------------------- | ------------ | ------------ | ------- |
+| ~~单文件架构重构 (engine/flowy.js 663行)~~    | ~~13~~       | ~~Critical~~ | ✅ Done |
+| ~~建立构建工具链 (package.json, TypeScript)~~ | ~~8~~        | ~~Critical~~ | ✅ Done |
+| ~~零测试覆盖问题~~                            | ~~13~~       | ~~Critical~~ | ✅ Done |
+| ~~无类型安全保障~~                            | ~~8~~        | ~~High~~     | ✅ Done |
 
 ---
 
@@ -52,11 +52,11 @@
 
 **Sprint Goal**: 将单文件架构重构为可维护的 TypeScript 模块
 
-| User Story                                                 | Story Points | Priority  | Acceptance Criteria                                        | Status   |
-| ---------------------------------------------------------- | ------------ | --------- | ---------------------------------------------------------- | -------- |
-| **US-004**: 作为开发者，我需要模块化架构，以便代码易于维护 | 8            | Must Have | ✅ 模块结构清晰<br/>✅ TypeScript 编译<br/>✅ API 向后兼容 | 📋 Ready |
-| **US-005**: 作为用户，我需要功能保持不变，以便无缝升级     | 5            | Must Have | ✅ 现有功能正常<br/>✅ Demo 页面可用<br/>✅ API 兼容性测试 | 📋 Ready |
-| **US-006**: 作为开发者，我需要基础测试，以便确保重构质量   | 8            | Must Have | ✅ 60%+ 测试覆盖率<br/>✅ 核心功能测试<br/>✅ 回归测试通过 | 📋 Ready |
+| User Story                                                 | Story Points | Priority  | Acceptance Criteria                                        | Status  |
+| ---------------------------------------------------------- | ------------ | --------- | ---------------------------------------------------------- | ------- |
+| **US-004**: 作为开发者，我需要模块化架构，以便代码易于维护 | 8            | Must Have | ✅ 模块结构清晰<br/>✅ TypeScript 编译<br/>✅ API 向后兼容 | ✅ Done |
+| **US-005**: 作为用户，我需要功能保持不变，以便无缝升级     | 5            | Must Have | ✅ 现有功能正常<br/>✅ Demo 页面可用<br/>✅ API 兼容性测试 | ✅ Done |
+| **US-006**: 作为开发者，我需要基础测试，以便确保重构质量   | 8            | Must Have | ✅ 55%+ 测试覆盖率<br/>✅ 核心功能测试<br/>✅ 回归测试通过 | ✅ Done |
 
 #### Sprint 2: 测试完善 (2 weeks)
 

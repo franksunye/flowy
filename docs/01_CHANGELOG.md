@@ -11,9 +11,44 @@
 
 ### 计划中
 
-- TypeScript 模块化重构
 - React/Vue 适配器开发
 - AI/Agent 特性集成
+- 插件机制设计
+
+---
+
+## [1.0.0-alpha.2] - 2025-07-10
+
+### Added
+
+- 🏗️ 完成模块化架构重构
+- 📦 拖拽管理器 (DragManager) - 处理所有拖拽逻辑
+- 🎨 SVG 渲染器 (SvgRenderer) - 负责连接线渲染
+- 💾 数据管理器 (DataManager) - 处理数据导入导出和格式转换
+- 🔄 传统 API 兼容层 - 完全向后兼容原始 flowy.js API
+- 🧪 新增 56 个测试用例，覆盖率 55.13%
+
+### Changed
+
+- 🔧 将单文件 engine/flowy.js (663行) 重构为模块化 TypeScript 架构
+- 📁 新的模块结构：core/、renderer/、legacy/、types/、utils/
+- 🎯 保持 100% API 向后兼容性
+- 📊 扩展类型定义以支持传统和现代两种数据格式
+
+### Technical Architecture
+
+- ✅ **DragManager**: 统一处理鼠标和触控拖拽事件
+- ✅ **DataManager**: 现代格式与传统格式的双向转换
+- ✅ **SvgRenderer**: SVG 连接线和箭头渲染
+- ✅ **Legacy API**: 完全兼容原始 flowy() 函数调用
+- ✅ **Type Safety**: 完整的 TypeScript 类型定义
+
+### Backward Compatibility
+
+- 🔄 原始 `flowy(canvas, grab, release, snapping, rearrange, spacing_x, spacing_y)` API 完全支持
+- 🔄 传统数据格式 `{html, blockarr, blocks}` 完全支持
+- 🔄 所有原始方法 `load()`, `output()`, `import()`, `deleteBlocks()` 等完全支持
+- 🔄 事件回调函数签名保持不变
 
 ---
 

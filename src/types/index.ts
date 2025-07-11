@@ -11,8 +11,8 @@ export interface FlowyConfig {
   onRelease?: () => void;
   onSnap?: (
     drag: HTMLElement,
-    first: HTMLElement,
-    parent: HTMLElement
+    first: boolean,
+    parent: HTMLElement | undefined
   ) => boolean;
   onRearrange?: (block: HTMLElement, parent: HTMLElement) => boolean;
 }
@@ -25,6 +25,7 @@ export interface FlowyNode {
   width: number;
   height: number;
   parent?: string;
+  childwidth?: number;
   data?: Record<string, any>;
 }
 
@@ -41,6 +42,7 @@ export interface FlowyData {
   connections: FlowyConnection[];
   html?: string;
   blockarr?: any[]; // 向后兼容
+  blocks?: any[]; // 向后兼容
 }
 
 export interface FlowyEvents {
@@ -54,3 +56,39 @@ export interface FlowyEvents {
 }
 
 export type FlowyEventType = keyof FlowyEvents;
+
+// 内部使用的类型
+export interface DragState {
+  active: boolean;
+  element: HTMLElement | null;
+  offsetX: number;
+  offsetY: number;
+  originalElement: HTMLElement | null;
+}
+
+export interface MousePosition {
+  x: number;
+  y: number;
+}
+
+export interface BlockData {
+  id: number;
+  parent: number;
+  childwidth: number;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+// 向后兼容的接口
+export interface LegacyFlowyOutput {
+  html: string;
+  blockarr: BlockData[];
+  blocks: Array<{
+    id: number;
+    parent: number;
+    data: Array<{ name: string; value: string }>;
+    attr: Array<Record<string, string>>;
+  }>;
+}
