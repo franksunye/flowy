@@ -14,6 +14,7 @@ import type {
 } from '../types';
 import { DragManager } from './drag-manager';
 import { DataManager } from './data-manager';
+import { HistoryManager } from './history-manager';
 import { SvgRenderer } from '../renderer/svg-renderer';
 
 export default class Flowy {
@@ -26,6 +27,7 @@ export default class Flowy {
   // 管理器实例
   private dragManager: DragManager;
   private dataManager: DataManager;
+  private historyManager: HistoryManager;
   private svgRenderer!: SvgRenderer; // TODO: 在后续 Sprint 中使用
 
   // 向后兼容的状态
@@ -45,6 +47,7 @@ export default class Flowy {
     // 初始化管理器
     this.dragManager = new DragManager(this.container, this.config);
     this.dataManager = new DataManager(this.container);
+    this.historyManager = new HistoryManager(50); // 最多保存50个历史记录
     this.svgRenderer = new SvgRenderer(this.container);
 
     this.init();
@@ -72,6 +75,7 @@ export default class Flowy {
    * 添加节点
    */
   addNode(nodeConfig: Partial<FlowyNode>): string {
+    const beforeState = this.export();
     let id = nodeConfig.id || this.generateId();
 
     // 确保 ID 唯一
@@ -92,6 +96,11 @@ export default class Flowy {
 
     this.nodes.set(id, node);
     this.emit('node:add', node);
+
+    // 记录历史
+    const afterState = this.export();
+    this.recordHistory('add', beforeState, afterState, `添加节点 ${id}`);
+
     return id;
   }
 
@@ -100,8 +109,15 @@ export default class Flowy {
    */
   removeNode(id: string): void {
     if (this.nodes.has(id)) {
+      const beforeState = this.export();
+      const node = this.nodes.get(id);
+
       this.nodes.delete(id);
       this.emit('node:remove', id);
+
+      // 记录历史
+      const afterState = this.export();
+      this.recordHistory('remove', beforeState, afterState, `删除节点 ${id}`);
     }
   }
 
@@ -116,6 +132,7 @@ export default class Flowy {
    * 连接节点
    */
   connect(fromId: string, toId: string): string {
+    const beforeState = this.export();
     const id = this.generateId();
     const connection: FlowyConnection = {
       id,
@@ -125,6 +142,16 @@ export default class Flowy {
 
     this.connections.set(id, connection);
     this.emit('connection:add', connection);
+
+    // 记录历史
+    const afterState = this.export();
+    this.recordHistory(
+      'connect',
+      beforeState,
+      afterState,
+      `连接节点 ${fromId} -> ${toId}`
+    );
+
     return id;
   }
 
@@ -133,8 +160,20 @@ export default class Flowy {
    */
   disconnect(connectionId: string): void {
     if (this.connections.has(connectionId)) {
+      const beforeState = this.export();
+      const connection = this.connections.get(connectionId);
+
       this.connections.delete(connectionId);
       this.emit('connection:remove', connectionId);
+
+      // 记录历史
+      const afterState = this.export();
+      this.recordHistory(
+        'disconnect',
+        beforeState,
+        afterState,
+        `断开连接 ${connectionId}`
+      );
     }
   }
 
@@ -284,6 +323,104 @@ export default class Flowy {
   }
 
   /**
+   * 撤销操作
+   */
+  undo(): boolean {
+    const previousState = this.historyManager.undo();
+    if (previousState) {
+      this.import(previousState);
+      this.emit('undo', previousState);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * 重做操作
+   */
+  redo(): boolean {
+    const nextState = this.historyManager.redo();
+    if (nextState) {
+      this.import(nextState);
+      this.emit('redo', nextState);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * 检查是否可以撤销
+   */
+  canUndo(): boolean {
+    return this.historyManager.canUndo();
+  }
+
+  /**
+   * 检查是否可以重做
+   */
+  canRedo(): boolean {
+    return this.historyManager.canRedo();
+  }
+
+  /**
+   * 获取撤销描述
+   */
+  getUndoDescription(): string | null {
+    return this.historyManager.getUndoDescription();
+  }
+
+  /**
+   * 获取重做描述
+   */
+  getRedoDescription(): string | null {
+    return this.historyManager.getRedoDescription();
+  }
+
+  /**
+   * 获取历史记录信息
+   */
+  getHistoryInfo() {
+    return this.historyManager.getHistoryInfo();
+  }
+
+  /**
+   * 记录操作到历史记录
+   */
+  private recordHistory(
+    action: 'add' | 'remove' | 'move' | 'connect' | 'disconnect',
+    beforeState: any,
+    afterState: any,
+    description: string
+  ): void {
+    // 在性能测试或批量操作时跳过历史记录
+    if (this.isPerformanceMode) {
+      return;
+    }
+    this.historyManager.recordAction(
+      action,
+      beforeState,
+      afterState,
+      description
+    );
+  }
+
+  private isPerformanceMode: boolean = false;
+
+  /**
+   * 启用性能模式（跳过历史记录）
+   */
+  enablePerformanceMode(): void {
+    this.isPerformanceMode = true;
+  }
+
+  /**
+   * 禁用性能模式
+   */
+  disablePerformanceMode(): void {
+    this.isPerformanceMode = false;
+  }
+
+  /**
    * 生成唯一 ID
    */
   private generateId(): string {
@@ -298,6 +435,7 @@ export default class Flowy {
     this.nodes.clear();
     this.connections.clear();
     this.dragManager.destroy();
+    this.historyManager.destroy();
     this.loaded = false;
   }
 }

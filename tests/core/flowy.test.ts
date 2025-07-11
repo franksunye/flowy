@@ -221,6 +221,80 @@ describe('Flowy', () => {
     });
   });
 
+  describe('撤销重做功能', () => {
+    it('应该能够撤销添加节点操作', () => {
+      const initialState = flowy.export();
+      const nodeId = flowy.addNode({ x: 100, y: 100 });
+
+      expect(flowy.export().nodes).toHaveLength(1);
+      expect(flowy.canUndo()).toBe(true);
+
+      const undoResult = flowy.undo();
+      expect(undoResult).toBe(true);
+      expect(flowy.export().nodes).toHaveLength(0);
+    });
+
+    it('应该能够重做添加节点操作', () => {
+      const nodeId = flowy.addNode({ x: 100, y: 100 });
+      flowy.undo();
+
+      expect(flowy.canRedo()).toBe(true);
+
+      const redoResult = flowy.redo();
+      expect(redoResult).toBe(true);
+      expect(flowy.export().nodes).toHaveLength(1);
+    });
+
+    it('应该能够撤销删除节点操作', () => {
+      const nodeId = flowy.addNode({ x: 100, y: 100 });
+      flowy.removeNode(nodeId);
+
+      expect(flowy.export().nodes).toHaveLength(0);
+      expect(flowy.canUndo()).toBe(true);
+
+      flowy.undo();
+      expect(flowy.export().nodes).toHaveLength(1);
+    });
+
+    it('应该能够撤销连接操作', () => {
+      const node1Id = flowy.addNode({ x: 100, y: 100 });
+      const node2Id = flowy.addNode({ x: 200, y: 200 });
+      const connectionId = flowy.connect(node1Id, node2Id);
+
+      expect(flowy.export().connections).toHaveLength(1);
+
+      flowy.undo();
+      expect(flowy.export().connections).toHaveLength(0);
+    });
+
+    it('应该能够获取撤销重做描述', () => {
+      const nodeId = flowy.addNode({ x: 100, y: 100 });
+
+      const undoDesc = flowy.getUndoDescription();
+      expect(undoDesc).toContain('添加节点');
+
+      flowy.undo();
+      const redoDesc = flowy.getRedoDescription();
+      expect(redoDesc).toContain('添加节点');
+    });
+
+    it('应该能够获取历史记录信息', () => {
+      flowy.addNode({ x: 100, y: 100 });
+
+      const historyInfo = flowy.getHistoryInfo();
+      expect(historyInfo.canUndo).toBe(true);
+      expect(historyInfo.canRedo).toBe(false);
+      expect(historyInfo.totalEntries).toBe(1);
+    });
+
+    it('应该在没有历史记录时正确处理', () => {
+      expect(flowy.canUndo()).toBe(false);
+      expect(flowy.canRedo()).toBe(false);
+      expect(flowy.undo()).toBe(false);
+      expect(flowy.redo()).toBe(false);
+    });
+  });
+
   describe('销毁', () => {
     it('应该能够正确销毁实例', () => {
       const mockCallback = jest.fn();

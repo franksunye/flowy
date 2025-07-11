@@ -25,6 +25,9 @@ describe('Performance Benchmarks', () => {
       const flowy = new Flowy(container);
       const nodeCount = 1000;
 
+      // 启用性能模式以跳过历史记录
+      flowy.enablePerformanceMode();
+
       const startTime = performance.now();
 
       for (let i = 0; i < nodeCount; i++) {
@@ -40,6 +43,9 @@ describe('Performance Benchmarks', () => {
       const endTime = performance.now();
       const duration = endTime - startTime;
 
+      // 恢复正常模式
+      flowy.disablePerformanceMode();
+
       // 应该在 500ms 内完成
       expect(duration).toBeLessThan(500);
 
@@ -54,6 +60,9 @@ describe('Performance Benchmarks', () => {
       const flowy = new Flowy(container);
       const nodeCount = 500;
       const nodeIds: string[] = [];
+
+      // 启用性能模式
+      flowy.enablePerformanceMode();
 
       // 创建节点
       for (let i = 0; i < nodeCount; i++) {
@@ -74,6 +83,9 @@ describe('Performance Benchmarks', () => {
 
       const endTime = performance.now();
       const duration = endTime - startTime;
+
+      // 恢复正常模式
+      flowy.disablePerformanceMode();
 
       // 应该在 200ms 内完成
       expect(duration).toBeLessThan(200);

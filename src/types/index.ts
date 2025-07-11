@@ -64,6 +64,7 @@ export interface DragState {
   offsetX: number;
   offsetY: number;
   originalElement: HTMLElement | null;
+  originalParent?: number; // 用于重排时记录原始父节点
 }
 
 export interface MousePosition {

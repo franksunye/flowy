@@ -17,6 +17,7 @@ export class DragManager {
   private dragState: DragState;
   private mousePosition: MousePosition;
   private blocks: BlockData[] = [];
+  private tempBlocks: BlockData[] = []; // 临时存储被拖拽的块和子块
   private indicator!: HTMLElement;
 
   constructor(container: HTMLElement, config: Required<FlowyConfig>) {
@@ -151,8 +152,53 @@ export class DragManager {
   }
 
   private startBlockRearrange(block: HTMLElement): void {
-    // TODO: 实现块重排逻辑
-    console.debug('Block rearrange started:', block);
+    // 设置重排状态
+    this.dragState.element = block;
+    this.dragState.active = true;
+    this.dragState.originalElement = null; // 重排时没有原始元素
+
+    // 获取被拖拽块的 ID
+    const blockIdElement = block.querySelector('.blockid') as HTMLInputElement;
+    if (!blockIdElement) return;
+
+    const blockId = parseInt(blockIdElement.value);
+    const draggedBlock = this.blocks.find(b => b.id === blockId);
+    if (!draggedBlock) return;
+
+    // 保存原始父节点（用于撤销）
+    this.dragState.originalParent = draggedBlock.parent;
+
+    // 计算拖拽偏移
+    const rect = block.getBoundingClientRect();
+    this.dragState.offsetX =
+      this.mousePosition.x - (rect.left + window.scrollX);
+    this.dragState.offsetY = this.mousePosition.y - (rect.top + window.scrollY);
+
+    // 添加拖拽样式
+    block.classList.add('dragging');
+
+    // 从主数组中移除被拖拽的块（临时）
+    this.tempBlocks = [draggedBlock];
+    this.blocks = this.blocks.filter(b => b.id !== blockId);
+
+    // 移除原有的箭头连接
+    if (blockId !== 0) {
+      const arrow = this.container.querySelector(
+        `.arrowid[value="${blockId}"]`
+      );
+      if (arrow && arrow.parentNode) {
+        arrow.parentNode.remove();
+      }
+    }
+
+    // 处理子节点 - 递归收集所有子节点
+    this.collectChildBlocks(blockId);
+
+    // 将子节点DOM元素相对定位到拖拽元素
+    this.attachChildElementsToDragElement(block);
+
+    // 触发回调
+    this.config.onGrab(block);
   }
 
   private handleDragMove(): void {
@@ -165,11 +211,55 @@ export class DragManager {
   private updateDragElementPosition(): void {
     if (!this.dragState.element) return;
 
-    const x = this.mousePosition.x - this.dragState.offsetX;
-    const y = this.mousePosition.y - this.dragState.offsetY;
+    const isRearranging = this.tempBlocks.length > 0;
 
-    this.dragState.element.style.left = `${x}px`;
-    this.dragState.element.style.top = `${y}px`;
+    if (isRearranging) {
+      // 重排模式：相对于画布定位
+      const canvasRect = this.container.getBoundingClientRect();
+      const x =
+        this.mousePosition.x -
+        this.dragState.offsetX -
+        (window.scrollX + canvasRect.left) +
+        this.container.scrollLeft;
+      const y =
+        this.mousePosition.y -
+        this.dragState.offsetY -
+        (window.scrollY + canvasRect.top) +
+        this.container.scrollTop;
+
+      this.dragState.element.style.left = `${x}px`;
+      this.dragState.element.style.top = `${y}px`;
+
+      // 更新临时块数据中的位置
+      const draggedBlockId = parseInt(
+        this.dragState.element
+          .querySelector('.blockid')
+          ?.getAttribute('value') || '0'
+      );
+      const draggedBlock = this.tempBlocks.find(b => b.id === draggedBlockId);
+      if (draggedBlock) {
+        const rect = this.dragState.element.getBoundingClientRect();
+        draggedBlock.x =
+          rect.left +
+          window.scrollX +
+          this.dragState.element.offsetWidth / 2 +
+          this.container.scrollLeft -
+          canvasRect.left;
+        draggedBlock.y =
+          rect.top +
+          window.scrollY +
+          this.dragState.element.offsetHeight / 2 +
+          this.container.scrollTop -
+          canvasRect.top;
+      }
+    } else {
+      // 创建模式：绝对定位
+      const x = this.mousePosition.x - this.dragState.offsetX;
+      const y = this.mousePosition.y - this.dragState.offsetY;
+
+      this.dragState.element.style.left = `${x}px`;
+      this.dragState.element.style.top = `${y}px`;
+    }
   }
 
   private updateIndicator(): void {
@@ -269,9 +359,46 @@ export class DragManager {
   }
 
   private dropSubsequentBlock(blockId: number): void {
-    // TODO: 实现后续块的放置逻辑
+    if (!this.dragState.element) return;
+
+    const isRearranging = this.tempBlocks.length > 0;
+
     // 检查是否可以附加到现有块
-    console.debug('Dropping subsequent block:', blockId);
+    const targetBlockId = this.findAttachableBlock();
+
+    if (targetBlockId !== null) {
+      // 可以附加到目标块
+      if (
+        this.config.onSnap(
+          this.dragState.element,
+          false,
+          this.container.querySelector(`.blockid[value="${targetBlockId}"]`)
+            ?.parentNode as HTMLElement
+        )
+      ) {
+        this.attachToBlock(targetBlockId, isRearranging);
+      } else {
+        // 快照回调拒绝，移除块
+        this.removeBlock();
+      }
+    } else if (isRearranging) {
+      // 重排模式下，检查是否可以恢复到原位置
+      if (
+        this.dragState.originalParent !== undefined &&
+        this.config.onRearrange(
+          this.dragState.element,
+          this.blocks.find(b => b.id === this.dragState.originalParent)
+        )
+      ) {
+        this.restoreToOriginalPosition();
+      } else {
+        // 无法恢复，移除块
+        this.removeBlock();
+      }
+    } else {
+      // 创建模式下无法附加，移除块
+      this.removeBlock();
+    }
   }
 
   private removeBlock(): void {
@@ -287,13 +414,79 @@ export class DragManager {
   }
 
   private resetDragState(): void {
+    if (this.dragState.element) {
+      this.dragState.element.classList.remove('dragging');
+    }
+
     this.dragState = {
       active: false,
       element: null,
       offsetX: 0,
       offsetY: 0,
       originalElement: null,
+      originalParent: undefined,
     };
+
+    // 清理临时块数据
+    this.tempBlocks = [];
+  }
+
+  /**
+   * 递归收集所有子节点
+   */
+  private collectChildBlocks(parentId: number): void {
+    const childBlocks = this.blocks.filter(b => b.parent === parentId);
+
+    for (const child of childBlocks) {
+      // 添加到临时数组
+      this.tempBlocks.push(child);
+
+      // 从主数组中移除
+      this.blocks = this.blocks.filter(b => b.id !== child.id);
+
+      // 递归收集子节点的子节点
+      this.collectChildBlocks(child.id);
+    }
+  }
+
+  /**
+   * 将子节点DOM元素附加到拖拽元素上
+   */
+  private attachChildElementsToDragElement(dragElement: HTMLElement): void {
+    for (const block of this.tempBlocks) {
+      if (
+        block.id ===
+        parseInt(
+          dragElement.querySelector('.blockid')?.getAttribute('value') || '0'
+        )
+      ) {
+        continue; // 跳过拖拽元素本身
+      }
+
+      const blockElement = this.container.querySelector(
+        `.blockid[value="${block.id}"]`
+      )?.parentNode as HTMLElement;
+      const arrowElement = this.container.querySelector(
+        `.arrowid[value="${block.id}"]`
+      )?.parentNode as HTMLElement;
+
+      if (blockElement && arrowElement) {
+        // 计算相对位置
+        const dragRect = dragElement.getBoundingClientRect();
+        const blockRect = blockElement.getBoundingClientRect();
+        const arrowRect = arrowElement.getBoundingClientRect();
+
+        // 设置相对位置
+        blockElement.style.left = `${blockRect.left - dragRect.left}px`;
+        blockElement.style.top = `${blockRect.top - dragRect.top}px`;
+        arrowElement.style.left = `${arrowRect.left - dragRect.left}px`;
+        arrowElement.style.top = `${arrowRect.top - dragRect.top}px`;
+
+        // 附加到拖拽元素
+        dragElement.appendChild(blockElement);
+        dragElement.appendChild(arrowElement);
+      }
+    }
   }
 
   /**
@@ -331,6 +524,247 @@ export class DragManager {
     this.blocks = [];
   }
 
+  /**
+   * 查找可以附加的块
+   */
+  private findAttachableBlock(): number | null {
+    if (!this.dragState.element) return null;
+
+    const dragRect = this.dragState.element.getBoundingClientRect();
+    const dragCenterX =
+      dragRect.left +
+      window.scrollX +
+      dragRect.width / 2 +
+      this.container.scrollLeft -
+      this.container.getBoundingClientRect().left;
+    const dragCenterY =
+      dragRect.top +
+      window.scrollY +
+      this.container.scrollTop -
+      this.container.getBoundingClientRect().top;
+
+    const spacing = this.config.spacing;
+
+    for (const block of this.blocks) {
+      const isInXRange =
+        dragCenterX >= block.x - block.width / 2 - spacing.x &&
+        dragCenterX <= block.x + block.width / 2 + spacing.x;
+      const isInYRange =
+        dragCenterY >= block.y - block.height / 2 &&
+        dragCenterY <= block.y + block.height;
+
+      if (isInXRange && isInYRange) {
+        return block.id;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * 附加到目标块
+   */
+  private attachToBlock(targetBlockId: number, isRearranging: boolean): void {
+    if (!this.dragState.element) return;
+
+    const targetBlock = this.blocks.find(b => b.id === targetBlockId);
+    if (!targetBlock) return;
+
+    // 计算新位置
+    this.positionBlockAsChild(this.dragState.element, targetBlock);
+
+    if (isRearranging) {
+      // 重排模式：恢复所有临时块
+      this.restoreRearrangedBlocks(targetBlockId);
+    } else {
+      // 创建模式：添加新块
+      this.addNewBlock(targetBlockId);
+    }
+  }
+
+  /**
+   * 恢复到原始位置
+   */
+  private restoreToOriginalPosition(): void {
+    if (!this.dragState.element || this.dragState.originalParent === undefined)
+      return;
+
+    const originalParent = this.blocks.find(
+      b => b.id === this.dragState.originalParent
+    );
+    if (originalParent) {
+      this.positionBlockAsChild(this.dragState.element, originalParent);
+      this.restoreRearrangedBlocks(this.dragState.originalParent);
+    }
+  }
+
+  /**
+   * 将块定位为子块
+   */
+  private positionBlockAsChild(
+    blockElement: HTMLElement,
+    parentBlock: BlockData
+  ): void {
+    // 计算所有同级子块的总宽度
+    const siblings = this.blocks.filter(b => b.parent === parentBlock.id);
+    let totalWidth = 0;
+
+    for (const sibling of siblings) {
+      totalWidth +=
+        (sibling.childwidth > sibling.width
+          ? sibling.childwidth
+          : sibling.width) + this.config.spacing.x;
+    }
+
+    // 加上当前块的宽度
+    totalWidth += blockElement.offsetWidth;
+
+    // 计算新位置
+    let currentX = parentBlock.x - totalWidth / 2;
+
+    // 重新定位所有同级块
+    for (const sibling of siblings) {
+      const siblingElement = this.container.querySelector(
+        `.blockid[value="${sibling.id}"]`
+      )?.parentNode as HTMLElement;
+      if (siblingElement) {
+        const width =
+          sibling.childwidth > sibling.width
+            ? sibling.childwidth
+            : sibling.width;
+        const centerOffset =
+          sibling.childwidth > sibling.width
+            ? (sibling.childwidth - sibling.width) / 2
+            : 0;
+
+        siblingElement.style.left = `${currentX + centerOffset}px`;
+        sibling.x = currentX + width / 2;
+        currentX += width + this.config.spacing.x;
+      }
+    }
+
+    // 定位当前块
+    const canvasRect = this.container.getBoundingClientRect();
+    blockElement.style.left = `${currentX - (window.scrollX + canvasRect.left) + this.container.scrollLeft}px`;
+    blockElement.style.top = `${parentBlock.y + parentBlock.height / 2 + this.config.spacing.y - (window.scrollY + canvasRect.top) + this.container.scrollTop}px`;
+  }
+
+  /**
+   * 添加新块
+   */
+  private addNewBlock(parentId: number): void {
+    if (!this.dragState.element) return;
+
+    const blockId = parseInt(
+      this.dragState.element.querySelector('.blockid')?.getAttribute('value') ||
+        '0'
+    );
+    const rect = this.dragState.element.getBoundingClientRect();
+    const canvasRect = this.container.getBoundingClientRect();
+
+    this.blocks.push({
+      childwidth: 0,
+      parent: parentId,
+      id: blockId,
+      x:
+        rect.left +
+        window.scrollX +
+        this.dragState.element.offsetWidth / 2 +
+        this.container.scrollLeft -
+        canvasRect.left,
+      y:
+        rect.top +
+        window.scrollY +
+        this.dragState.element.offsetHeight / 2 +
+        this.container.scrollTop -
+        canvasRect.top,
+      width: this.dragState.element.offsetWidth,
+      height: this.dragState.element.offsetHeight,
+    });
+
+    // 移动到画布
+    this.container.appendChild(this.dragState.element);
+  }
+
+  /**
+   * 恢复重排的块
+   */
+  private restoreRearrangedBlocks(parentId: number): void {
+    // 将所有临时块恢复到主数组
+    for (const block of this.tempBlocks) {
+      if (
+        block.id ===
+        parseInt(
+          this.dragState.element
+            ?.querySelector('.blockid')
+            ?.getAttribute('value') || '0'
+        )
+      ) {
+        block.parent = parentId;
+      }
+
+      // 恢复DOM元素到画布
+      const blockElement = this.dragState.element?.querySelector(
+        `.blockid[value="${block.id}"]`
+      )?.parentNode as HTMLElement;
+      const arrowElement = this.dragState.element?.querySelector(
+        `.arrowid[value="${block.id}"]`
+      )?.parentNode as HTMLElement;
+
+      if (blockElement && this.dragState.element?.contains(blockElement)) {
+        // 计算绝对位置
+        const rect = blockElement.getBoundingClientRect();
+        const canvasRect = this.container.getBoundingClientRect();
+
+        blockElement.style.left = `${rect.left - canvasRect.left + this.container.scrollLeft}px`;
+        blockElement.style.top = `${rect.top - canvasRect.top + this.container.scrollTop}px`;
+
+        this.container.appendChild(blockElement);
+
+        // 更新块数据位置
+        block.x =
+          rect.left +
+          window.scrollX +
+          blockElement.offsetWidth / 2 +
+          this.container.scrollLeft -
+          canvasRect.left;
+        block.y =
+          rect.top +
+          window.scrollY +
+          blockElement.offsetHeight / 2 +
+          this.container.scrollTop -
+          canvasRect.top;
+      }
+
+      if (arrowElement && this.dragState.element?.contains(arrowElement)) {
+        const rect = arrowElement.getBoundingClientRect();
+        const canvasRect = this.container.getBoundingClientRect();
+
+        arrowElement.style.left = `${rect.left - canvasRect.left + this.container.scrollLeft}px`;
+        arrowElement.style.top = `${rect.top - canvasRect.top + this.container.scrollTop}px`;
+
+        this.container.appendChild(arrowElement);
+      }
+    }
+
+    // 恢复所有块到主数组
+    this.blocks = this.blocks.concat(this.tempBlocks);
+    this.tempBlocks = [];
+  }
+
+  /**
+   * 移除块（拖拽失败时）
+   */
+  private removeBlock(): void {
+    if (!this.dragState.element) return;
+
+    // 移除DOM元素
+    this.dragState.element.remove();
+
+    // 清理临时块数据
+    this.tempBlocks = [];
+  }
+
   public destroy(): void {
     // 移除事件监听器
     document.removeEventListener('mousedown', this.handleMouseDown.bind(this));
@@ -346,5 +780,6 @@ export class DragManager {
     // 清理状态
     this.resetDragState();
     this.blocks = [];
+    this.tempBlocks = [];
   }
 }
