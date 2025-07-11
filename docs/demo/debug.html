@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flowy Debug</title>
+    <link href='flowy.min.css' rel='stylesheet' type='text/css'>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        #canvas { 
+            width: 800px; 
+            height: 600px; 
+            border: 2px solid #ccc; 
+            position: relative;
+            background: #f9f9f9;
+        }
+        .blockelem {
+            width: 200px;
+            height: 80px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px;
+            padding: 10px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+        }
+        .blockelem.create-flowy {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+        .grabme {
+            width: 20px;
+            height: 20px;
+            background: #2196f3;
+            border-radius: 50%;
+            margin-right: 10px;
+            cursor: grab;
+        }
+        .blockin {
+            flex: 1;
+        }
+        .blocktitle {
+            font-weight: bold;
+            margin: 0 0 5px 0;
+        }
+        .blockdesc {
+            font-size: 12px;
+            color: #666;
+            margin: 0;
+        }
+        .debug-info {
+            margin: 20px 0;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        .controls button {
+            margin: 5px;
+            padding: 8px 12px;
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Flowy 调试页面</h1>
+    
+    <div class="controls">
+        <button onclick="debugInfo()">显示调试信息</button>
+        <button onclick="testDrag()">测试拖拽</button>
+        <button onclick="clearCanvas()">清空画布</button>
+    </div>
+    
+    <div id="debug-output" class="debug-info">等待调试信息...</div>
+    
+    <!-- 测试拖拽元素 -->
+    <div class="blockelem create-flowy" id="test-block">
+        <input type="hidden" name="blockelemtype" class="blockelemtype" value="1">
+        <div class="grabme"></div>
+        <div class="blockin">
+            <p class="blocktitle">测试节点</p>
+            <p class="blockdesc">拖拽这个节点到画布上</p>
+        </div>
+    </div>
+    
+    <!-- 画布 -->
+    <div id="canvas"></div>
+    
+    <script src="flowy.min.js"></script>
+    <script>
+        let flowy;
+        let debugOutput = document.getElementById('debug-output');
+        
+        function log(message) {
+            console.log(message);
+            debugOutput.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+        }
+        
+        function snapping(drag, first, parent) {
+            log(`Snapping called: first=${first}, parent=${parent ? parent.id : 'none'}`);
+            
+            // 移除拖拽手柄
+            const grab = drag.querySelector('.grabme');
+            if (grab) {
+                grab.remove();
+                log('Removed grab handle');
+            }
+            
+            // 移除原始内容
+            const blockin = drag.querySelector('.blockin');
+            if (blockin) {
+                blockin.remove();
+                log('Removed blockin content');
+            }
+            
+            // 添加新内容
+            const nodeId = Date.now();
+            drag.innerHTML = `
+                <div style="padding: 15px; background: #4CAF50; color: white; border-radius: 4px; text-align: center;">
+                    <div style="font-weight: bold;">节点 ${nodeId}</div>
+                    <div style="font-size: 12px; margin-top: 5px;">已成功创建</div>
+                    <input type="hidden" name="blockid" class="blockid" value="${nodeId}">
+                </div>
+            `;
+            
+            log(`Node created with ID: ${nodeId}`);
+            return true;
+        }
+        
+        function drag(block) {
+            log('Drag started on block: ' + (block.id || 'unnamed'));
+            block.style.opacity = '0.7';
+        }
+        
+        function release() {
+            log('Drag released');
+            // 恢复所有元素的透明度
+            document.querySelectorAll('.blockelem').forEach(el => {
+                el.style.opacity = '1';
+            });
+        }
+        
+        // 初始化
+        try {
+            log('Initializing Flowy...');
+            
+            flowy = new Flowy(document.getElementById('canvas'), {
+                spacing: { x: 20, y: 80 },
+                onGrab: drag,
+                onRelease: release,
+                onSnap: snapping,
+                onRearrange: function(drag, parent) {
+                    log(`Rearrange: ${drag.id || 'unnamed'} -> ${parent ? parent.id : 'root'}`);
+                    return true;
+                }
+            });
+            
+            log('Flowy initialized successfully!');
+            log('Available methods: ' + Object.getOwnPropertyNames(flowy).join(', '));
+            
+        } catch (error) {
+            log('ERROR: Failed to initialize Flowy: ' + error.message);
+            log('Stack trace: ' + error.stack);
+        }
+        
+        function debugInfo() {
+            try {
+                log('=== DEBUG INFO ===');
+                log('Flowy object: ' + (flowy ? 'exists' : 'null'));
+                
+                if (flowy) {
+                    const data = flowy.export();
+                    log(`Current data: ${data.nodes.length} nodes, ${data.connections.length} connections`);
+                    
+                    const historyInfo = flowy.getHistoryInfo();
+                    log(`History: ${historyInfo.currentIndex + 1}/${historyInfo.totalEntries} entries`);
+                    log(`Can undo: ${flowy.canUndo()}, Can redo: ${flowy.canRedo()}`);
+                }
+                
+                log('Canvas element: ' + (document.getElementById('canvas') ? 'exists' : 'missing'));
+                log('Test block element: ' + (document.getElementById('test-block') ? 'exists' : 'missing'));
+                
+                // 检查事件监听器
+                const canvas = document.getElementById('canvas');
+                if (canvas) {
+                    log('Canvas classes: ' + canvas.className);
+                    log('Canvas children: ' + canvas.children.length);
+                }
+                
+            } catch (error) {
+                log('ERROR in debugInfo: ' + error.message);
+            }
+        }
+        
+        function testDrag() {
+            try {
+                log('Testing programmatic node addition...');
+                const nodeId = flowy.addNode({
+                    type: 'test',
+                    x: 200,
+                    y: 150,
+                    width: 120,
+                    height: 60,
+                    data: { title: 'Test Node' }
+                });
+                log(`Added node with ID: ${nodeId}`);
+            } catch (error) {
+                log('ERROR in testDrag: ' + error.message);
+            }
+        }
+        
+        function clearCanvas() {
+            try {
+                flowy.deleteBlocks();
+                log('Canvas cleared');
+            } catch (error) {
+                log('ERROR in clearCanvas: ' + error.message);
+            }
+        }
+        
+        // 自动显示初始调试信息
+        setTimeout(debugInfo, 1000);
+    </script>
+</body>
+</html>

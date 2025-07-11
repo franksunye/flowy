@@ -281,7 +281,9 @@ test.describe('🛡️ Flowy Demo - 边界情况测试', () => {
 
     for (let i = 0; i < extremePositions.length; i++) {
       const pos = extremePositions[i];
-      await demoPage.dragCreateNode(i % 4, pos.x, pos.y);
+      if (pos) {
+        await demoPage.dragCreateNode(i % 4, pos.x, pos.y);
+      }
     }
 
     // 验证极限位置的节点都能创建
