@@ -1,0 +1,52 @@
+{
+  "nodes": [
+    {
+      "id": "node-1",
+      "type": "start",
+      "x": 300,
+      "y": 150,
+      "width": 120,
+      "height": 60,
+      "data": {
+        "title": "New visitor",
+        "description": "Triggers when somebody visits a specified page"
+      }
+    },
+    {
+      "id": "node-2",
+      "type": "action",
+      "x": 500,
+      "y": 250,
+      "width": 120,
+      "height": 60,
+      "data": {
+        "title": "Action performed",
+        "description": "Triggers when somebody performs a specified action"
+      }
+    },
+    {
+      "id": "node-3",
+      "type": "time",
+      "x": 700,
+      "y": 350,
+      "width": 120,
+      "height": 60,
+      "data": {
+        "title": "Time passed",
+        "description": "Triggers after a specified amount of time"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "conn-1",
+      "from": "node-1",
+      "to": "node-2"
+    },
+    {
+      "id": "conn-2",
+      "from": "node-2",
+      "to": "node-3"
+    }
+  ]
+}
