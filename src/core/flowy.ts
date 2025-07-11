@@ -110,7 +110,6 @@ export default class Flowy {
   removeNode(id: string): void {
     if (this.nodes.has(id)) {
       const beforeState = this.export();
-      const node = this.nodes.get(id);
 
       this.nodes.delete(id);
       this.emit('node:remove', id);
@@ -161,7 +160,6 @@ export default class Flowy {
   disconnect(connectionId: string): void {
     if (this.connections.has(connectionId)) {
       const beforeState = this.export();
-      const connection = this.connections.get(connectionId);
 
       this.connections.delete(connectionId);
       this.emit('connection:remove', connectionId);
@@ -325,27 +323,29 @@ export default class Flowy {
   /**
    * 撤销操作
    */
-  undo(): boolean {
+  undo(): { success: boolean; description?: string } {
+    const description = this.historyManager.getUndoDescription();
     const previousState = this.historyManager.undo();
     if (previousState) {
       this.import(previousState);
       this.emit('undo', previousState);
-      return true;
+      return { success: true, description: description || undefined };
     }
-    return false;
+    return { success: false };
   }
 
   /**
    * 重做操作
    */
-  redo(): boolean {
+  redo(): { success: boolean; description?: string } {
+    const description = this.historyManager.getRedoDescription();
     const nextState = this.historyManager.redo();
     if (nextState) {
       this.import(nextState);
       this.emit('redo', nextState);
-      return true;
+      return { success: true, description: description || undefined };
     }
-    return false;
+    return { success: false };
   }
 
   /**

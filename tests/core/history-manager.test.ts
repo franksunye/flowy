@@ -199,11 +199,13 @@ describe('HistoryManager', () => {
       historyManager.recordAction('add', mockData1, mockData2, '添加节点');
 
       // 修改原始数据
-      mockData1.nodes[0].x = 999;
+      if (mockData1.nodes[0]) {
+        mockData1.nodes[0].x = 999;
+      }
 
       // 撤销应该返回未修改的数据
       const result = historyManager.undo();
-      expect(result?.nodes[0].x).toBe(100);
+      expect(result?.nodes[0]?.x).toBe(100);
     });
   });
 });

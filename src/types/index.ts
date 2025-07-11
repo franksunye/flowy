@@ -45,6 +45,12 @@ export interface FlowyData {
   blocks?: any[]; // 向后兼容
 }
 
+// 现代化的流程数据格式
+export interface ModernFlowData {
+  nodes: FlowyNode[];
+  connections: FlowyConnection[];
+}
+
 export interface FlowyEvents {
   'node:add': (node: FlowyNode) => void;
   'node:remove': (nodeId: string) => void;
@@ -53,6 +59,8 @@ export interface FlowyEvents {
   'connection:remove': (connectionId: string) => void;
   'data:import': (data: FlowyData) => void;
   'data:export': (data: FlowyData) => void;
+  undo: (data: ModernFlowData) => void;
+  redo: (data: ModernFlowData) => void;
 }
 
 export type FlowyEventType = keyof FlowyEvents;

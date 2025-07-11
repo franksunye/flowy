@@ -5,11 +5,8 @@ document.addEventListener("DOMContentLoaded", function(){
     var tempblock2;
 
     // 使用新架构的 Flowy 类
-    const modernFlowy = new Flowy.Flowy(document.getElementById("canvas"), {
-        spacing: { x: 20, y: 80 },
-        onGrab: drag,
-        onRelease: release,
-        onSnap: snapping
+    const modernFlowy = new Flowy(document.getElementById("canvas"), {
+        spacing: { x: 20, y: 80 }
     });
 
     // 显示新功能介绍弹窗
@@ -20,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function(){
     document.getElementById("blocklist").innerHTML = '<div class="blockelem create-flowy noselect"><input type="hidden" name="blockelemtype" class="blockelemtype" value="1"><div class="grabme"><img src="assets/grabme.svg"></div><div class="blockin">                  <div class="blockico"><span></span><img src="assets/eye.svg"></div><div class="blocktext">                        <p class="blocktitle">New visitor</p><p class="blockdesc">Triggers when somebody visits a specified page</p>        </div></div></div><div class="blockelem create-flowy noselect"><input type="hidden" name="blockelemtype" class="blockelemtype" value="2"><div class="grabme"><img src="assets/grabme.svg"></div><div class="blockin">                    <div class="blockico"><span></span><img src="assets/action.svg"></div><div class="blocktext">                        <p class="blocktitle">Action is performed</p><p class="blockdesc">Triggers when somebody performs a specified action</p></div></div></div><div class="blockelem create-flowy noselect"><input type="hidden" name="blockelemtype" class="blockelemtype" value="3"><div class="grabme"><img src="assets/grabme.svg"></div><div class="blockin">                    <div class="blockico"><span></span><img src="assets/time.svg"></div><div class="blocktext">                        <p class="blocktitle">Time has passed</p><p class="blockdesc">Triggers after a specified amount of time</p>          </div></div></div><div class="blockelem create-flowy noselect"><input type="hidden" name="blockelemtype" class="blockelemtype" value="4"><div class="grabme"><img src="assets/grabme.svg"></div><div class="blockin">                    <div class="blockico"><span></span><img src="assets/error.svg"></div><div class="blocktext">                        <p class="blocktitle">Error prompt</p><p class="blockdesc">Triggers when a specified error happens</p>              </div></div></div>';
 
     // 兼容旧的 flowy 函数调用（用于现有的 snapping 逻辑）
-    window.flowy = Flowy.flowy;
+    // 注意：新架构中我们直接使用 modernFlowy 实例，不需要全局 flowy 函数
     function addEventListenerMulti(type, listener, capture, selector) {
         var nodes = document.querySelectorAll(selector);
         for (var i = 0; i < nodes.length; i++) {
@@ -143,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 🎯 新架构功能：撤销重做按钮
     document.getElementById("undo").addEventListener("click", function() {
         const result = modernFlowy.undo();
-        if (result) {
+        if (result.success) {
             console.log("撤销操作:", result.description);
             updateStatusPanel();
         }
@@ -151,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById("redo").addEventListener("click", function() {
         const result = modernFlowy.redo();
-        if (result) {
+        if (result.success) {
             console.log("重做操作:", result.description);
             updateStatusPanel();
         }

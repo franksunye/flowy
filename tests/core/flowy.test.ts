@@ -223,25 +223,24 @@ describe('Flowy', () => {
 
   describe('撤销重做功能', () => {
     it('应该能够撤销添加节点操作', () => {
-      const initialState = flowy.export();
-      const nodeId = flowy.addNode({ x: 100, y: 100 });
+      flowy.addNode({ x: 100, y: 100 });
 
       expect(flowy.export().nodes).toHaveLength(1);
       expect(flowy.canUndo()).toBe(true);
 
       const undoResult = flowy.undo();
-      expect(undoResult).toBe(true);
+      expect(undoResult.success).toBe(true);
       expect(flowy.export().nodes).toHaveLength(0);
     });
 
     it('应该能够重做添加节点操作', () => {
-      const nodeId = flowy.addNode({ x: 100, y: 100 });
+      flowy.addNode({ x: 100, y: 100 });
       flowy.undo();
 
       expect(flowy.canRedo()).toBe(true);
 
       const redoResult = flowy.redo();
-      expect(redoResult).toBe(true);
+      expect(redoResult.success).toBe(true);
       expect(flowy.export().nodes).toHaveLength(1);
     });
 
@@ -259,7 +258,7 @@ describe('Flowy', () => {
     it('应该能够撤销连接操作', () => {
       const node1Id = flowy.addNode({ x: 100, y: 100 });
       const node2Id = flowy.addNode({ x: 200, y: 200 });
-      const connectionId = flowy.connect(node1Id, node2Id);
+      flowy.connect(node1Id, node2Id);
 
       expect(flowy.export().connections).toHaveLength(1);
 
@@ -268,7 +267,7 @@ describe('Flowy', () => {
     });
 
     it('应该能够获取撤销重做描述', () => {
-      const nodeId = flowy.addNode({ x: 100, y: 100 });
+      flowy.addNode({ x: 100, y: 100 });
 
       const undoDesc = flowy.getUndoDescription();
       expect(undoDesc).toContain('添加节点');
@@ -290,8 +289,8 @@ describe('Flowy', () => {
     it('应该在没有历史记录时正确处理', () => {
       expect(flowy.canUndo()).toBe(false);
       expect(flowy.canRedo()).toBe(false);
-      expect(flowy.undo()).toBe(false);
-      expect(flowy.redo()).toBe(false);
+      expect(flowy.undo().success).toBe(false);
+      expect(flowy.redo().success).toBe(false);
     });
   });
 

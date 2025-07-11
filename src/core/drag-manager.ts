@@ -187,7 +187,7 @@ export class DragManager {
         `.arrowid[value="${blockId}"]`
       );
       if (arrow && arrow.parentNode) {
-        arrow.parentNode.remove();
+        arrow.parentNode.removeChild(arrow);
       }
     }
 
@@ -358,7 +358,7 @@ export class DragManager {
     this.config.onSnap(this.dragState.element, true, undefined);
   }
 
-  private dropSubsequentBlock(blockId: number): void {
+  private dropSubsequentBlock(_blockId: number): void {
     if (!this.dragState.element) return;
 
     const isRearranging = this.tempBlocks.length > 0;
@@ -383,12 +383,19 @@ export class DragManager {
       }
     } else if (isRearranging) {
       // 重排模式下，检查是否可以恢复到原位置
+      const originalParentBlock = this.blocks.find(
+        b => b.id === this.dragState.originalParent
+      );
+      const originalParentElement = originalParentBlock
+        ? (this.container.querySelector(
+            `.blockid[value="${originalParentBlock.id}"]`
+          )?.parentNode as HTMLElement)
+        : undefined;
+
       if (
         this.dragState.originalParent !== undefined &&
-        this.config.onRearrange(
-          this.dragState.element,
-          this.blocks.find(b => b.id === this.dragState.originalParent)
-        )
+        originalParentElement &&
+        this.config.onRearrange(this.dragState.element, originalParentElement)
       ) {
         this.restoreToOriginalPosition();
       } else {
@@ -398,12 +405,6 @@ export class DragManager {
     } else {
       // 创建模式下无法附加，移除块
       this.removeBlock();
-    }
-  }
-
-  private removeBlock(): void {
-    if (this.dragState.element) {
-      document.body.removeChild(this.dragState.element);
     }
   }
 

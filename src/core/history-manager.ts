@@ -1,4 +1,4 @@
-import { BlockData, ModernFlowData } from '../types';
+import { ModernFlowData } from '../types';
 
 export interface HistoryEntry {
   id: string;
@@ -66,6 +66,8 @@ export class HistoryManager {
     }
 
     const entry = this.history[this.currentIndex];
+    if (!entry) return null;
+
     this.currentIndex--;
 
     return this.deepClone(entry.data.before);
@@ -81,6 +83,7 @@ export class HistoryManager {
 
     this.currentIndex++;
     const entry = this.history[this.currentIndex];
+    if (!entry) return null;
 
     return this.deepClone(entry.data.after);
   }
@@ -141,7 +144,7 @@ export class HistoryManager {
     if (!this.canUndo()) {
       return null;
     }
-    return this.history[this.currentIndex].description;
+    return this.history[this.currentIndex]?.description || null;
   }
 
   /**
@@ -151,7 +154,7 @@ export class HistoryManager {
     if (!this.canRedo()) {
       return null;
     }
-    return this.history[this.currentIndex + 1].description;
+    return this.history[this.currentIndex + 1]?.description || null;
   }
 
   /**
