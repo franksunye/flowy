@@ -39,22 +39,65 @@
         }
         
         .create-flowy {
-            width: 150px;
-            height: 60px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
+            width: 200px;
+            height: 80px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
             cursor: pointer;
+            margin: 10px;
+            font-size: 14px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .create-flowy:hover {
+            border-color: #007bff;
+            box-shadow: 0 4px 8px rgba(0,123,255,0.2);
+        }
+
+        .grabme {
+            width: 20px;
+            height: 20px;
+            background: #007bff;
+            border-radius: 4px;
+            margin-right: 10px;
+            cursor: grab;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 10px;
-            font-size: 14px;
+            color: white;
+            font-size: 12px;
+            flex-shrink: 0;
         }
-        
-        .create-flowy:hover {
+
+        .grabme:hover {
             background: #0056b3;
+        }
+
+        .grabme:active {
+            cursor: grabbing;
+        }
+
+        .block-content {
+            flex: 1;
+            color: #333;
+        }
+
+        .noselect {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .dragnow {
+            opacity: 0.5;
         }
         
         .block {
@@ -84,9 +127,22 @@
         <h2>3. 基础功能测试</h2>
         <p>拖拽下面的按钮到画布中测试基础拖拽功能：</p>
         
-        <div class="create-flowy">
-            <input type="hidden" class="blockelemtype" value="1">
-            拖拽我到画布
+        <div class="create-flowy noselect">
+            <input type="hidden" name="blockelemtype" class="blockelemtype" value="1">
+            <div class="grabme" title="拖拽手柄">⋮⋮</div>
+            <div class="block-content">
+                <strong>测试节点</strong><br>
+                <small>拖拽左侧手柄到画布</small>
+            </div>
+        </div>
+
+        <div class="create-flowy noselect">
+            <input type="hidden" name="blockelemtype" class="blockelemtype" value="2">
+            <div class="grabme" title="拖拽手柄">⋮⋮</div>
+            <div class="block-content">
+                <strong>另一个节点</strong><br>
+                <small>也可以拖拽到画布</small>
+            </div>
         </div>
         
         <div id="canvas"></div>
