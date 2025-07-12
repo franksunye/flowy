@@ -204,21 +204,36 @@
                     },
                     onSnap: (block, first, parent) => {
                         const blockType = block.querySelector('.blockelemtype')?.value || '未知';
+                        const blockId = block.querySelector('.blockid')?.value || '0';
+
                         if (first) {
-                            log(`放置首个节点 (类型: ${blockType})`, 'success');
+                            log(`放置首个节点 (类型: ${blockType}, ID: ${blockId})`, 'success');
                         } else {
-                            log(`放置子节点 (类型: ${blockType})`, 'success');
+                            log(`放置子节点 (类型: ${blockType}, ID: ${blockId})`, 'success');
                         }
-                        
-                        // 自定义节点内容
+
+                        // 移除拖拽相关元素，但保留重要的系统元素
+                        const grabme = block.querySelector('.grabme');
+                        if (grabme) grabme.remove();
+
+                        const blockin = block.querySelector('.blockin');
+                        if (blockin) blockin.remove();
+
+                        // 保留 blockid 和 blockelemtype，添加自定义内容
+                        let content = '';
                         if (blockType === '1') {
-                            block.innerHTML = '<div style="background: #4CAF50; color: white; padding: 10px; border-radius: 4px;">开始节点</div>';
+                            content = '<div style="background: #4CAF50; color: white; padding: 10px; border-radius: 4px; margin-bottom: 5px;">开始节点</div>';
                         } else if (blockType === '2') {
-                            block.innerHTML = '<div style="background: #2196F3; color: white; padding: 10px; border-radius: 4px;">处理节点</div>';
+                            content = '<div style="background: #2196F3; color: white; padding: 10px; border-radius: 4px; margin-bottom: 5px;">处理节点</div>';
                         } else if (blockType === '3') {
-                            block.innerHTML = '<div style="background: #FF9800; color: white; padding: 10px; border-radius: 4px;">结束节点</div>';
+                            content = '<div style="background: #FF9800; color: white; padding: 10px; border-radius: 4px; margin-bottom: 5px;">结束节点</div>';
                         }
-                        
+
+                        // 重新构建内容，保留系统需要的隐藏字段
+                        block.innerHTML = content +
+                            `<input type="hidden" name="blockid" class="blockid" value="${blockId}">` +
+                            `<input type="hidden" name="blockelemtype" class="blockelemtype" value="${blockType}">`;
+
                         return true; // 允许放置
                     },
                     onRearrange: (block, parent) => {
