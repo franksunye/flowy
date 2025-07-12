@@ -195,7 +195,7 @@
                 const canvas = document.getElementById('canvas');
                 
                 flowyInstance = new window.Flowy.Flowy(canvas, {
-                    spacing: { x: 20, y: 80 },
+                    spacing: { x: 100, y: 80 },
                     onGrab: (block) => {
                         log(`开始拖拽: ${block.querySelector('.block-content strong')?.textContent || '未知节点'}`, 'info');
                     },
