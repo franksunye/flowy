@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Drag Test</title>
+    <link href='flowy.min.css' rel='stylesheet' type='text/css'>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+        
+        .container {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .create-flowy {
+            width: 200px;
+            height: 80px;
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 10px 0;
+            font-size: 14px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .create-flowy:hover {
+            border-color: #007bff;
+            box-shadow: 0 4px 8px rgba(0,123,255,0.2);
+        }
+        
+        .grabme {
+            width: 20px;
+            height: 20px;
+            background: #007bff;
+            border-radius: 4px;
+            margin-right: 10px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+        
+        .grabme:hover {
+            background: #0056b3;
+        }
+        
+        .grabme:active {
+            cursor: grabbing;
+        }
+        
+        .block-content {
+            flex: 1;
+            color: #333;
+        }
+        
+        .noselect {
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        .dragnow {
+            opacity: 0.5;
+        }
+        
+        #canvas {
+            flex: 1;
+            height: 600px;
+            border: 2px solid #ddd;
+            position: relative;
+            background: #fafafa;
+            border-radius: 8px;
+        }
+        
+        .block {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            cursor: move;
+            min-width: 120px;
+            min-height: 60px;
+        }
+        
+        .log {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            max-height: 200px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .log-entry {
+            margin: 2px 0;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        .log-info { background: #e3f2fd; }
+        .log-success { background: #e8f5e8; }
+        .log-error { background: #ffebee; }
+    </style>
+</head>
+<body>
+    <h1>🎯 拖拽功能测试</h1>
+    <p>从左侧拖拽节点到右侧画布中</p>
+    
+    <div class="container">
+        <div class="sidebar">
+            <h3>可拖拽节点</h3>
+            
+            <div class="create-flowy noselect">
+                <input type="hidden" name="blockelemtype" class="blockelemtype" value="1">
+                <div class="grabme" title="拖拽手柄">⋮⋮</div>
+                <div class="block-content">
+                    <strong>开始节点</strong><br>
+                    <small>拖拽到画布</small>
+                </div>
+            </div>
+            
+            <div class="create-flowy noselect">
+                <input type="hidden" name="blockelemtype" class="blockelemtype" value="2">
+                <div class="grabme" title="拖拽手柄">⋮⋮</div>
+                <div class="block-content">
+                    <strong>处理节点</strong><br>
+                    <small>拖拽到画布</small>
+                </div>
+            </div>
+            
+            <div class="create-flowy noselect">
+                <input type="hidden" name="blockelemtype" class="blockelemtype" value="3">
+                <div class="grabme" title="拖拽手柄">⋮⋮</div>
+                <div class="block-content">
+                    <strong>结束节点</strong><br>
+                    <small>拖拽到画布</small>
+                </div>
+            </div>
+        </div>
+        
+        <div id="canvas"></div>
+    </div>
+    
+    <div class="log" id="log">
+        <strong>操作日志:</strong>
+        <div id="log-content"></div>
+    </div>
+
+    <script src="flowy.min.js"></script>
+    <script>
+        let flowyInstance = null;
+        
+        function log(message, type = 'info') {
+            const logContent = document.getElementById('log-content');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.innerHTML = `${new Date().toLocaleTimeString()}: ${message}`;
+            logContent.appendChild(entry);
+            logContent.scrollTop = logContent.scrollHeight;
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // 初始化 Flowy
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const canvas = document.getElementById('canvas');
+                
+                flowyInstance = new window.Flowy.Flowy(canvas, {
+                    spacing: { x: 20, y: 80 },
+                    onGrab: (block) => {
+                        log(`开始拖拽: ${block.querySelector('.block-content strong')?.textContent || '未知节点'}`, 'info');
+                    },
+                    onRelease: () => {
+                        log('拖拽结束', 'info');
+                    },
+                    onSnap: (block, first, parent) => {
+                        const blockType = block.querySelector('.blockelemtype')?.value || '未知';
+                        if (first) {
+                            log(`放置首个节点 (类型: ${blockType})`, 'success');
+                        } else {
+                            log(`放置子节点 (类型: ${blockType})`, 'success');
+                        }
+                        
+                        // 自定义节点内容
+                        if (blockType === '1') {
+                            block.innerHTML = '<div style="background: #4CAF50; color: white; padding: 10px; border-radius: 4px;">开始节点</div>';
+                        } else if (blockType === '2') {
+                            block.innerHTML = '<div style="background: #2196F3; color: white; padding: 10px; border-radius: 4px;">处理节点</div>';
+                        } else if (blockType === '3') {
+                            block.innerHTML = '<div style="background: #FF9800; color: white; padding: 10px; border-radius: 4px;">结束节点</div>';
+                        }
+                        
+                        return true; // 允许放置
+                    },
+                    onRearrange: (block, parent) => {
+                        log('重新排列节点', 'info');
+                        return true; // 允许重排
+                    }
+                });
+                
+                log('Flowy 初始化成功！可以开始拖拽测试', 'success');
+                
+            } catch (error) {
+                log('初始化失败: ' + error.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>
