@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Flowy Check</title>
+</head>
+<body>
+    <h1>Simple Flowy Check</h1>
+    <div id="result"></div>
+    
+    <script src="flowy.min.js"></script>
+    <script>
+        const result = document.getElementById('result');
+        
+        if (typeof window.Flowy !== 'undefined') {
+            result.innerHTML = '<p style="color: green;">✅ SUCCESS: window.Flowy exists!</p>';
+            
+            if (window.Flowy.Flowy) {
+                result.innerHTML += '<p style="color: green;">✅ window.Flowy.Flowy is available</p>';
+                
+                try {
+                    const canvas = document.createElement('div');
+                    const instance = new window.Flowy.Flowy(canvas);
+                    result.innerHTML += '<p style="color: green;">✅ Successfully created Flowy instance!</p>';
+                } catch (e) {
+                    result.innerHTML += '<p style="color: red;">❌ Error creating instance: ' + e.message + '</p>';
+                }
+            } else {
+                result.innerHTML += '<p style="color: red;">❌ window.Flowy.Flowy not found</p>';
+            }
+        } else {
+            result.innerHTML = '<p style="color: red;">❌ FAILED: window.Flowy is undefined</p>';
+        }
+    </script>
+</body>
+</html>
