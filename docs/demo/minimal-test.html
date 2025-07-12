@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Minimal Flowy Test</title>
+</head>
+<body>
+    <h1>Minimal Flowy Test</h1>
+    <div id="log"></div>
+    
+    <script src="flowy.min.js"></script>
+    <script>
+        function log(msg) {
+            document.getElementById('log').innerHTML += '<div>' + msg + '</div>';
+            console.log(msg);
+        }
+        
+        log('Script loaded');
+        log('typeof window: ' + typeof window);
+        log('typeof window.Flowy: ' + typeof window.Flowy);
+        
+        if (window.Flowy) {
+            log('window.Flowy exists!');
+            log('window.Flowy constructor: ' + typeof window.Flowy);
+            
+            if (typeof window.Flowy === 'object') {
+                log('window.Flowy is an object with keys: ' + Object.keys(window.Flowy).join(', '));
+                
+                Object.keys(window.Flowy).forEach(key => {
+                    log('window.Flowy.' + key + ': ' + typeof window.Flowy[key]);
+                });
+                
+                // Try to use the Flowy class
+                if (window.Flowy.Flowy) {
+                    log('Trying window.Flowy.Flowy...');
+                    try {
+                        const canvas = document.createElement('div');
+                        const instance = new window.Flowy.Flowy(canvas);
+                        log('SUCCESS: Created Flowy instance!');
+                    } catch (e) {
+                        log('ERROR: ' + e.message);
+                    }
+                }
+                
+                if (window.Flowy.default) {
+                    log('Trying window.Flowy.default...');
+                    try {
+                        const canvas = document.createElement('div');
+                        const instance = new window.Flowy.default(canvas);
+                        log('SUCCESS: Created Flowy instance with default export!');
+                    } catch (e) {
+                        log('ERROR: ' + e.message);
+                    }
+                }
+            } else if (typeof window.Flowy === 'function') {
+                log('window.Flowy is a function');
+                try {
+                    const canvas = document.createElement('div');
+                    const instance = new window.Flowy(canvas);
+                    log('SUCCESS: Created Flowy instance directly!');
+                } catch (e) {
+                    log('ERROR: ' + e.message);
+                }
+            }
+        } else {
+            log('window.Flowy does not exist');
+            
+            // Check for other possible names
+            ['flowy', 'FlowyJS', 'FLOWY'].forEach(name => {
+                if (window[name]) {
+                    log('Found window.' + name + ': ' + typeof window[name]);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

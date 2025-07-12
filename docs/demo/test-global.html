@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Global Flowy</title>
+</head>
+<body>
+    <h1>Testing Global Flowy Object</h1>
+    <div id="output"></div>
+    
+    <script src="flowy.min.js"></script>
+    <script>
+        function log(message) {
+            const output = document.getElementById('output');
+            output.innerHTML += '<div>' + message + '</div>';
+            console.log(message);
+        }
+        
+        log('=== Testing Global Flowy Object ===');
+        log('typeof window.Flowy: ' + typeof window.Flowy);
+        
+        if (window.Flowy) {
+            log('window.Flowy keys: ' + Object.keys(window.Flowy).join(', '));
+            
+            // Test each property
+            Object.keys(window.Flowy).forEach(key => {
+                log(`window.Flowy.${key}: ${typeof window.Flowy[key]}`);
+            });
+            
+            // Try to find the constructor
+            if (window.Flowy.Flowy) {
+                log('Found window.Flowy.Flowy - testing constructor...');
+                try {
+                    const canvas = document.createElement('div');
+                    const instance = new window.Flowy.Flowy(canvas);
+                    log('✅ window.Flowy.Flowy constructor works!');
+                    log('Instance methods: ' + Object.getOwnPropertyNames(instance).join(', '));
+                } catch (e) {
+                    log('❌ window.Flowy.Flowy constructor failed: ' + e.message);
+                }
+            }
+            
+            if (window.Flowy.default) {
+                log('Found window.Flowy.default - testing constructor...');
+                try {
+                    const canvas = document.createElement('div');
+                    const instance = new window.Flowy.default(canvas);
+                    log('✅ window.Flowy.default constructor works!');
+                    log('Instance methods: ' + Object.getOwnPropertyNames(instance).join(', '));
+                } catch (e) {
+                    log('❌ window.Flowy.default constructor failed: ' + e.message);
+                }
+            }
+            
+            if (typeof window.Flowy === 'function') {
+                log('window.Flowy is a function - testing constructor...');
+                try {
+                    const canvas = document.createElement('div');
+                    const instance = new window.Flowy(canvas);
+                    log('✅ window.Flowy constructor works!');
+                    log('Instance methods: ' + Object.getOwnPropertyNames(instance).join(', '));
+                } catch (e) {
+                    log('❌ window.Flowy constructor failed: ' + e.message);
+                }
+            }
+        } else {
+            log('❌ window.Flowy is not available');
+        }
+        
+        // Check for other possible global names
+        const possibleNames = ['Flowy', 'flowy', 'FlowyJS', 'FLOWY'];
+        possibleNames.forEach(name => {
+            if (window[name] && window[name] !== window.Flowy) {
+                log(`Found alternative global: window.${name} (${typeof window[name]})`);
+            }
+        });
+    </script>
+</body>
+</html>

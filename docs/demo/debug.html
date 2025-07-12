@@ -151,8 +151,66 @@
         // 初始化
         try {
             log('Initializing Flowy...');
-            
-            flowy = new Flowy(document.getElementById('canvas'), {
+
+            // Check what's available in the global scope
+            log('Checking global Flowy object...');
+            log('window.Flowy: ' + typeof window.Flowy);
+            log('window.Flowy.Flowy: ' + typeof (window.Flowy && window.Flowy.Flowy));
+            log('window.Flowy.default: ' + typeof (window.Flowy && window.Flowy.default));
+
+            // Based on the UMD build pattern, the exports are available at window.Flowy
+            // Let's try to access the Flowy class from the exports
+            let FlowyClass = null;
+
+            // First, let's see what's actually available
+            log('window object check:');
+            log('- typeof window: ' + typeof window);
+            log('- typeof window.Flowy: ' + typeof window.Flowy);
+
+            if (window.Flowy) {
+                log('window.Flowy found! Type: ' + typeof window.Flowy);
+
+                if (typeof window.Flowy === 'object') {
+                    log('window.Flowy is an object with keys: ' + Object.keys(window.Flowy).join(', '));
+
+                    // Check each export
+                    Object.keys(window.Flowy).forEach(key => {
+                        const value = window.Flowy[key];
+                        log(`- window.Flowy.${key}: ${typeof value} ${typeof value === 'function' ? '(constructor)' : ''}`);
+                    });
+
+                    // Try to find the main Flowy class
+                    if (window.Flowy.Flowy && typeof window.Flowy.Flowy === 'function') {
+                        FlowyClass = window.Flowy.Flowy;
+                        log('✅ Found Flowy class at window.Flowy.Flowy');
+                    } else if (window.Flowy.default && typeof window.Flowy.default === 'function') {
+                        FlowyClass = window.Flowy.default;
+                        log('✅ Found Flowy class at window.Flowy.default');
+                    } else {
+                        // Look for any function that might be the constructor
+                        const constructors = Object.keys(window.Flowy).filter(key =>
+                            typeof window.Flowy[key] === 'function' &&
+                            key.charAt(0) === key.charAt(0).toUpperCase()
+                        );
+
+                        if (constructors.length > 0) {
+                            FlowyClass = window.Flowy[constructors[0]];
+                            log(`✅ Using window.Flowy.${constructors[0]} as constructor`);
+                        } else {
+                            throw new Error('No constructor found in window.Flowy exports: ' + Object.keys(window.Flowy).join(', '));
+                        }
+                    }
+                } else if (typeof window.Flowy === 'function') {
+                    FlowyClass = window.Flowy;
+                    log('✅ window.Flowy is directly a function');
+                } else {
+                    throw new Error('window.Flowy exists but is not an object or function: ' + typeof window.Flowy);
+                }
+            } else {
+                throw new Error('window.Flowy is not available. The UMD module may not have loaded correctly.');
+            }
+
+            flowy = new FlowyClass(document.getElementById('canvas'), {
                 spacing: { x: 20, y: 80 },
                 onGrab: drag,
                 onRelease: release,
@@ -162,13 +220,16 @@
                     return true;
                 }
             });
-            
+
             log('Flowy initialized successfully!');
             log('Available methods: ' + Object.getOwnPropertyNames(flowy).join(', '));
-            
+
         } catch (error) {
             log('ERROR: Failed to initialize Flowy: ' + error.message);
             log('Stack trace: ' + error.stack);
+
+            // Additional debugging
+            log('Global object keys: ' + Object.keys(window).filter(k => k.toLowerCase().includes('flowy')).join(', '));
         }
         
         function debugInfo() {
@@ -228,6 +289,21 @@
         
         // 自动显示初始调试信息
         setTimeout(debugInfo, 1000);
+
+        // 立即检查 Flowy 对象
+        setTimeout(() => {
+            log('=== IMMEDIATE CHECK ===');
+            log('window.Flowy exists: ' + !!window.Flowy);
+            if (window.Flowy) {
+                log('window.Flowy type: ' + typeof window.Flowy);
+                log('window.Flowy keys: ' + Object.keys(window.Flowy).join(', '));
+
+                // Check each key
+                Object.keys(window.Flowy).forEach(key => {
+                    log(`window.Flowy.${key}: ${typeof window.Flowy[key]}`);
+                });
+            }
+        }, 100);
     </script>
 </body>
 </html>
