@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flowy Basic Test</title>
+    <link href='flowy.min.css' rel='stylesheet' type='text/css'>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        
+        #canvas {
+            width: 600px;
+            height: 400px;
+            border: 2px solid #ddd;
+            position: relative;
+            background: #fafafa;
+            margin: 20px 0;
+        }
+        
+        .create-flowy {
+            width: 150px;
+            height: 60px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            font-size: 14px;
+        }
+        
+        .create-flowy:hover {
+            background: #0056b3;
+        }
+        
+        .block {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            cursor: move;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Flowy 基础测试</h1>
+    
+    <div class="test-section">
+        <h2>1. 库加载测试</h2>
+        <div id="library-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. 实例创建测试</h2>
+        <div id="instance-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. 基础功能测试</h2>
+        <p>拖拽下面的按钮到画布中测试基础拖拽功能：</p>
+        
+        <div class="create-flowy">
+            <input type="hidden" class="blockelemtype" value="1">
+            拖拽我到画布
+        </div>
+        
+        <div id="canvas"></div>
+        
+        <div id="function-test"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. API 方法测试</h2>
+        <button onclick="testExport()">测试导出</button>
+        <button onclick="testClear()">测试清空</button>
+        <button onclick="testAddNode()">测试添加节点</button>
+        <div id="api-test"></div>
+    </div>
+
+    <script src="flowy.min.js"></script>
+    <script>
+        let flowyInstance = null;
+        
+        function log(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            container.appendChild(div);
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+        
+        // 1. 库加载测试
+        function testLibraryLoading() {
+            if (typeof window.Flowy === 'undefined') {
+                log('library-test', '❌ window.Flowy 未定义', 'error');
+                return false;
+            }
+            
+            log('library-test', '✅ window.Flowy 存在', 'success');
+            
+            if (typeof window.Flowy.Flowy === 'function') {
+                log('library-test', '✅ window.Flowy.Flowy 构造函数可用', 'success');
+            } else {
+                log('library-test', '❌ window.Flowy.Flowy 构造函数不可用', 'error');
+                return false;
+            }
+            
+            if (typeof window.Flowy.flowy === 'function') {
+                log('library-test', '✅ window.Flowy.flowy 传统 API 可用', 'success');
+            } else {
+                log('library-test', '❌ window.Flowy.flowy 传统 API 不可用', 'error');
+            }
+            
+            return true;
+        }
+        
+        // 2. 实例创建测试
+        function testInstanceCreation() {
+            try {
+                const canvas = document.getElementById('canvas');
+                
+                // 测试现代 API
+                flowyInstance = new window.Flowy.Flowy(canvas, {
+                    spacing: { x: 20, y: 80 },
+                    onGrab: (block) => {
+                        log('function-test', '🎯 拖拽开始: ' + block.className, 'info');
+                    },
+                    onRelease: () => {
+                        log('function-test', '🎯 拖拽结束', 'info');
+                    },
+                    onSnap: (block, first, parent) => {
+                        log('function-test', '🎯 节点放置: ' + (first ? '首个节点' : '子节点'), 'info');
+                        return true;
+                    }
+                });
+                
+                log('instance-test', '✅ 现代 API 实例创建成功', 'success');
+                log('instance-test', '📋 实例方法: ' + Object.getOwnPropertyNames(Object.getPrototypeOf(flowyInstance)).filter(name => name !== 'constructor').join(', '), 'info');
+                
+                return true;
+            } catch (error) {
+                log('instance-test', '❌ 实例创建失败: ' + error.message, 'error');
+                return false;
+            }
+        }
+        
+        // 3. API 方法测试
+        function testExport() {
+            if (!flowyInstance) {
+                log('api-test', '❌ 没有可用的实例', 'error');
+                return;
+            }
+            
+            try {
+                const data = flowyInstance.export();
+                log('api-test', '✅ 导出成功: ' + JSON.stringify(data), 'success');
+            } catch (error) {
+                log('api-test', '❌ 导出失败: ' + error.message, 'error');
+            }
+        }
+        
+        function testClear() {
+            if (!flowyInstance) {
+                log('api-test', '❌ 没有可用的实例', 'error');
+                return;
+            }
+            
+            try {
+                flowyInstance.deleteBlocks();
+                log('api-test', '✅ 清空成功', 'success');
+            } catch (error) {
+                log('api-test', '❌ 清空失败: ' + error.message, 'error');
+            }
+        }
+        
+        function testAddNode() {
+            if (!flowyInstance) {
+                log('api-test', '❌ 没有可用的实例', 'error');
+                return;
+            }
+            
+            try {
+                const nodeId = flowyInstance.addNode({
+                    type: 'test',
+                    x: 100,
+                    y: 100,
+                    width: 120,
+                    height: 60,
+                    data: { name: 'Test Node' }
+                });
+                log('api-test', '✅ 添加节点成功: ' + nodeId, 'success');
+            } catch (error) {
+                log('api-test', '❌ 添加节点失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 页面加载完成后运行测试
+        document.addEventListener('DOMContentLoaded', function() {
+            log('library-test', '🚀 开始基础测试...', 'info');
+            
+            if (testLibraryLoading()) {
+                testInstanceCreation();
+            }
+        });
+    </script>
+</body>
+</html>
