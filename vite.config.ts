@@ -36,6 +36,8 @@ export default defineConfig({
           react: 'React',
           vue: 'Vue',
         },
+        // Ensure the UMD build exposes the main class correctly
+        banner: '/* Flowy - AI/Agent 流程可视化引擎 */',
       },
     },
     sourcemap: true,
