@@ -5,6 +5,43 @@
 
 [Dribbble](demo.com) | [Twitter](demo.com) | [Original Demo](docs/original-demo/)
 
+## 📁 Project Structure
+
+```
+flowy/
+├── src/                    # 🎯 Source code (development base)
+│   ├── flowy.js           # Main source code (472 lines)
+│   └── flowy.css          # Main stylesheet (41 lines)
+├── dist/                   # 📦 Build artifacts
+│   ├── flowy.js           # Development version
+│   ├── flowy.css          # Development version
+│   ├── flowy.min.js       # Production version (minified)
+│   └── flowy.min.css      # Production version (minified)
+├── docs/                   # 📚 Documentation and demos
+│   ├── original-demo/     # ✅ Working baseline demo
+│   └── src-demo/          # 🧪 Source code demo (for testing)
+├── tests/                  # 🧪 Automated tests
+│   ├── simple-test.js     # Basic functionality test
+│   ├── detailed-comparison.js # Comprehensive comparison test
+│   └── flowy-comparison.js # Full feature test suite
+└── tools/                  # 🔧 Build tools (future)
+```
+
+## 🎯 Development Workflow
+
+**Verified Development Strategy:**
+1. **Source Code**: All development work should be based on `src/` directory
+2. **Testing**: Use `docs/original-demo/` as the functional baseline
+3. **Validation**: Automated tests confirm `src/` matches demo functionality
+4. **Build**: Generate `dist/` from `src/` (future implementation)
+
+## ✅ Verification Status
+
+Through automated Playwright testing, we have confirmed:
+- ✅ `src/flowy.js` is the authentic source code for the working demo
+- ✅ All core functionality matches between src and demo versions
+- ✅ Safe to proceed with modernization based on `src/` directory
+
 
 Flowy makes creating WebApps with flowchart functionality an incredibly simple task. Build automation software, mindmapping tools, or simple programming platforms in minutes by implementing the library into your project. 
 

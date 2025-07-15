@@ -11,7 +11,8 @@
   ],
   "scripts": {
     "build": "echo 'Build script to be implemented'",
-    "test": "echo 'Test script to be implemented'",
+    "test": "node tests/flowy-comparison.js",
+    "test:comparison": "node tests/flowy-comparison.js",
     "dev": "echo 'Development server to be implemented'"
   },
   "repository": {
@@ -30,5 +31,8 @@
   "directories": {
     "doc": "docs",
     "test": "tests"
+  },
+  "dependencies": {
+    "playwright": "^1.54.1"
   }
 }
