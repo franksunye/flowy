@@ -11,8 +11,14 @@
   ],
   "scripts": {
     "build": "echo 'Build script to be implemented'",
-    "test": "node tests/flowy-comparison.js",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "jest tests/unit --verbose",
+    "test:integration": "jest tests/integration --verbose",
+    "test:performance": "node tests/performance/run-performance-tests.js",
+    "test:e2e": "node tests/e2e-test.js",
     "test:comparison": "node tests/flowy-comparison.js",
+    "test:watch": "jest tests/unit --watch",
+    "test:coverage": "jest tests/unit --coverage",
     "dev": "echo 'Development server to be implemented'"
   },
   "repository": {
@@ -34,5 +40,25 @@
   },
   "dependencies": {
     "playwright": "^1.54.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jsdom": "^23.0.1",
+    "@types/jest": "^29.5.8"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": ["<rootDir>/tests/unit/setup.js"],
+    "testMatch": [
+      "**/tests/unit/**/*.test.js",
+      "**/tests/integration/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/**/*.min.js"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": ["text", "lcov", "html"]
   }
 }
