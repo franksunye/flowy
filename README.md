@@ -12,11 +12,11 @@ flowy/
 ├── src/                    # 🎯 Source code (development base)
 │   ├── flowy.js           # Main source code (472 lines)
 │   └── flowy.css          # Main stylesheet (41 lines)
-├── dist/                   # 📦 Build artifacts
-│   ├── flowy.js           # Development version
-│   ├── flowy.css          # Development version
-│   ├── flowy.min.js       # Production version (minified)
-│   └── flowy.min.css      # Production version (minified)
+├── dist/                   # 📦 Build artifacts (working versions)
+│   ├── flowy.js           # Development version (same as src/)
+│   ├── flowy.css          # Development version (same as src/)
+│   ├── flowy.min.js       # Production version (29,780 bytes - working)
+│   └── flowy.min.css      # Production version (1,094 bytes - working)
 ├── docs/                   # 📚 Documentation and demos
 │   ├── original-demo/     # ✅ Working baseline demo
 │   └── src-demo/          # 🧪 Source code demo (for testing)
@@ -41,6 +41,15 @@ Through automated Playwright testing, we have confirmed:
 - ✅ `src/flowy.js` is the authentic source code for the working demo
 - ✅ All core functionality matches between src and demo versions
 - ✅ Safe to proceed with modernization based on `src/` directory
+
+## 📦 Dist Directory Management
+
+**Current Status**: `dist/` contains working versions copied from `docs/original-demo/`
+- `dist/flowy.min.js` (29,780 bytes) - Working production version
+- `dist/flowy.min.css` (1,094 bytes) - Working production version
+- `dist/flowy.js` and `dist/flowy.css` - Same as `src/` versions
+
+**Future Plan**: Establish automated build pipeline `src/` → `dist/`
 
 
 Flowy makes creating WebApps with flowchart functionality an incredibly simple task. Build automation software, mindmapping tools, or simple programming platforms in minutes by implementing the library into your project. 
