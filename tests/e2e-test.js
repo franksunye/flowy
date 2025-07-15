@@ -76,8 +76,11 @@ class FlowyE2ETest {
         
         // 4. 工作流测试
         await this.testWorkflowScenarios();
-        
-        // 5. 清理测试
+
+        // 5. 并列节点工作流测试 - 核心功能
+        await this.testParallelNodeWorkflows();
+
+        // 6. 清理测试
         await this.testCleanupFunctionality();
     }
 
@@ -428,6 +431,268 @@ class FlowyE2ETest {
 
         console.log(`     📊 连接点数量: ${connectionPoints}`);
         console.log('   ✅ 工作流场景测试完成');
+    }
+
+    // 并列节点工作流测试 - 核心功能测试
+    async testParallelNodeWorkflows() {
+        console.log('\n🌳 并列节点工作流测试...');
+
+        // 测试场景1: 一父二子工作流
+        await this.testTwoChildrenWorkflow();
+
+        // 清理画布
+        await this.clearCanvas();
+        await this.page.waitForTimeout(1000);
+
+        // 测试场景2: 一父三子工作流
+        await this.testThreeChildrenWorkflow();
+
+        console.log('   ✅ 并列节点工作流测试完成');
+    }
+
+    // 测试一父二子工作流场景
+    async testTwoChildrenWorkflow() {
+        console.log('\n   🌲 场景1: 一父二子工作流测试...');
+
+        const scenario = TEST_CONFIG.workflowScenarios.twoChildren;
+        const results = await this.executeWorkflowScenario(scenario);
+
+        // 验证工作流结构
+        const structureValid = await this.verifyWorkflowStructure(scenario.expectedStructure);
+        this.recordTest('一父二子工作流创建', results.success && structureValid, {
+            scenario: scenario.name,
+            blocksCreated: results.blocksCreated,
+            expectedBlocks: scenario.expectedStructure.totalBlocks,
+            structureValid
+        });
+
+        // 验证并列节点重排
+        const rearrangementValid = await this.verifyParallelNodeArrangement(scenario.expectedStructure.parallelChildren);
+        this.recordTest('二子节点重排功能', rearrangementValid, {
+            parallelChildren: scenario.expectedStructure.parallelChildren,
+            rearrangementValid
+        });
+
+        // 验证父子关系数据
+        const relationshipData = await this.verifyParentChildRelationships(scenario);
+        this.recordTest('一父二子关系数据', relationshipData.valid, relationshipData);
+
+        console.log(`     📊 一父二子工作流: ${results.blocksCreated}个块创建，重排${rearrangementValid ? '成功' : '失败'}`);
+    }
+
+    // 测试一父三子工作流场景
+    async testThreeChildrenWorkflow() {
+        console.log('\n   🌳 场景2: 一父三子工作流测试...');
+
+        const scenario = TEST_CONFIG.workflowScenarios.threeChildren;
+        const results = await this.executeWorkflowScenario(scenario);
+
+        // 验证工作流结构
+        const structureValid = await this.verifyWorkflowStructure(scenario.expectedStructure);
+        this.recordTest('一父三子工作流创建', results.success && structureValid, {
+            scenario: scenario.name,
+            blocksCreated: results.blocksCreated,
+            expectedBlocks: scenario.expectedStructure.totalBlocks,
+            structureValid
+        });
+
+        // 验证并列节点重排
+        const rearrangementValid = await this.verifyParallelNodeArrangement(scenario.expectedStructure.parallelChildren);
+        this.recordTest('三子节点重排功能', rearrangementValid, {
+            parallelChildren: scenario.expectedStructure.parallelChildren,
+            rearrangementValid
+        });
+
+        // 验证父子关系数据
+        const relationshipData = await this.verifyParentChildRelationships(scenario);
+        this.recordTest('一父三子关系数据', relationshipData.valid, relationshipData);
+
+        console.log(`     📊 一父三子工作流: ${results.blocksCreated}个块创建，重排${rearrangementValid ? '成功' : '失败'}`);
+    }
+
+    // 执行工作流场景
+    async executeWorkflowScenario(scenario) {
+        console.log(`     🔄 执行场景: ${scenario.name}`);
+
+        let successfulBlocks = 0;
+        const totalBlocks = scenario.blocks.length;
+
+        for (let i = 0; i < scenario.blocks.length; i++) {
+            const block = scenario.blocks[i];
+            console.log(`       🎯 创建${block.role}: ${block.name}`);
+
+            // 根据选择器确定实际的块标题
+            const expectedTitles = {
+                '.create-flowy:nth-child(1)': 'New visitor',
+                '.create-flowy:nth-child(2)': 'Action is performed',
+                '.create-flowy:nth-child(3)': 'Time has passed',
+                '.create-flowy:nth-child(4)': 'Error prompt'
+            };
+
+            const dragTest = {
+                name: block.name,
+                selector: block.selector,
+                target: block.target,
+                expectedTitle: expectedTitles[block.selector] || block.name
+            };
+
+            const success = await this.performAdvancedDrag(dragTest);
+            if (success) {
+                successfulBlocks++;
+                console.log(`       ✅ ${block.name} 创建成功`);
+
+                // 等待重排完成
+                await this.page.waitForTimeout(1500);
+            } else {
+                console.log(`       ❌ ${block.name} 创建失败`);
+            }
+        }
+
+        return {
+            success: successfulBlocks === totalBlocks,
+            blocksCreated: successfulBlocks,
+            totalBlocks
+        };
+    }
+
+    // 验证工作流结构
+    async verifyWorkflowStructure(expectedStructure) {
+        try {
+            const actualBlocks = await this.page.locator(TEST_CONFIG.snapping.snappedBlockSelector).count();
+            const structureMatches = actualBlocks === expectedStructure.totalBlocks;
+
+            console.log(`       📊 期望块数: ${expectedStructure.totalBlocks}, 实际块数: ${actualBlocks}`);
+
+            return structureMatches;
+        } catch (error) {
+            console.log(`       ❌ 结构验证失败: ${error.message}`);
+            return false;
+        }
+    }
+
+    // 验证并列节点重排
+    async verifyParallelNodeArrangement(expectedParallelChildren) {
+        try {
+            // 获取所有块的位置信息
+            const blockPositions = await this.page.evaluate(() => {
+                const blocks = document.querySelectorAll('.block');
+                return Array.from(blocks).map(block => {
+                    const rect = block.getBoundingClientRect();
+                    return {
+                        id: block.querySelector('.blockid')?.value,
+                        x: rect.left,
+                        y: rect.top,
+                        width: rect.width,
+                        height: rect.height
+                    };
+                });
+            });
+
+            if (blockPositions.length === 0) {
+                return false;
+            }
+
+            // 按Y坐标分组，找出并列节点
+            const yGroups = {};
+            blockPositions.forEach(block => {
+                const yKey = Math.round(block.y / 50) * 50; // 50px容差分组
+                if (!yGroups[yKey]) yGroups[yKey] = [];
+                yGroups[yKey].push(block);
+            });
+
+            // 找到最大的Y组（应该是并列子节点）
+            const largestGroup = Object.values(yGroups).reduce((max, group) =>
+                group.length > max.length ? group : max, []);
+
+            const actualParallelChildren = largestGroup.length;
+            const arrangementValid = actualParallelChildren >= expectedParallelChildren;
+
+            console.log(`       📊 期望并列节点: ${expectedParallelChildren}, 实际并列节点: ${actualParallelChildren}`);
+
+            // 验证并列节点是否水平排列
+            if (largestGroup.length > 1) {
+                const sortedByX = largestGroup.sort((a, b) => a.x - b.x);
+                const hasProperSpacing = sortedByX.every((block, index) => {
+                    if (index === 0) return true;
+                    const spacing = block.x - sortedByX[index - 1].x;
+                    return spacing > 50; // 至少50px间距
+                });
+
+                console.log(`       📊 并列节点水平排列: ${hasProperSpacing ? '正确' : '错误'}`);
+                return arrangementValid && hasProperSpacing;
+            }
+
+            return arrangementValid;
+
+        } catch (error) {
+            console.log(`       ❌ 重排验证失败: ${error.message}`);
+            return false;
+        }
+    }
+
+    // 验证父子关系数据
+    async verifyParentChildRelationships(scenario) {
+        try {
+            const workflowData = await this.page.evaluate(() => {
+                try {
+                    return flowy.output();
+                } catch (error) {
+                    return null;
+                }
+            });
+
+            if (!workflowData || !Array.isArray(workflowData)) {
+                return { valid: false, error: '无法获取工作流数据' };
+            }
+
+            // 验证父子关系
+            const parentBlocks = workflowData.filter(block => block.parent === -1);
+            const childBlocks = workflowData.filter(block => block.parent !== -1);
+
+            // 验证并列子节点（具有相同parent的节点）
+            const parentIds = [...new Set(childBlocks.map(block => block.parent))];
+            const parallelGroups = parentIds.map(parentId =>
+                childBlocks.filter(block => block.parent === parentId)
+            );
+
+            const maxParallelChildren = Math.max(...parallelGroups.map(group => group.length), 0);
+
+            const relationshipValid = {
+                hasParent: parentBlocks.length > 0,
+                hasChildren: childBlocks.length > 0,
+                parallelChildrenCount: maxParallelChildren,
+                expectedParallelChildren: scenario.expectedStructure.parallelChildren,
+                parallelChildrenMatch: maxParallelChildren >= scenario.expectedStructure.parallelChildren
+            };
+
+            console.log(`       📊 父节点: ${parentBlocks.length}, 子节点: ${childBlocks.length}, 最大并列: ${maxParallelChildren}`);
+
+            return {
+                valid: relationshipValid.hasParent && relationshipValid.hasChildren && relationshipValid.parallelChildrenMatch,
+                details: relationshipValid,
+                workflowData
+            };
+
+        } catch (error) {
+            return { valid: false, error: error.message };
+        }
+    }
+
+    // 清理画布
+    async clearCanvas() {
+        console.log('       🧹 清理画布...');
+        try {
+            await this.page.evaluate(() => {
+                if (typeof flowy !== 'undefined' && typeof flowy.deleteBlocks === 'function') {
+                    flowy.deleteBlocks();
+                }
+            });
+            await this.page.waitForTimeout(1000);
+            return true;
+        } catch (error) {
+            console.log(`       ❌ 清理失败: ${error.message}`);
+            return false;
+        }
     }
 
     // 清理功能测试

@@ -74,6 +74,86 @@ const TEST_CONFIG = {
             left: '.blockyleft',
             right: '.blockyright'
         }
+    },
+
+    // 并列节点工作流测试场景
+    workflowScenarios: {
+        // 场景1: 1父节点 + 2并列子节点
+        twoChildren: {
+            name: '一父二子工作流',
+            description: '测试一个父节点连接两个并列子节点的创建和重排',
+            blocks: [
+                {
+                    name: 'Parent Block',
+                    selector: '.create-flowy:nth-child(1)',
+                    target: { x: 300, y: 150 },
+                    expectedParent: -1,
+                    role: 'parent'
+                },
+                {
+                    name: 'Child Block 1',
+                    selector: '.create-flowy:nth-child(2)',
+                    target: { x: 200, y: 300 },  // 父节点下方偏左
+                    expectedParent: 0,
+                    role: 'child'
+                },
+                {
+                    name: 'Child Block 2',
+                    selector: '.create-flowy:nth-child(3)',
+                    target: { x: 400, y: 300 },  // 父节点下方偏右
+                    expectedParent: 0,
+                    role: 'child'
+                }
+            ],
+            expectedStructure: {
+                totalBlocks: 3,
+                parentBlocks: 1,
+                childBlocks: 2,
+                parallelChildren: 2
+            }
+        },
+
+        // 场景2: 1父节点 + 3并列子节点
+        threeChildren: {
+            name: '一父三子工作流',
+            description: '测试一个父节点连接三个并列子节点的创建和重排',
+            blocks: [
+                {
+                    name: 'Parent Block',
+                    selector: '.create-flowy:nth-child(1)',
+                    target: { x: 300, y: 150 },
+                    expectedParent: -1,
+                    role: 'parent'
+                },
+                {
+                    name: 'Child Block 1',
+                    selector: '.create-flowy:nth-child(2)',
+                    target: { x: 150, y: 300 },  // 父节点下方左侧
+                    expectedParent: 0,
+                    role: 'child'
+                },
+                {
+                    name: 'Child Block 2',
+                    selector: '.create-flowy:nth-child(3)',
+                    target: { x: 300, y: 300 },  // 父节点下方中间
+                    expectedParent: 0,
+                    role: 'child'
+                },
+                {
+                    name: 'Child Block 3',
+                    selector: '.create-flowy:nth-child(4)',
+                    target: { x: 450, y: 300 },  // 父节点下方右侧
+                    expectedParent: 0,
+                    role: 'child'
+                }
+            ],
+            expectedStructure: {
+                totalBlocks: 4,
+                parentBlocks: 1,
+                childBlocks: 3,
+                parallelChildren: 3
+            }
+        }
     }
 };
 
