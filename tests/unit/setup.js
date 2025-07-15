@@ -139,10 +139,33 @@ function createJQueryLikeObject(elements) {
         
         append(content) {
             elements.forEach(el => {
-                if (el && typeof content === 'string') {
-                    el.innerHTML += content;
-                } else if (el && content.nodeType) {
-                    el.appendChild(content);
+                if (el) {
+                    if (typeof content === 'string') {
+                        el.innerHTML += content;
+                    } else if (content && content.nodeType) {
+                        el.appendChild(content);
+                    } else if (content && typeof content === 'object' && content.length) {
+                        // 处理jQuery对象或NodeList
+                        Array.from(content).forEach(node => {
+                            if (node && node.nodeType) {
+                                el.appendChild(node);
+                            }
+                        });
+                    }
+                }
+            });
+            return this;
+        },
+
+        // html方法 - 获取或设置元素的innerHTML
+        html(content) {
+            if (content === undefined) {
+                return elements[0] ? elements[0].innerHTML : '';
+            }
+
+            elements.forEach(el => {
+                if (el) {
+                    el.innerHTML = content;
                 }
             });
             return this;
@@ -163,14 +186,20 @@ function createJQueryLikeObject(elements) {
                 handler = selector;
                 selector = null;
             }
-            
+
             elements.forEach(el => {
                 if (el && el.addEventListener) {
                     if (selector) {
                         // 事件委托
                         el.addEventListener(event, function(e) {
-                            if (e.target.matches(selector)) {
-                                handler.call(e.target, e);
+                            // 检查事件目标或其父元素是否匹配选择器
+                            let target = e.target;
+                            while (target && target !== el) {
+                                if (target.matches && target.matches(selector)) {
+                                    handler.call(target, e);
+                                    return;
+                                }
+                                target = target.parentElement;
                             }
                         });
                     } else {
@@ -178,6 +207,20 @@ function createJQueryLikeObject(elements) {
                     }
                 }
             });
+            return this;
+        },
+
+        // ready方法 - 模拟jQuery的ready功能
+        ready(callback) {
+            if (typeof callback === 'function') {
+                // 如果DOM已经加载完成，立即执行回调
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', callback);
+                } else {
+                    // DOM已经准备好，立即执行
+                    setTimeout(callback, 0);
+                }
+            }
             return this;
         },
         
