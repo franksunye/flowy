@@ -1,0 +1,34 @@
+{
+  "name": "flowy",
+  "version": "1.0.0",
+  "description": "A minimal javascript library to create flowcharts",
+  "main": "dist/flowy.js",
+  "files": [
+    "dist/",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "echo 'Build script to be implemented'",
+    "test": "echo 'Test script to be implemented'",
+    "dev": "echo 'Development server to be implemented'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/franksunye/flowy.git"
+  },
+  "keywords": [
+    "flowchart",
+    "diagram",
+    "drag-drop",
+    "javascript",
+    "library"
+  ],
+  "author": "Alyssa X",
+  "license": "MIT",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  }
+}
