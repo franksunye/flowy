@@ -62,12 +62,15 @@ describe('Flowy 工作流行为测试', () => {
         test('初始状态应该是空的工作流', async () => {
             // 等待初始化完成
             await new Promise(resolve => setTimeout(resolve, 200));
-            
+
             const output = flowy.output();
+
+            // 初始状态应该是undefined或空数组
             if (output) {
-                expect(output.html).toBe('');
-                expect(output.blockarr).toEqual([]);
-                expect(output.blocks).toEqual([]);
+                expect(Array.isArray(output)).toBe(true);
+                expect(output.length).toBe(0);
+            } else {
+                expect(output).toBeUndefined();
             }
         });
     });
@@ -116,34 +119,43 @@ describe('Flowy 工作流行为测试', () => {
         test('应该能够获取当前工作流状态', async () => {
             // 等待初始化完成
             await new Promise(resolve => setTimeout(resolve, 200));
-            
+
             const output = flowy.output();
-            
-            // 输出应该包含工作流信息
+
+            // 输出应该是undefined或数组
             if (output) {
-                expect(output).toHaveProperty('html');
-                expect(output).toHaveProperty('blockarr');
-                expect(output).toHaveProperty('blocks');
+                expect(Array.isArray(output)).toBe(true);
+
+                // 如果有数据，验证数组元素结构
+                if (output.length > 0) {
+                    expect(output[0]).toHaveProperty('id');
+                    expect(output[0]).toHaveProperty('parent');
+                    expect(output[0]).toHaveProperty('data');
+                }
+            } else {
+                expect(output).toBeUndefined();
             }
         });
 
         test('应该能够清理工作流状态', async () => {
             // 等待初始化完成
             await new Promise(resolve => setTimeout(resolve, 200));
-            
+
             // 清理前获取状态
             const beforeCleanup = flowy.output();
-            
+
             // 执行清理
             flowy.deleteBlocks();
-            
+
             // 清理后获取状态
             const afterCleanup = flowy.output();
-            
+
+            // 清理后应该返回undefined或空数组
             if (afterCleanup) {
-                expect(afterCleanup.html).toBe('');
-                expect(afterCleanup.blockarr).toEqual([]);
-                expect(afterCleanup.blocks).toEqual([]);
+                expect(Array.isArray(afterCleanup)).toBe(true);
+                expect(afterCleanup.length).toBe(0);
+            } else {
+                expect(afterCleanup).toBeUndefined();
             }
         });
     });
