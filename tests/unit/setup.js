@@ -159,7 +159,12 @@ function createJQueryLikeObject(elements) {
                 if (el && el.nodeType === 1) { // 确保是元素节点
                     try {
                         if (typeof content === 'string') {
-                            el.innerHTML += content;
+                            // 使用更安全的方法添加HTML内容
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = content;
+                            while (tempDiv.firstChild) {
+                                el.appendChild(tempDiv.firstChild);
+                            }
                         } else if (content && content.nodeType) {
                             el.appendChild(content);
                         } else if (content && typeof content === 'object' && content.length) {
@@ -171,7 +176,7 @@ function createJQueryLikeObject(elements) {
                             });
                         }
                     } catch (e) {
-                        // 静默处理错误，避免测试中断
+                        // 记录错误，但不中断测试
                         console.warn('Append operation failed:', e.message);
                     }
                 }
