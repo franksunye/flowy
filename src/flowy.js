@@ -1,6 +1,8 @@
-// 导入DOM工具模块
-// 在浏览器环境中，DomUtils会被自动加载到window.DomUtils
+// 导入模块
+// 在浏览器环境中，模块会被自动加载到window对象
 // 在Node.js测试环境中，通过require加载
+// - DomUtils: DOM操作工具
+// - BlockManager: 块管理模块
 
 var flowy = function(canvas, grab, release, snapping, spacing_x, spacing_y) {
     if (!grab) {
@@ -19,9 +21,27 @@ var flowy = function(canvas, grab, release, snapping, spacing_x, spacing_y) {
         spacing_y = 80;
     }
     $(document).ready(function() {
-        var blocks = [];
-        var blockstemp = [];
+        // 创建块管理器实例
+        var blockManager = (typeof BlockManager !== 'undefined') ? new BlockManager() : null;
+
+        // 保持原有变量作为引用，确保向后兼容
+        var blocks = blockManager ? blockManager.getAllBlocks() : [];
+        var blockstemp = blockManager ? blockManager.getTempBlocks() : [];
         var canvas_div = canvas;
+
+        // 辅助函数：获取块数量（兼容原有代码）
+        function getBlockCount() {
+            return blockManager ? blockManager.getBlockCount() : blocks.length;
+        }
+
+        // 辅助函数：获取下一个块ID
+        function getNextBlockId() {
+            if (blockManager) {
+                return blockManager.getNextBlockId();
+            } else {
+                return blocks.length === 0 ? 0 : Math.max.apply(Math, blocks.map(a => a.id)) + 1;
+            }
+        }
         var active = false;
         var paddingx = spacing_x;
         var paddingy = spacing_y;
@@ -62,14 +82,16 @@ var flowy = function(canvas, grab, release, snapping, spacing_x, spacing_y) {
         $(document).on("mousedown", ".create-flowy", function(event) {
             if (event.which === 1) {
                 original = $(this);
-                if (blocks.length == 0) {
-                    $(this).clone().addClass('block').append("<input type='hidden' name='blockid' class='blockid' value='" + blocks.length + "'>").removeClass("create-flowy").appendTo("body");
+                if (getBlockCount() == 0) {
+                    var newBlockId = getBlockCount(); // 当blocks为空时，使用0作为第一个ID
+                    $(this).clone().addClass('block').append("<input type='hidden' name='blockid' class='blockid' value='" + newBlockId + "'>").removeClass("create-flowy").appendTo("body");
                     $(this).addClass("dragnow");
-                    drag = $(".blockid[value=" + blocks.length + "]").parent();
+                    drag = $(".blockid[value=" + newBlockId + "]").parent();
                 } else {
-                    $(this).clone().addClass('block').append("<input type='hidden' name='blockid' class='blockid' value='" + (Math.max.apply(Math, blocks.map(a => a.id)) + 1) + "'>").removeClass("create-flowy").appendTo("body");
+                    var newBlockId = getNextBlockId();
+                    $(this).clone().addClass('block').append("<input type='hidden' name='blockid' class='blockid' value='" + newBlockId + "'>").removeClass("create-flowy").appendTo("body");
                     $(this).addClass("dragnow");
-                    drag = $(".blockid[value=" + (parseInt(Math.max.apply(Math, blocks.map(a => a.id))) + 1) + "]").parent();
+                    drag = $(".blockid[value=" + newBlockId + "]").parent();
                 }
                 blockGrabbed($(this));
                 drag.addClass("dragging");

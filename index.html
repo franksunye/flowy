@@ -202,8 +202,9 @@
 
     <!-- 引入 Flowy（通过 Vite 开发服务器） -->
     <script type="module">
-        // 导入DOM工具模块
+        // 导入工具和核心模块
         import DomUtils from './src/utils/dom-utils.js';
+        import BlockManager from './src/core/block-manager.js';
         // 在开发环境中，Vite 会自动处理模块导入
         import flowy from './src/flowy.js';
 
