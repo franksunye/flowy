@@ -24,9 +24,20 @@ var require_flowy_es = __commonJS({
         spacing_y = 80;
       }
       $(document).ready(function() {
-        var blocks = [];
-        var blockstemp = [];
+        var blockManager = typeof BlockManager !== "undefined" ? new BlockManager() : null;
+        var blocks = blockManager ? blockManager.getAllBlocks() : [];
+        var blockstemp = blockManager ? blockManager.getTempBlocks() : [];
         var canvas_div = canvas;
+        function getBlockCount() {
+          return blockManager ? blockManager.getBlockCount() : blocks.length;
+        }
+        function getNextBlockId() {
+          if (blockManager) {
+            return blockManager.getNextBlockId();
+          } else {
+            return blocks.length === 0 ? 0 : Math.max.apply(Math, blocks.map((a) => a.id)) + 1;
+          }
+        }
         var active = false;
         var paddingx = spacing_x;
         var paddingy = spacing_y;
@@ -66,14 +77,16 @@ var require_flowy_es = __commonJS({
         $(document).on("mousedown", ".create-flowy", function(event) {
           if (event.which === 1) {
             original = $(this);
-            if (blocks.length == 0) {
-              $(this).clone().addClass("block").append("<input type='hidden' name='blockid' class='blockid' value='" + blocks.length + "'>").removeClass("create-flowy").appendTo("body");
+            if (getBlockCount() == 0) {
+              var newBlockId = getBlockCount();
+              $(this).clone().addClass("block").append("<input type='hidden' name='blockid' class='blockid' value='" + newBlockId + "'>").removeClass("create-flowy").appendTo("body");
               $(this).addClass("dragnow");
-              drag = $(".blockid[value=" + blocks.length + "]").parent();
+              drag = $(".blockid[value=" + newBlockId + "]").parent();
             } else {
-              $(this).clone().addClass("block").append("<input type='hidden' name='blockid' class='blockid' value='" + (Math.max.apply(Math, blocks.map((a) => a.id)) + 1) + "'>").removeClass("create-flowy").appendTo("body");
+              var newBlockId = getNextBlockId();
+              $(this).clone().addClass("block").append("<input type='hidden' name='blockid' class='blockid' value='" + newBlockId + "'>").removeClass("create-flowy").appendTo("body");
               $(this).addClass("dragnow");
-              drag = $(".blockid[value=" + (parseInt(Math.max.apply(Math, blocks.map((a) => a.id))) + 1) + "]").parent();
+              drag = $(".blockid[value=" + newBlockId + "]").parent();
             }
             blockGrabbed($(this));
             drag.addClass("dragging");
