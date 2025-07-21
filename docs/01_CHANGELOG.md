@@ -5,9 +5,20 @@
 格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
 项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [未发布] - 2025-07-18
+## [未发布] - 2025-07-21
 
 ### 新增 (Added)
+- 🏗️ **模块化重构第一阶段完成**
+  - 创建了DOM工具模块 (`src/utils/dom-utils.js`)
+  - 建立了模块化目录结构 (`src/core/`, `src/utils/`, `src/api/`)
+  - 封装了所有jQuery操作接口
+- 📚 **重构文档体系**
+  - 添加了重构计划文档 (`REFACTORING_PLAN.md`)
+  - 创建了重构进度报告 (`REFACTORING_PROGRESS.md`)
+  - 建立了验证清单 (`VERIFICATION_CHECKLIST.md`)
+- 🧪 **测试驱动重构流程**
+  - 建立了基准测试验证机制
+  - 实现了零功能影响重构策略
 - 建立了完整的Jest单元测试框架
 - 创建了隔离测试环境 (`IsolatedFlowyTestEnvironment`)
 - 添加了83个单元测试，覆盖所有核心功能

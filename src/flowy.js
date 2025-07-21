@@ -1,3 +1,7 @@
+// 导入DOM工具模块
+// 在浏览器环境中，DomUtils会被自动加载到window.DomUtils
+// 在Node.js测试环境中，通过require加载
+
 var flowy = function(canvas, grab, release, snapping, spacing_x, spacing_y) {
     if (!grab) {
         grab = function() {};
