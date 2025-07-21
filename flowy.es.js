@@ -38,6 +38,22 @@ var require_flowy_es = __commonJS({
             return blocks.length === 0 ? 0 : Math.max.apply(Math, blocks.map((a) => a.id)) + 1;
           }
         }
+        function clearAllBlocks() {
+          if (blockManager) {
+            blockManager.clearBlocks();
+            blocks.length = 0;
+          } else {
+            blocks = [];
+          }
+        }
+        function addBlock(blockData) {
+          if (blockManager) {
+            blockManager.addBlock(blockData);
+            blocks.push(blockData);
+          } else {
+            blocks.push(blockData);
+          }
+        }
         var active = false;
         var paddingx = spacing_x;
         var paddingy = spacing_y;
@@ -71,7 +87,7 @@ var require_flowy_es = __commonJS({
           }
         };
         flowy.deleteBlocks = function() {
-          blocks = [];
+          clearAllBlocks();
           canvas_div.html("<div class='indicator invisible'></div>");
         };
         $(document).on("mousedown", ".create-flowy", function(event) {
@@ -132,7 +148,7 @@ var require_flowy_es = __commonJS({
               drag.css("top", drag.offset().top - canvas_div.offset().top + canvas_div.scrollTop() + "px");
               drag.css("left", drag.offset().left - canvas_div.offset().left + canvas_div.scrollLeft() + "px");
               drag.appendTo(canvas_div);
-              blocks.push({
+              addBlock({
                 parent: -1,
                 childwidth: 0,
                 id: parseInt(drag.children(".blockid").val()),
@@ -198,7 +214,7 @@ var require_flowy_es = __commonJS({
                     blocks = $.merge(blocks, blockstemp);
                     blockstemp = [];
                   } else {
-                    blocks.push({
+                    addBlock({
                       childwidth: 0,
                       parent: blocko[i],
                       id: parseInt(drag.children(".blockid").val()),
