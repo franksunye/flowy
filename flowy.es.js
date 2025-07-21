@@ -54,6 +54,28 @@ var require_flowy_es = __commonJS({
             blocks.push(blockData);
           }
         }
+        function mergeTempBlocks() {
+          if (blockManager) {
+            blockManager.mergeTempBlocks();
+            blocks = blockManager.getAllBlocks();
+            blockstemp = blockManager.getTempBlocks();
+          } else {
+            blocks = $.merge(blocks, blockstemp);
+            blockstemp = [];
+          }
+        }
+        function removeBlockById(blockId) {
+          if (blockManager) {
+            blockManager.removeBlocks(function(block) {
+              return block.id != blockId;
+            });
+            blocks = blockManager.getAllBlocks();
+          } else {
+            blocks = $.grep(blocks, function(e) {
+              return e.id != blockId;
+            });
+          }
+        }
         var active = false;
         var paddingx = spacing_x;
         var paddingy = spacing_y;
@@ -140,8 +162,7 @@ var require_flowy_es = __commonJS({
               }
               blockstemp.filter((a) => a.id == 0)[0].x = drag.offset().left + drag.innerWidth() / 2;
               blockstemp.filter((a) => a.id == 0)[0].y = drag.offset().top + drag.innerHeight() / 2;
-              blocks = $.merge(blocks, blockstemp);
-              blockstemp = [];
+              mergeTempBlocks();
             } else if (active && blocks.length == 0 && drag.offset().top > canvas_div.offset().top && drag.offset().left > canvas_div.offset().left) {
               blockSnap(drag);
               active = false;
@@ -211,8 +232,7 @@ var require_flowy_es = __commonJS({
                         blockstemp[w].y = $(".blockid[value=" + blockstemp[w].id + "]").parent().offset().top + $(".blockid[value=" + blockstemp[w].id + "]").parent().innerHeight() / 2 + canvas_div.scrollTop();
                       }
                     }
-                    blocks = $.merge(blocks, blockstemp);
-                    blockstemp = [];
+                    mergeTempBlocks();
                   } else {
                     addBlock({
                       childwidth: 0,
@@ -297,9 +317,7 @@ var require_flowy_es = __commonJS({
                   var blockid = parseInt($(this).children(".blockid").val());
                   drag = $(this);
                   blockstemp.push(blocks.filter((a) => a.id == blockid)[0]);
-                  blocks = $.grep(blocks, function(e) {
-                    return e.id != blockid;
-                  });
+                  removeBlockById(blockid);
                   $(".arrowid[value=" + blockid + "]").parent().remove();
                   var layer = blocks.filter((a) => a.parent == blockid);
                   var flag = false;
@@ -326,15 +344,11 @@ var require_flowy_es = __commonJS({
                   }
                   for (var i = 0; i < blocks.filter((a) => a.parent == blockid).length; i++) {
                     var blocknumber = blocks.filter((a) => a.parent == blockid)[i];
-                    blocks = $.grep(blocks, function(e) {
-                      return e.id != blocknumber;
-                    });
+                    removeBlockById(blocknumber);
                   }
                   for (var i = 0; i < allids.length; i++) {
                     var blocknumber = allids[i];
-                    blocks = $.grep(blocks, function(e) {
-                      return e.id != blocknumber;
-                    });
+                    removeBlockById(blocknumber);
                   }
                   if (blocks.length > 1) {
                     rearrangeMe();
