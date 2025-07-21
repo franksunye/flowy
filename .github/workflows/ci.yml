@@ -1,0 +1,170 @@
+name: 🚀 CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+  CACHE_KEY: node-modules
+
+jobs:
+  # 🧪 测试作业
+  test:
+    name: 🧪 Tests & Coverage
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📥 Install dependencies
+      run: npm ci
+      
+    - name: 🧪 Run unit tests
+      run: npm run test:unit
+      
+    - name: 📊 Generate coverage report
+      run: npm run test:coverage
+      
+    - name: 📤 Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage/lcov.info
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        
+    - name: 💾 Cache coverage results
+      uses: actions/cache@v4
+      with:
+        path: coverage
+        key: coverage-${{ github.sha }}
+
+  # 🔨 构建作业
+  build:
+    name: 🔨 Build & Validate
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📥 Install dependencies
+      run: npm ci
+      
+    - name: 🔨 Build library
+      run: npm run build
+      
+    - name: 📏 Check build size
+      run: |
+        echo "## 📦 Build Size Report" >> $GITHUB_STEP_SUMMARY
+        echo "| Format | Size | Gzipped |" >> $GITHUB_STEP_SUMMARY
+        echo "|--------|------|---------|" >> $GITHUB_STEP_SUMMARY
+        if [ -f "dist/flowy.es.js" ]; then
+          ES_SIZE=$(stat -c%s "dist/flowy.es.js" | numfmt --to=iec)
+          echo "| ES Module | $ES_SIZE | - |" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -f "dist/flowy.umd.js" ]; then
+          UMD_SIZE=$(stat -c%s "dist/flowy.umd.js" | numfmt --to=iec)
+          echo "| UMD | $UMD_SIZE | - |" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -f "dist/flowy.iife.js" ]; then
+          IIFE_SIZE=$(stat -c%s "dist/flowy.iife.js" | numfmt --to=iec)
+          echo "| IIFE | $IIFE_SIZE | - |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+    - name: 💾 Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-artifacts
+        path: dist/
+        retention-days: 30
+
+  # 🔍 代码质量检查
+  quality:
+    name: 🔍 Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📥 Install dependencies
+      run: npm ci
+      
+    - name: 🔍 Check for TODO/FIXME
+      run: |
+        echo "## 📝 Code Analysis" >> $GITHUB_STEP_SUMMARY
+        TODO_COUNT=$(grep -r "TODO\|FIXME" src/ --include="*.js" | wc -l || echo "0")
+        echo "- TODO/FIXME comments: $TODO_COUNT" >> $GITHUB_STEP_SUMMARY
+        
+    - name: 📊 Analyze bundle
+      run: |
+        echo "## 📦 Bundle Analysis" >> $GITHUB_STEP_SUMMARY
+        if [ -f "src/flowy.js" ]; then
+          SRC_SIZE=$(stat -c%s "src/flowy.js" | numfmt --to=iec)
+          SRC_LINES=$(wc -l < "src/flowy.js")
+          echo "- Source file size: $SRC_SIZE" >> $GITHUB_STEP_SUMMARY
+          echo "- Source lines of code: $SRC_LINES" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  # 🚀 部署作业 (仅在主分支)
+  deploy:
+    name: 🚀 Deploy
+    runs-on: ubuntu-latest
+    needs: [test, build, quality]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📥 Install dependencies
+      run: npm ci
+      
+    - name: 🔨 Build for production
+      run: npm run build
+      
+    - name: 📤 Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v4
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./dist
+        publish_branch: gh-pages
+        
+    - name: 🎉 Deployment summary
+      run: |
+        echo "## 🚀 Deployment Complete" >> $GITHUB_STEP_SUMMARY
+        echo "- Branch: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Commit: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Deployed to: GitHub Pages" >> $GITHUB_STEP_SUMMARY

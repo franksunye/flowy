@@ -469,3 +469,9 @@ var flowy = function(canvas, grab, release, snapping, spacing_x, spacing_y) {
         snapping(drag);
     }
 }
+
+// 模块导出支持（用于测试覆盖率追踪）
+// 这不会影响浏览器中的使用，因为 module 在浏览器中未定义
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = flowy;
+}

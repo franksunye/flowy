@@ -1,0 +1,199 @@
+name: 🔍 Code Quality
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    # 每天 UTC 2:00 运行
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # 🔍 代码质量分析
+  quality-check:
+    name: 🔍 Quality Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📥 Install dependencies
+      run: npm ci
+      
+    - name: 🧪 Run tests with coverage
+      run: npm run test:coverage
+      
+    - name: 📊 Code complexity analysis
+      run: |
+        echo "## 📊 Code Quality Report" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # 分析源代码
+        if [ -f "src/flowy.js" ]; then
+          # 文件大小
+          FILE_SIZE=$(stat -c%s "src/flowy.js" | numfmt --to=iec)
+          echo "### 📁 File Analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- **Source file size**: $FILE_SIZE" >> $GITHUB_STEP_SUMMARY
+          
+          # 代码行数
+          TOTAL_LINES=$(wc -l < "src/flowy.js")
+          CODE_LINES=$(grep -v '^\s*$\|^\s*//\|^\s*/\*\|^\s*\*' "src/flowy.js" | wc -l)
+          COMMENT_LINES=$(grep '^\s*//\|^\s*/\*\|^\s*\*' "src/flowy.js" | wc -l)
+          
+          echo "- **Total lines**: $TOTAL_LINES" >> $GITHUB_STEP_SUMMARY
+          echo "- **Code lines**: $CODE_LINES" >> $GITHUB_STEP_SUMMARY
+          echo "- **Comment lines**: $COMMENT_LINES" >> $GITHUB_STEP_SUMMARY
+          
+          # 函数数量
+          FUNCTION_COUNT=$(grep -c "function\|=>" "src/flowy.js" || echo "0")
+          echo "- **Functions**: $FUNCTION_COUNT" >> $GITHUB_STEP_SUMMARY
+          
+          # TODO/FIXME 计数
+          TODO_COUNT=$(grep -c "TODO\|FIXME" "src/flowy.js" || echo "0")
+          echo "- **TODO/FIXME**: $TODO_COUNT" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+    - name: 🔍 Dependency analysis
+      run: |
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Dependencies" >> $GITHUB_STEP_SUMMARY
+        
+        # 生产依赖
+        PROD_DEPS=$(jq -r '.dependencies // {} | keys | length' package.json)
+        echo "- **Production dependencies**: $PROD_DEPS" >> $GITHUB_STEP_SUMMARY
+        
+        # 开发依赖
+        DEV_DEPS=$(jq -r '.devDependencies // {} | keys | length' package.json)
+        echo "- **Development dependencies**: $DEV_DEPS" >> $GITHUB_STEP_SUMMARY
+        
+        # 检查过时的依赖
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔄 Dependency Status" >> $GITHUB_STEP_SUMMARY
+        npm outdated --json > outdated.json 2>/dev/null || echo "{}" > outdated.json
+        OUTDATED_COUNT=$(jq 'keys | length' outdated.json)
+        echo "- **Outdated packages**: $OUTDATED_COUNT" >> $GITHUB_STEP_SUMMARY
+        
+    - name: 🛡️ Security audit
+      run: |
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🛡️ Security Audit" >> $GITHUB_STEP_SUMMARY
+        
+        # 运行安全审计
+        npm audit --json > audit.json 2>/dev/null || echo '{"vulnerabilities":{}}' > audit.json
+        
+        # 解析审计结果
+        HIGH_VULNS=$(jq '.vulnerabilities | to_entries | map(select(.value.severity == "high")) | length' audit.json 2>/dev/null || echo "0")
+        MODERATE_VULNS=$(jq '.vulnerabilities | to_entries | map(select(.value.severity == "moderate")) | length' audit.json 2>/dev/null || echo "0")
+        LOW_VULNS=$(jq '.vulnerabilities | to_entries | map(select(.value.severity == "low")) | length' audit.json 2>/dev/null || echo "0")
+        
+        echo "- **High severity**: $HIGH_VULNS" >> $GITHUB_STEP_SUMMARY
+        echo "- **Moderate severity**: $MODERATE_VULNS" >> $GITHUB_STEP_SUMMARY
+        echo "- **Low severity**: $LOW_VULNS" >> $GITHUB_STEP_SUMMARY
+        
+        # 如果有高危漏洞，设置警告
+        if [ "$HIGH_VULNS" -gt "0" ]; then
+          echo "::warning::Found $HIGH_VULNS high severity vulnerabilities"
+        fi
+        
+    - name: 📈 Coverage analysis
+      run: |
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📈 Test Coverage" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -f "coverage/coverage-summary.json" ]; then
+          STMT_COV=$(jq -r '.total.statements.pct' coverage/coverage-summary.json)
+          BRANCH_COV=$(jq -r '.total.branches.pct' coverage/coverage-summary.json)
+          FUNC_COV=$(jq -r '.total.functions.pct' coverage/coverage-summary.json)
+          LINE_COV=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
+          
+          echo "- **Statements**: ${STMT_COV}%" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branches**: ${BRANCH_COV}%" >> $GITHUB_STEP_SUMMARY
+          echo "- **Functions**: ${FUNC_COV}%" >> $GITHUB_STEP_SUMMARY
+          echo "- **Lines**: ${LINE_COV}%" >> $GITHUB_STEP_SUMMARY
+          
+          # 检查覆盖率阈值
+          STMT_NUM=$(echo "$STMT_COV" | cut -d'.' -f1)
+          if [ "$STMT_NUM" -lt "80" ]; then
+            echo "::warning::Statement coverage ($STMT_COV%) is below 80% threshold"
+          fi
+        fi
+        
+    - name: 💾 Upload quality reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: quality-reports
+        path: |
+          coverage/
+          audit.json
+          outdated.json
+        retention-days: 30
+
+  # 🔄 性能基准测试
+  performance:
+    name: 🔄 Performance Benchmark
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 📦 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: 📥 Install dependencies
+      run: npm ci
+      
+    - name: 🔨 Build library
+      run: npm run build
+      
+    - name: 📊 Bundle size analysis
+      run: |
+        echo "## 📦 Bundle Size Analysis" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| Format | Size | Gzipped |" >> $GITHUB_STEP_SUMMARY
+        echo "|--------|------|---------|" >> $GITHUB_STEP_SUMMARY
+        
+        for file in dist/*.js; do
+          if [ -f "$file" ] && [[ ! "$file" == *.map ]]; then
+            filename=$(basename "$file")
+            size=$(stat -c%s "$file" | numfmt --to=iec)
+            gzipped=$(gzip -c "$file" | wc -c | numfmt --to=iec)
+            echo "| $filename | $size | $gzipped |" >> $GITHUB_STEP_SUMMARY
+          fi
+        done
+        
+    - name: 🏃‍♂️ Performance tests
+      run: |
+        if [ -f "tests/performance/run-performance-tests.js" ]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🏃‍♂️ Performance Results" >> $GITHUB_STEP_SUMMARY
+          npm run test:performance 2>&1 | tee performance.log || true
+          
+          # 提取性能数据（如果有的话）
+          if grep -q "Performance" performance.log; then
+            echo "- Performance tests completed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Performance tests not available" >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🏃‍♂️ Performance Results" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance tests not configured yet" >> $GITHUB_STEP_SUMMARY
+        fi

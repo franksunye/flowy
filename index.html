@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flowy - 现代化开发环境</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .demo-section {
+            margin-bottom: 40px;
+        }
+        
+        .demo-section h2 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .canvas {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            min-height: 400px;
+            position: relative;
+            background: #fafafa;
+            margin: 20px 0;
+        }
+        
+        .blocks-panel {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .create-flowy {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .create-flowy:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #218838;
+        }
+        
+        .btn.danger {
+            background: #dc3545;
+        }
+        
+        .btn.danger:hover {
+            background: #c82333;
+        }
+        
+        .output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .info-panel {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .info-panel h3 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+        
+        .info-panel p {
+            margin: 5px 0;
+            color: #424242;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Flowy</h1>
+            <p>现代化工作流构建器 - 开发环境</p>
+        </div>
+        
+        <div class="content">
+            <div class="info-panel">
+                <h3>🚀 现代化构建系统已启用</h3>
+                <p>✅ Vite 开发服务器 - 极速热更新</p>
+                <p>✅ ES6+ 语法支持 - 现代 JavaScript</p>
+                <p>✅ 自动刷新 - 实时预览</p>
+                <p>✅ 源码映射 - 调试友好</p>
+            </div>
+            
+            <div class="demo-section">
+                <h2>📦 拖拽块组件</h2>
+                <div class="blocks-panel">
+                    <div class="create-flowy" data-block-type="start">🚀 开始</div>
+                    <div class="create-flowy" data-block-type="process">⚙️ 处理</div>
+                    <div class="create-flowy" data-block-type="decision">❓ 判断</div>
+                    <div class="create-flowy" data-block-type="end">🏁 结束</div>
+                </div>
+            </div>
+            
+            <div class="demo-section">
+                <h2>🎨 工作流画布</h2>
+                <div id="canvas" class="canvas">
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #999;">
+                        <p>拖拽上方的块到这里开始构建工作流</p>
+                        <p style="font-size: 12px;">支持拖拽、连接、删除等操作</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn" onclick="outputWorkflow()">📄 导出工作流</button>
+                <button class="btn danger" onclick="clearWorkflow()">🗑️ 清空画布</button>
+            </div>
+            
+            <div id="output" class="output" style="display: none;">
+                <strong>工作流数据：</strong>
+                <pre id="output-content"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入 jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- 引入 Flowy（通过 Vite 开发服务器） -->
+    <script type="module">
+        // 在开发环境中，Vite 会自动处理模块导入
+        import flowy from './src/flowy.js';
+        
+        // 将 flowy 暴露到全局作用域以便在 HTML 中使用
+        window.flowy = flowy;
+        
+        // 初始化 Flowy
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = $('#canvas');
+            
+            // 初始化 flowy
+            flowy(canvas, onGrab, onRelease, onSnap, 20, 80);
+            
+            console.log('🌊 Flowy 已初始化 - 现代化开发环境');
+        });
+        
+        // 回调函数
+        function onGrab(block) {
+            console.log('📦 拖拽开始:', block);
+        }
+        
+        function onRelease() {
+            console.log('📦 拖拽结束');
+        }
+        
+        function onSnap(drag, first, parent) {
+            console.log('🔗 块连接:', { drag, first, parent });
+        }
+        
+        // 导出到全局作用域
+        window.onGrab = onGrab;
+        window.onRelease = onRelease;
+        window.onSnap = onSnap;
+    </script>
+    
+    <script>
+        // 工具函数
+        function outputWorkflow() {
+            const data = flowy.output();
+            const outputDiv = document.getElementById('output');
+            const outputContent = document.getElementById('output-content');
+            
+            if (data && data.length > 0) {
+                outputContent.textContent = JSON.stringify(data, null, 2);
+                outputDiv.style.display = 'block';
+                console.log('📄 工作流数据:', data);
+            } else {
+                alert('画布为空，请先添加一些块！');
+            }
+        }
+        
+        function clearWorkflow() {
+            if (confirm('确定要清空画布吗？')) {
+                flowy.deleteBlocks();
+                document.getElementById('output').style.display = 'none';
+                console.log('🗑️ 画布已清空');
+            }
+        }
+    </script>
+</body>
+</html>

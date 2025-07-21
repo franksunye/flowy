@@ -9,7 +9,7 @@ const { JSDOM } = require('jsdom');
 
 class IsolatedFlowyTestEnvironment {
     constructor() {
-        this.flowySource = fs.readFileSync(path.join(__dirname, '../../src/flowy.js'), 'utf8');
+        // 不再需要读取源码，直接使用 require
         this.instances = new Map();
     }
 
@@ -73,23 +73,34 @@ class IsolatedFlowyTestEnvironment {
      * 在独立上下文中执行 flowy 代码
      */
     executeFlowyInContext(context) {
-        // 创建一个函数来执行 flowy 源码
-        const executeCode = new Function(
-            'window', 'document', '$', 'console', 'setTimeout', 'clearTimeout',
-            `
-            ${this.flowySource}
-            return flowy;
-            `
-        );
+        // 保存当前全局变量
+        const savedGlobals = {
+            window: global.window,
+            document: global.document,
+            $: global.$
+        };
 
-        return executeCode(
-            context.window,
-            context.document,
-            context.$,
-            context.console,
-            context.setTimeout,
-            context.clearTimeout
-        );
+        try {
+            // 设置测试上下文
+            global.window = context.window;
+            global.document = context.document;
+            global.$ = context.$;
+
+            // 清除 require 缓存以确保重新加载
+            const flowyPath = require.resolve('../../src/flowy.js');
+            delete require.cache[flowyPath];
+
+            // 直接 require flowy.js - 这样覆盖率工具可以追踪
+            const flowy = require('../../src/flowy.js');
+
+            return flowy;
+
+        } finally {
+            // 恢复原始全局变量
+            global.window = savedGlobals.window;
+            global.document = savedGlobals.document;
+            global.$ = savedGlobals.$;
+        }
     }
 
     /**

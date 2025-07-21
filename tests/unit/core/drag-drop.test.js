@@ -8,12 +8,8 @@ const path = require('path');
 // 设置测试环境
 require('../setup');
 
-// 加载Flowy源码
-const fs = require('fs');
-const flowySource = fs.readFileSync(path.join(__dirname, '../../../src/flowy.js'), 'utf8');
-
-// 在全局作用域中执行Flowy代码
-eval(flowySource);
+// 直接 require flowy.js（现在支持模块导出）
+const flowy = require('../../../src/flowy.js');
 
 describe('Flowy 拖拽功能', () => {
     let canvas;
