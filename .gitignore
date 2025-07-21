@@ -131,12 +131,43 @@ logs
 ehthumbs.db
 Thumbs.db
 
-# IDE files
+# IDE and Editor files
 .vscode/
 .idea/
+.augment/
 *.swp
 *.swo
 *~
+
+# JetBrains IDEs
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Atom
+.atom/
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
 
 # Temporary files
 *.tmp
