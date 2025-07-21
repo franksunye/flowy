@@ -14,7 +14,7 @@ export default defineConfig({
     port: 3000,
     open: true,
     host: true,
-    cors: true
+    cors: true,
   },
 
   // 构建配置
@@ -34,10 +34,10 @@ export default defineConfig({
       name: 'flowy',
 
       // 文件名
-      fileName: (format) => `flowy.${format}.js`,
+      fileName: format => `flowy.${format}.js`,
 
       // 输出格式
-      formats: ['es', 'umd', 'iife']
+      formats: ['es', 'umd', 'iife'],
     },
 
     // Rollup 选项
@@ -48,9 +48,9 @@ export default defineConfig({
       // 全局变量映射
       output: {
         globals: {
-          jquery: '$'
-        }
-      }
+          jquery: '$',
+        },
+      },
     },
 
     // 压缩配置
@@ -58,12 +58,12 @@ export default defineConfig({
     terserOptions: {
       compress: {
         drop_console: false,
-        drop_debugger: true
-      }
+        drop_debugger: true,
+      },
     },
 
     // 源码映射
-    sourcemap: true
+    sourcemap: true,
   },
 
   // 插件配置
@@ -73,13 +73,13 @@ export default defineConfig({
   css: {
     // 代码分割
     codeSplit: true,
-    
+
     // 预处理器选项
     preprocessorOptions: {
       css: {
-        charset: false
-      }
-    }
+        charset: false,
+      },
+    },
   },
 
   // 解析配置
@@ -87,18 +87,18 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src'),
       '@tests': resolve(__dirname, 'tests'),
-      '@docs': resolve(__dirname, 'docs')
-    }
+      '@docs': resolve(__dirname, 'docs'),
+    },
   },
 
   // 定义全局常量
   define: {
     __VERSION__: JSON.stringify(process.env.npm_package_version || '1.0.0'),
-    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development')
+    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
   },
 
   // 优化配置
   optimizeDeps: {
-    include: ['jquery']
-  }
+    include: ['jquery'],
+  },
 });
