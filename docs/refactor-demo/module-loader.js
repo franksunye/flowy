@@ -31,21 +31,19 @@
         script.async = false; // 确保按顺序执行
         
         script.onload = function() {
-            console.log(`✅ 模块 ${moduleName} 加载完成`);
             moduleStatus[moduleName] = true;
             loadedModules++;
-            
+
             if (callback) callback();
-            
+
             // 检查是否所有模块都已加载
             if (loadedModules === totalModules && onAllModulesLoaded) {
-                console.log('🎉 所有模块加载完成，Flowy 可以使用了！');
                 onAllModulesLoaded();
             }
         };
-        
+
         script.onerror = function() {
-            console.error(`❌ 模块 ${moduleName} 加载失败: ${src}`);
+            // 静默处理错误
         };
         
         document.head.appendChild(script);
@@ -55,14 +53,12 @@
      * 按依赖顺序加载所有模块
      */
     function loadModules() {
-        console.log('🚀 开始加载重构模块...');
-        
         // 1. 首先加载 DOM 工具模块（无依赖）
         loadScript('../../src/utils/dom-utils.js', 'dom-utils', function() {
-            
+
             // 2. 然后加载块管理模块（依赖 DOM 工具）
             loadScript('../../src/core/block-manager.js', 'block-manager', function() {
-                
+
                 // 3. 最后加载主 Flowy 模块（依赖前两个模块）
                 loadScript('../../src/flowy.js', 'flowy', function() {
                     // 确保 flowy 在全局作用域中可用

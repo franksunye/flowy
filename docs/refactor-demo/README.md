@@ -1,56 +1,53 @@
-# Flowy 重构演示 (Refactor Demo)
+# Flowy Refactor Demo
 
-## 🎯 目的
+## 🎯 Purpose
 
-这个演示展示了 Flowy 在模块化重构过程中的实时功能验证。它使用正在重构的模块化代码，确保每一步重构都保持功能完整性。
+This demo provides real-time functional validation during Flowy's modularization refactoring process. It uses the modular code being refactored to ensure each refactoring step maintains complete functional integrity.
 
-## 🏗️ 架构
+## 🏗️ Architecture
 
-### 模块化结构
+### Modular Structure
 ```
 docs/refactor-demo/
-├── index.html          # 主演示页面
-├── main.js             # 演示逻辑（中文版本）
-├── module-loader.js    # 模块加载器
-├── styles.css          # 样式文件
-├── assets/             # 图标和资源
-└── README.md           # 说明文档
+├── index.html          # Main demo page (identical to original)
+├── main.js             # Demo logic (adapted for module loading)
+├── module-loader.js    # Module loader
+├── styles.css          # Style file
+├── assets/             # Icons and resources
+└── README.md           # Documentation
 ```
 
-### 引用的重构代码
+### Referenced Refactored Code
 ```
 ../../src/
-├── flowy.js                 # 主入口文件（重构中）
+├── flowy.js                 # Main entry file (being refactored)
 ├── core/
-│   └── block-manager.js     # 块管理模块
+│   └── block-manager.js     # Block management module
 ├── utils/
-│   └── dom-utils.js         # DOM工具模块
-└── flowy.css               # 样式文件
+│   └── dom-utils.js         # DOM utilities module
+└── flowy.css               # Style file
 ```
 
-## 🔄 模块加载流程
+## 🔄 Module Loading Flow
 
-1. **DOM 准备** - 页面加载完成
-2. **模块加载器启动** - 按依赖顺序加载模块
-3. **依赖解析** - DOM工具 → 块管理 → 主模块
-4. **初始化演示** - 所有模块加载完成后启动 Flowy
-5. **功能验证** - 确保所有功能正常工作
+1. **DOM Ready** - Page loading complete
+2. **Module Loader Start** - Load modules in dependency order
+3. **Dependency Resolution** - DOM utils → Block manager → Main module
+4. **Demo Initialization** - Start Flowy after all modules loaded
+5. **Function Verification** - Ensure all functions work properly
 
-## 🎨 特性
+## 🎨 Features
 
-### 实时状态指示
-- 右上角显示模块加载状态
-- 颜色编码：橙色（加载中）→ 绿色（完成）
-- 加载完成后自动淡化
+### Identical Interface
+- Exactly the same appearance as the original demo
+- Same English text and layout
+- No visual differences for users
+- Pure functional validation focus
 
-### 中文界面
-- 所有文本都已本地化为中文
-- 保持与原版完全相同的功能
-- 便于理解和演示
-
-### 调试信息
-- 控制台输出详细的加载和操作日志
-- 便于跟踪重构过程中的问题
+### Silent Operation
+- No debug logs or status indicators
+- Clean console output
+- Seamless user experience
 
 ## 🚀 使用方法
 
@@ -84,16 +81,15 @@ open docs/refactor-demo/index.html
 - ✅ 数据输出
 - ✅ 清理功能
 
-## 🔍 与其他演示的对比
+## 🔍 Comparison with Other Demos
 
-| 特性 | Original Demo | Src Demo | **Refactor Demo** |
-|------|---------------|----------|-------------------|
-| 代码来源 | `flowy.min.js` | `src/flowy.js` | **模块化重构代码** |
-| 模块化 | ❌ | ❌ | **✅** |
-| 实时验证 | ❌ | ❌ | **✅** |
-| 加载状态 | ❌ | ❌ | **✅** |
-| 中文界面 | ❌ | ❌ | **✅** |
-| 调试信息 | ❌ | ❌ | **✅** |
+| Feature | Original Demo | Src Demo | **Refactor Demo** |
+|---------|---------------|----------|-------------------|
+| Code Source | `flowy.min.js` | `src/flowy.js` | **Modular refactored code** |
+| Interface | Original | Original | **Original (identical)** |
+| Modularization | ❌ | ❌ | **✅** |
+| Real-time Validation | ❌ | ❌ | **✅** |
+| User Experience | Standard | Standard | **Identical to original** |
 
 ## 🛠️ 技术细节
 

@@ -1,80 +1,67 @@
 <html>
 <head>
     <!-- Primary Meta Tags -->
-<title>Flowy - Refactor Demo (重构演示)</title>
-<meta name="title" content="Flowy - Refactor Demo (重构演示)">
-<meta name="description" content="Flowy 重构演示 - 展示模块化重构过程中的实时功能验证。这个演示使用正在重构的模块化代码，确保每一步重构都保持功能完整性。">
+<title>Flowy - The simple flowchart engine</title>
+<meta name="title" content="Flowy - The simple flowchart engine">
+<meta name="description" content="Flowy is a minimal javascript library to create flowcharts. Use it for automation software, mind mapping tools, programming platforms, and more. Made by Alyssa X.">
 
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://alyssax.com/x/flowy">
-<meta property="og:title" content="Flowy - Refactor Demo (重构演示)">
-<meta property="og:description" content="Flowy 重构演示 - 展示模块化重构过程中的实时功能验证">
+<meta property="og:title" content="Flowy - The simple flowchart engine">
+<meta property="og:description" content="Flowy is a minimal javascript library to create flowcharts. Use it for automation software, mind mapping tools, programming platforms, and more. Made by Alyssa X.">
 <meta property="og:image" content="https://alyssax.com/x/assets/meta.png">
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:url" content="https://alyssax.com/x/flowy">
 <meta property="twitter:site" content="alyssaxuu">
-<meta property="twitter:title" content="Flowy - Refactor Demo (重构演示)">
-<meta property="twitter:description" content="Flowy 重构演示 - 展示模块化重构过程中的实时功能验证">
+<meta property="twitter:title" content="Flowy - The simple flowchart engine">
+<meta property="twitter:description" content="Flowy is a minimal javascript library to create flowcharts. Use it for automation software, mind mapping tools, programming platforms, and more. Made by Alyssa X.">
 <meta property="twitter:image" content="https://alyssax.com/x/assets/meta.png">
 
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
     <link href='styles.css' rel='stylesheet' type='text/css'>
     <link href='../../src/flowy.css' rel='stylesheet' type='text/css'>
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    
-    <!-- jQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    
-    <!-- 模块加载器 - 负责加载重构的模块化代码 -->
     <script src="module-loader.js"></script>
-    
-    <!-- 主要的演示逻辑 -->
     <script src="main.js"></script>
 </head>
 <body>
-    <!-- 重构状态指示器 -->
-    <div id="refactor-status" style="position: fixed; top: 10px; right: 10px; background: #4CAF50; color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; z-index: 1000; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-        🔄 重构演示模式
-        <div id="module-status" style="font-size: 10px; margin-top: 4px;">
-            加载模块中...
-        </div>
-    </div>
 
     <div id="navigation">
         <div id="leftside">
             <div id="details">
             <div id="back"><img src="assets/arrow.svg"></div>
             <div id="names">
-                <p id="title">重构演示 - 自动化流水线</p>
-                <p id="subtitle">模块化重构验证</p>
+                <p id="title">Your automation pipeline</p>
+                <p id="subtitle">Marketing automation</p>
             </div>
-        </div>            
+        </div>
         </div>
         <div id="centerswitch">
-            <div id="leftswitch">图表视图</div>
-            <div id="rightswitch">代码编辑器</div>
+            <div id="leftswitch">Diagram view</div>
+            <div id="rightswitch">Code editor</div>
         </div>
         <div id="buttonsright">
-            <div id="discard">丢弃</div>
-            <div id="publish">发布到站点</div>
+            <div id="discard">Discard</div>
+            <div id="publish">Publish to site</div>
         </div>
     </div>
     <div id="leftcard">
         <div id="closecard">
             <img src="assets/closeleft.svg">
         </div>
-        <p id="header">模块块</p>
+        <p id="header">Blocks</p>
         <div id="search">
             <img src="assets/search.svg">
-            <input type="text" placeholder="搜索模块块">
+            <input type="text" placeholder="Search blocks">
         </div>
         <div id="subnav">
-            <div id="triggers" class="navactive">触发器</div>
-            <div id="actions" class="navdisabled">动作</div>
-            <div id="loggers" class="navdisabled">日志</div>
+            <div id="triggers" class="navactive">Triggers</div>
+            <div id="actions" class="navdisabled">Actions</div>
+            <div id="loggers" class="navdisabled">Loggers</div>
         </div>
         <div id="blocklist">
             <div class="blockelem create-flowy noselect">
@@ -88,8 +75,8 @@
                         <img src="assets/eye.svg">
                     </div>
                     <div class="blocktext">
-                        <p class="blocktitle">新访客</p>
-                        <p class="blockdesc">当有人访问指定页面时触发</p>
+                        <p class="blocktitle">New visitor</p>
+                        <p class="blockdesc">Triggers when somebody visits a specified page</p>
                     </div>
                 </div>
             </div>
@@ -104,8 +91,8 @@
                         <img src="assets/action.svg">
                     </div>
                     <div class="blocktext">
-                        <p class="blocktitle">执行动作</p>
-                        <p class="blockdesc">当有人执行指定动作时触发</p>
+                        <p class="blocktitle">Action is performed</p>
+                        <p class="blockdesc">Triggers when somebody performs a specified action</p>
                     </div>
                 </div>
             </div>
@@ -120,8 +107,8 @@
                         <img src="assets/time.svg">
                     </div>
                     <div class="blocktext">
-                        <p class="blocktitle">时间已过</p>
-                        <p class="blockdesc">指定时间过后触发</p>
+                        <p class="blocktitle">Time has passed</p>
+                        <p class="blockdesc">Triggers after a specified amount of time</p>
                     </div>
                 </div>
             </div>
@@ -136,8 +123,8 @@
                         <img src="assets/error.svg">
                     </div>
                     <div class="blocktext">
-                        <p class="blocktitle">错误提示</p>
-                        <p class="blockdesc">当指定错误发生时触发</p>
+                        <p class="blocktitle">Error prompt</p>
+                        <p class="blockdesc">Triggers when a specified error happens</p>
                     </div>
                 </div>
             </div>
@@ -155,58 +142,25 @@
             <div id="close">
                 <img src="assets/close.svg">
             </div>
-            <p id="header2">属性</p>
+            <p id="header2">Properties</p>
             <div id="propswitch">
-                <div id="dataprop">数据</div>
-                <div id="alertprop">警报</div>
-                <div id="logsprop">日志</div>
+                <div id="dataprop">Data</div>
+                <div id="alertprop">Alerts</div>
+                <div id="logsprop">Logs</div>
             </div>
             <div id="proplist">
-                <p class="inputlabel">选择数据库</p>
-                <div class="dropme">数据库 1 <img src="assets/dropdown.svg"></div>
-                <p class="inputlabel">检查属性</p>
-                <div class="dropme">全部<img src="assets/dropdown.svg"></div>
-                <div class="checkus"><img src="assets/checkon.svg"><p>成功执行时记录日志</p></div>
-                <div class="checkus"><img src="assets/checkoff.svg"><p>给此模块块优先级</p></div>
+                <p class="inputlabel">Select database</p>
+                <div class="dropme">Database 1 <img src="assets/dropdown.svg"></div>
+                <p class="inputlabel">Check properties</p>
+                <div class="dropme">All<img src="assets/dropdown.svg"></div>
+                <div class="checkus"><img src="assets/checkon.svg"><p>Log on successful performance</p></div>
+                <div class="checkus"><img src="assets/checkoff.svg"><p>Give priority to this block</p></div>
             </div>
             <div id="divisionthing"></div>
-            <div id="removeblock">删除模块块</div>
+            <div id="removeblock">Delete blocks</div>
         </div>
     </div>
     <div id="canvas">
     </div>
-
-    <script>
-        // 更新模块加载状态显示
-        function updateModuleStatus() {
-            const status = window.FlowyModuleLoader.getStatus();
-            const statusElement = document.getElementById('module-status');
-            
-            if (status.isComplete) {
-                statusElement.innerHTML = `✅ 所有模块已加载 (${status.loaded}/${status.total})`;
-                document.getElementById('refactor-status').style.background = '#4CAF50';
-            } else {
-                statusElement.innerHTML = `⏳ 加载中... (${status.loaded}/${status.total})`;
-                document.getElementById('refactor-status').style.background = '#FF9800';
-            }
-        }
-        
-        // 定期更新状态
-        const statusInterval = setInterval(updateModuleStatus, 100);
-        
-        // 当所有模块加载完成时停止更新
-        window.FlowyModuleLoader.onReady(function() {
-            updateModuleStatus();
-            clearInterval(statusInterval);
-            
-            // 3秒后隐藏状态指示器
-            setTimeout(function() {
-                const statusElement = document.getElementById('refactor-status');
-                statusElement.style.opacity = '0.7';
-                statusElement.style.fontSize = '10px';
-                statusElement.innerHTML = '🔄 重构模式';
-            }, 3000);
-        });
-    </script>
 </body>
 </html>
