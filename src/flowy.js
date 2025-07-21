@@ -30,7 +30,10 @@ var flowy = function(canvas, grab, release, snapping, spacing_x, spacing_y) {
         var rearrange = false;
         var lastevent = false;
         var drag, dragx, dragy, original;
-        canvas_div.append("<div class='indicator invisible'></div>");
+        // 添加条件检查，确保 canvas_div 存在且有 append 方法
+        if (canvas_div && typeof canvas_div.append === 'function') {
+            canvas_div.append("<div class='indicator invisible'></div>");
+        }
         flowy.output = function() {
             var json_data = [];
             if (blocks.length > 0) {
