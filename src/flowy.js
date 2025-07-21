@@ -42,6 +42,28 @@ var flowy = function(canvas, grab, release, snapping, spacing_x, spacing_y) {
                 return blocks.length === 0 ? 0 : Math.max.apply(Math, blocks.map(a => a.id)) + 1;
             }
         }
+
+        // 辅助函数：清空所有块
+        function clearAllBlocks() {
+            if (blockManager) {
+                blockManager.clearBlocks();
+                // 同时清空引用数组以保持同步
+                blocks.length = 0;
+            } else {
+                blocks = [];
+            }
+        }
+
+        // 辅助函数：添加块
+        function addBlock(blockData) {
+            if (blockManager) {
+                blockManager.addBlock(blockData);
+                // 同时添加到引用数组以保持同步
+                blocks.push(blockData);
+            } else {
+                blocks.push(blockData);
+            }
+        }
         var active = false;
         var paddingx = spacing_x;
         var paddingy = spacing_y;
@@ -76,7 +98,7 @@ var flowy = function(canvas, grab, release, snapping, spacing_x, spacing_y) {
             }
         }
         flowy.deleteBlocks = function() {
-            blocks = [];
+            clearAllBlocks();
             canvas_div.html("<div class='indicator invisible'></div>");
         }
         $(document).on("mousedown", ".create-flowy", function(event) {
@@ -139,7 +161,7 @@ var flowy = function(canvas, grab, release, snapping, spacing_x, spacing_y) {
                     drag.css("top", drag.offset().top - canvas_div.offset().top + canvas_div.scrollTop() + "px");
                     drag.css("left", drag.offset().left - canvas_div.offset().left + canvas_div.scrollLeft() + "px");
                     drag.appendTo(canvas_div);
-                    blocks.push({
+                    addBlock({
                         parent: -1,
                         childwidth: 0,
                         id: parseInt(drag.children(".blockid").val()),
@@ -208,7 +230,7 @@ var flowy = function(canvas, grab, release, snapping, spacing_x, spacing_y) {
                                 blocks = $.merge(blocks, blockstemp);
                                 blockstemp = [];
                             } else {
-                                blocks.push({
+                                addBlock({
                                     childwidth: 0,
                                     parent: blocko[i],
                                     id: parseInt(drag.children(".blockid").val()),
