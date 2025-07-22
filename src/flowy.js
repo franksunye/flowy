@@ -190,13 +190,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     };
     $(document).on('mousedown', '.create-flowy', function (event) {
       if (event.which === 1) {
-        console.log('🔧 DEBUG: mousedown on .create-flowy triggered');
         original = $(this);
-        const currentBlockCount = getBlockCount();
-        console.log('🔧 DEBUG: current block count:', currentBlockCount);
-        if (currentBlockCount == 0) {
+        if (getBlockCount() == 0) {
           var newBlockId = getBlockCount(); // 当blocks为空时，使用0作为第一个ID
-          console.log('🔧 DEBUG: creating first block with ID:', newBlockId);
           $(this)
             .clone()
             .addClass('block')
@@ -237,7 +233,6 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     });
     $(document).on('mouseup', function (event) {
       if (event.which === 1 && (active || rearrange)) {
-
         blockReleased();
         if (!$('.indicator').hasClass('invisible')) {
           $('.indicator').addClass('invisible');
@@ -321,63 +316,47 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           blockstemp.filter(a => a.id == 0)[0].y =
             drag.offset().top + drag.innerHeight() / 2;
           mergeTempBlocks();
-        } else {
-          // 添加调试信息
-          const dragOffset = drag.offset();
-          const canvasOffset = canvas_div.offset();
-          console.log('🔧 DEBUG: checking placement conditions');
-          console.log('🔧 DEBUG: active:', active);
-          console.log('🔧 DEBUG: getBlockCount():', getBlockCount());
-          console.log('🔧 DEBUG: drag position:', dragOffset);
-          console.log('🔧 DEBUG: canvas position:', canvasOffset);
-          console.log('🔧 DEBUG: drag.top > canvas.top:', dragOffset.top > canvasOffset.top);
-          console.log('🔧 DEBUG: drag.left > canvas.left:', dragOffset.left > canvasOffset.left);
-
-          if (
-            active &&
-            getBlockCount() == 0 &&
-            dragOffset.top > canvasOffset.top &&
-            dragOffset.left > canvasOffset.left
-          ) {
-            console.log('🔧 DEBUG: placing first block on canvas');
-            blockSnap(drag);
-            active = false;
-            drag.css(
-              'top',
-              drag.offset().top -
-                canvas_div.offset().top +
-                canvas_div.scrollTop() +
-                'px'
-            );
-            drag.css(
-              'left',
-              drag.offset().left -
-                canvas_div.offset().left +
-                canvas_div.scrollLeft() +
-                'px'
-            );
-            drag.appendTo(canvas_div);
-            addBlock({
-              parent: -1,
-              childwidth: 0,
-              id: parseInt(drag.children('.blockid').val()),
-              x:
-                drag.offset().left +
-                drag.innerWidth() / 2 +
-                canvas_div.scrollLeft(),
-              y:
-                drag.offset().top +
-                drag.innerHeight() / 2 +
-                canvas_div.scrollTop(),
-              width: drag.innerWidth(),
-              height: drag.innerHeight(),
-            });
-          } else if (active && getBlockCount() == 0) {
-            console.log('🔧 DEBUG: removing block (not on canvas)');
-            drag.remove();
-          }
-        }
-        if (active || rearrange) {
+        } else if (
+          active &&
+          blocks.length == 0 &&
+          drag.offset().top > canvas_div.offset().top &&
+          drag.offset().left > canvas_div.offset().left
+        ) {
+          blockSnap(drag);
+          active = false;
+          drag.css(
+            'top',
+            drag.offset().top -
+              canvas_div.offset().top +
+              canvas_div.scrollTop() +
+              'px'
+          );
+          drag.css(
+            'left',
+            drag.offset().left -
+              canvas_div.offset().left +
+              canvas_div.scrollLeft() +
+              'px'
+          );
+          drag.appendTo(canvas_div);
+          addBlock({
+            parent: -1,
+            childwidth: 0,
+            id: parseInt(drag.children('.blockid').val()),
+            x:
+              drag.offset().left +
+              drag.innerWidth() / 2 +
+              canvas_div.scrollLeft(),
+            y:
+              drag.offset().top +
+              drag.innerHeight() / 2 +
+              canvas_div.scrollTop(),
+            width: drag.innerWidth(),
+            height: drag.innerHeight(),
+          });
+        } else if (active && blocks.length == 0) {
+          drag.remove();
+        } else if (active || rearrange) {
           const xpos =
             drag.offset().left +
             drag.innerWidth() / 2 +
@@ -783,13 +762,10 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       }
     });
     $(document).on('mousedown', '.block', function (event) {
-      console.log('🔧 DEBUG: mousedown on .block triggered, target:', $(this).find('.blockyname').text());
       $(document).on('mouseup mousemove', '.block', function handler(event) {
         if (event.type !== 'mouseup') {
           if (event.which === 1) {
-            console.log('🔧 DEBUG: mousemove on .block, active:', active, 'rearrange:', rearrange);
             if (!active && !rearrange) {
-              console.log('🔧 DEBUG: Starting rearrange mode');
               rearrange = true;
               drag = $(this);
               drag.addClass('dragging');
@@ -1162,15 +1138,15 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         ) {
           var children = blocks.filter(id => id.parent == result[z])[w];
           if (result[z] != -1) {
-            // 修复：正确使用[0]索引访问父块的y属性
+            // 与原始版本完全一致：.y属性不使用[0]索引
             $('.blockid[value=' + children.id + ']')
               .parent()
               .css(
                 'top',
-                blocks.filter(id => id.id == result[z])[0].y + paddingy + 'px'
+                blocks.filter(id => id.id == result[z]).y + paddingy + 'px'
               );
-            blocks.filter(id => id.id == result[z])[0].y =
-              blocks.filter(id => id.id == result[z])[0].y + paddingy;
+            blocks.filter(id => id.id == result[z]).y =
+              blocks.filter(id => id.id == result[z]).y + paddingy;
           }
           if (children.childwidth > children.width) {
             $('.blockid[value=' + children.id + ']')
