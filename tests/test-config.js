@@ -10,7 +10,7 @@ const TEST_CONFIG = {
 
   // 浏览器配置
   browser: {
-    headless: false,
+    headless: true, // 修复：使用无头模式适配服务器环境
     slowMo: 500,
     timeout: 30000,
     viewport: { width: 1280, height: 720 },

@@ -79,9 +79,10 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     // 辅助函数：清空所有块
     function clearAllBlocks() {
       if (blockManager) {
-        blockManager.clearBlocks();
-        // 同时清空引用数组以保持同步
-        blocks.length = 0;
+        // 🔧 修复：使用clearAll()同时清空blocks和blockstemp
+        blockManager.clearAll();
+        // 🔧 修复：立即同步引用，确保blocks数组正确更新
+        syncBlockReferences();
       } else {
         blocks = [];
       }
