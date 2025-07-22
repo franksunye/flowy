@@ -86,6 +86,112 @@ flowy.deleteBlocks();
 ]
 ```
 
+## 💾 工作流持久化
+
+### 数据导出
+```javascript
+// 获取工作流数据
+const workflowData = flowy.output();
+
+// 转换为JSON字符串
+const jsonString = JSON.stringify(workflowData, null, 2);
+
+// 保存到本地文件 (浏览器环境)
+function saveWorkflowToFile(data, filename = 'workflow.json') {
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: 'application/json'
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// 使用示例
+const data = flowy.output();
+if (data && data.length > 0) {
+  saveWorkflowToFile(data, 'my-workflow.json');
+}
+```
+
+### 浏览器存储
+```javascript
+// 保存到localStorage
+function saveToLocalStorage(key = 'flowy-workflow') {
+  const data = flowy.output();
+  if (data) {
+    localStorage.setItem(key, JSON.stringify(data));
+    console.log('工作流已保存到本地存储');
+  }
+}
+
+// 从localStorage加载 (需要自定义实现)
+function loadFromLocalStorage(key = 'flowy-workflow') {
+  const stored = localStorage.getItem(key);
+  if (stored) {
+    const data = JSON.parse(stored);
+    console.log('从本地存储加载的数据:', data);
+    // 注意: 当前版本不支持直接导入，需要手动重建工作流
+    return data;
+  }
+  return null;
+}
+```
+
+### 数据库存储 (服务端)
+```javascript
+// 保存到服务器
+async function saveToServer(workflowData) {
+  try {
+    const response = await fetch('/api/workflows', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: 'My Workflow',
+        data: workflowData,
+        timestamp: new Date().toISOString()
+      })
+    });
+
+    if (response.ok) {
+      const result = await response.json();
+      console.log('工作流已保存:', result.id);
+      return result;
+    }
+  } catch (error) {
+    console.error('保存失败:', error);
+  }
+}
+
+// 从服务器加载
+async function loadFromServer(workflowId) {
+  try {
+    const response = await fetch(`/api/workflows/${workflowId}`);
+    if (response.ok) {
+      const workflow = await response.json();
+      console.log('加载的工作流:', workflow.data);
+      return workflow.data;
+    }
+  } catch (error) {
+    console.error('加载失败:', error);
+  }
+}
+```
+
+### ⚠️ 当前限制
+- **无导入功能**: 当前版本不支持从JSON数据重建工作流
+- **无状态恢复**: 无法直接恢复块的位置和连接关系
+- **需要手动实现**: 持久化功能需要开发者自行实现
+
+### 🔮 计划中的功能
+- `flowy.import(data)` - 从JSON数据导入工作流
+- `flowy.save()` / `flowy.load()` - 内置保存/加载功能
+- 状态完整恢复 - 包括块位置、连接线等
+
 ## 🎯 使用示例
 
 ### 完整示例

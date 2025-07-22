@@ -289,6 +289,22 @@ const flowData = flowy.output();
 
 // Get data as JSON string
 const jsonData = JSON.stringify(flowy.output());
+
+// Save to file (browser)
+function saveWorkflow() {
+    const data = flowy.output();
+    if (data && data.length > 0) {
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+            type: 'application/json'
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'workflow.json';
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+}
 ```
 
 **Output Format:**
@@ -312,6 +328,8 @@ const jsonData = JSON.stringify(flowy.output());
 | `data` | _array_ | Array of input data from the block |
 | `name` | _string_ | Name attribute of inputs |
 | `value` | _string_ | Value attribute of inputs |
+
+> **Note**: Current version supports data export only. Import functionality (`flowy.import()`) is planned for future releases.
 
 #### Delete All Blocks
 
