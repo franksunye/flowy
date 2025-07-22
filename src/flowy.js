@@ -1106,11 +1106,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                 .parent()
                 .css(
                   'top',
-                  parentBlock.y +
-                  paddingy -
-                  canvas_div.offset().top +
-                  canvas_div.scrollTop() +
-                  'px'
+                  parentBlock.y + paddingy + 'px'
                 );
               parentBlock.y = parentBlock.y + paddingy;
 
@@ -1129,7 +1125,6 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                   children.childwidth / 2 -
                   children.width / 2 -
                   canvas_div.offset().left +
-                  canvas_div.scrollLeft() +
                   'px'
               );
             children.x =
@@ -1147,7 +1142,6 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                   totalwidth / 2 +
                   totalremove -
                   canvas_div.offset().left +
-                  canvas_div.scrollLeft() +
                   'px'
               );
             children.x =
@@ -1177,13 +1171,12 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
               blocks.filter(id => id.id == children.parent)[0].y +
                 blocks.filter(id => id.id == children.parent)[0].height / 2 -
                 canvas_div.offset().top +
-                canvas_div.scrollTop() +
                 'px'
             );
           if (arrowx < 0) {
             $('.arrowid[value=' + children.id + ']')
               .parent()
-              .css('left', arrowhelp.x - 5 - canvas_div.offset().left + canvas_div.scrollLeft() + 'px');
+              .css('left', arrowhelp.x - 5 - canvas_div.offset().left + 'px');
             $('.arrowid[value=' + children.id + ']')
               .parent()
               .html(
@@ -1219,7 +1212,6 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                 blocks.filter(id => id.id == children.parent)[0].x -
                   20 -
                   canvas_div.offset().left +
-                  canvas_div.scrollLeft() +
                   'px'
               );
             $('.arrowid[value=' + children.id + ']')
