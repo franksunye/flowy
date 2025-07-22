@@ -351,8 +351,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
               height: drag.innerHeight()
             }
           };
-          window.lastDebugInfo = debugInfo;
-          console.log('吸附检测:', debugInfo);
+
           for (var i = 0; i < blocks.length; i++) {
             const targetBlock = blocks.filter(a => a.id == blocko[i])[0];
             const xMin = targetBlock.x - targetBlock.width / 2 - paddingx;
@@ -372,18 +371,13 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
               shouldSnap: xInRange && yInRange,
               paddingx: paddingx
             };
-            window.lastSnapCheck = snapCheckInfo;
-            console.log('吸附条件检查:', snapCheckInfo);
+
 
             if (xInRange && yInRange) {
-              console.log('🎯 吸附条件满足，开始执行吸附逻辑', { rearrange });
               active = false;
               if (!rearrange) {
-                console.log('📌 执行blockSnap和appendTo');
                 blockSnap(drag);
                 drag.appendTo(canvas_div);
-              } else {
-                console.log('🔄 重排模式，跳过blockSnap');
               }
               let totalwidth = 0;
               let totalremove = 0;
