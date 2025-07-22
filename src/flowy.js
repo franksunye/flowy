@@ -56,15 +56,6 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
             blockstemp = blockManager.getTempBlocks();
         }
     }
-    let active = false;
-    const paddingx = spacing_x;
-    const paddingy = spacing_y;
-    let offsetleft = 0;
-    let offsetleftold = 0;
-    let rearrange = false;
-    let lastevent = false;
-    let drag, dragx, dragy, original;
-    canvas_div.append("<div class='indicator invisible'></div>");
 
     // 辅助函数：获取块数量（兼容原有代码）
     function getBlockCount() {
@@ -1273,8 +1264,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
   window.clearFlowyCanvas = clearCanvasState;
 };
 
-// 模块导出支持（用于测试覆盖率追踪）
-// 这不会影响浏览器中的使用，因为 module 在浏览器中未定义
+// 模块导出支持
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = flowy;
+} else if (typeof window !== 'undefined') {
+  window.flowy = flowy;
 }
