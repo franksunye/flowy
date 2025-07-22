@@ -241,11 +241,33 @@ var require_flowy_es = __commonJS({
               window.lastDebugInfo = debugInfo;
               console.log("吸附检测:", debugInfo);
               for (var i = 0; i < blocks2.length; i++) {
-                if (xpos >= blocks2.filter((a) => a.id == blocko[i])[0].x - blocks2.filter((a) => a.id == blocko[i])[0].width / 2 - paddingx && xpos <= blocks2.filter((a) => a.id == blocko[i])[0].x + blocks2.filter((a) => a.id == blocko[i])[0].width / 2 + paddingx && ypos >= blocks2.filter((a) => a.id == blocko[i])[0].y - blocks2.filter((a) => a.id == blocko[i])[0].height / 2 && ypos <= blocks2.filter((a) => a.id == blocko[i])[0].y + blocks2.filter((a) => a.id == blocko[i])[0].height) {
+                const targetBlock = blocks2.filter((a) => a.id == blocko[i])[0];
+                const xMin = targetBlock.x - targetBlock.width / 2 - paddingx;
+                const xMax = targetBlock.x + targetBlock.width / 2 + paddingx;
+                const yMin = targetBlock.y - targetBlock.height / 2;
+                const yMax = targetBlock.y + targetBlock.height;
+                const xInRange = xpos >= xMin && xpos <= xMax;
+                const yInRange = ypos >= yMin && ypos <= yMax;
+                const snapCheckInfo = {
+                  blockId: blocko[i],
+                  targetBlock: { x: targetBlock.x, y: targetBlock.y, width: targetBlock.width, height: targetBlock.height },
+                  dragPos: { x: xpos, y: ypos },
+                  xRange: { min: xMin, max: xMax, inRange: xInRange },
+                  yRange: { min: yMin, max: yMax, inRange: yInRange },
+                  shouldSnap: xInRange && yInRange,
+                  paddingx
+                };
+                window.lastSnapCheck = snapCheckInfo;
+                console.log("吸附条件检查:", snapCheckInfo);
+                if (xInRange && yInRange) {
+                  console.log("🎯 吸附条件满足，开始执行吸附逻辑", { rearrange: rearrange2 });
                   active2 = false;
                   if (!rearrange2) {
+                    console.log("📌 执行blockSnap和appendTo");
                     blockSnap(drag2);
                     drag2.appendTo(canvas_div);
+                  } else {
+                    console.log("🔄 重排模式，跳过blockSnap");
                   }
                   let totalwidth = 0;
                   let totalremove = 0;
@@ -282,7 +304,7 @@ var require_flowy_es = __commonJS({
                   );
                   drag2.css(
                     "top",
-                    blocks2.filter((id) => id.id == blocko[i])[0].y + blocks2.filter((id) => id.id == blocko[i])[0].height / 2 + paddingy - canvas_div.offset().top + canvas_div.scrollTop() + "px"
+                    blocks2.filter((id) => id.id == blocko[i])[0].y + blocks2.filter((id) => id.id == blocko[i])[0].height / 2 + paddingy - canvas_div.offset().top + "px"
                   );
                   if (rearrange2) {
                     blockstemp2.filter(
