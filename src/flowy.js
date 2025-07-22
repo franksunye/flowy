@@ -570,12 +570,12 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
               )[0];
               const arrowx =
                 arrowhelp.x - blocks.filter(a => a.id == blocko[i])[0].x + 20;
-              // 获取父块的第一个子块（应该是刚添加的当前块）
-              const firstChildOfParent = blocks.filter(id => id.parent == blocko[i])[0];
+              // 使用父块的位置计算arrowy，与原始版本保持一致
+              const parentBlock = blocks.filter(a => a.id == blocko[i])[0];
               const arrowy =
                 arrowhelp.y -
                 arrowhelp.height / 2 -
-                (firstChildOfParent ? (firstChildOfParent.y + firstChildOfParent.height / 2) : (arrowhelp.y + arrowhelp.height / 2)) +
+                (parentBlock.y + parentBlock.height / 2) +
                 canvas_div.scrollTop();
 
 
@@ -1093,6 +1093,10 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           if (result[z] != -1) {
             const parentBlock = blocks.filter(id => id.id == result[z])[0];
             if (parentBlock) {
+              // 保存父块的原始y位置，用于连线计算
+              if (parentBlock.originalY === undefined) {
+                parentBlock.originalY = parentBlock.y;
+              }
               $('.blockid[value=' + children.id + ']')
                 .parent()
                 .css(
@@ -1143,20 +1147,21 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           const arrowx =
             arrowhelp.x - blocks.filter(a => a.id == children.parent)[0].x + 20;
           const parentBlock = blocks.filter(a => a.id == children.parent)[0];
-          // 使用父块的原始y位置（修改前的位置）进行连线计算
+          // 使用父块的原始y位置进行连线计算
           const parentY = parentBlock.originalY !== undefined ? parentBlock.originalY : parentBlock.y;
           const arrowy =
             arrowhelp.y -
             arrowhelp.height / 2 -
             (parentY + parentBlock.height / 2);
-          // 注意：在rearrangeMe中不需要加canvas_div.scrollTop()，因为块位置已经是绝对位置
+
+
 
 
           $('.arrowid[value=' + children.id + ']')
             .parent()
             .css(
               'top',
-              parentBlock.y + parentBlock.height / 2 - canvas_div.offset().top + 'px'
+              parentY + parentBlock.height / 2 - canvas_div.offset().top + 'px'
             );
           if (arrowx < 0) {
             $('.arrowid[value=' + children.id + ']')
