@@ -3,6 +3,7 @@
 // 在Node.js测试环境中，通过require加载
 // - DomUtils: DOM操作工具
 // - BlockManager: 块管理模块
+// - SnapEngine: 吸附引擎模块
 
 // 检查模块是否可用
 function getBlockManager() {
@@ -15,6 +16,25 @@ function getBlockManager() {
     try {
       const BlockManager = require('./core/block-manager.js');
       return new BlockManager();
+    } catch (e) {
+      // 如果模块不可用，返回null
+      return null;
+    }
+  }
+  // 如果都不可用，返回null
+  return null;
+}
+
+function getSnapEngine(paddingx, paddingy, snappingCallback) {
+  // 在浏览器环境中，尝试从全局作用域获取
+  if (typeof window !== 'undefined' && window.SnapEngine) {
+    return new window.SnapEngine(paddingx, paddingy, snappingCallback);
+  }
+  // 在Node.js测试环境中，尝试require
+  if (typeof require !== 'undefined') {
+    try {
+      const SnapEngine = require('./core/snap-engine.js');
+      return new SnapEngine(paddingx, paddingy, snappingCallback);
     } catch (e) {
       // 如果模块不可用，返回null
       return null;
@@ -43,6 +63,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
   $(document).ready(function () {
     // 创建块管理器实例
     const blockManager = getBlockManager();
+
+    // 创建吸附引擎实例
+    const snapEngine = getSnapEngine(spacing_x, spacing_y, snapping);
 
     // 保持原有变量作为引用，确保向后兼容
     let blocks = blockManager ? blockManager.getAllBlocks() : [];
@@ -870,47 +893,70 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         const xpos =
           drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft();
         const ypos = drag.offset().top + canvas_div.scrollTop();
-        const blocko = blocks.map(a => a.id);
-        for (var i = 0; i < blocks.length; i++) {
-          if (
-            xpos >=
-              blocks.filter(a => a.id == blocko[i])[0].x -
-                blocks.filter(a => a.id == blocko[i])[0].width / 2 -
-                paddingx &&
-            xpos <=
-              blocks.filter(a => a.id == blocko[i])[0].x +
-                blocks.filter(a => a.id == blocko[i])[0].width / 2 +
-                paddingx &&
-            ypos >=
-              blocks.filter(a => a.id == blocko[i])[0].y -
-                blocks.filter(a => a.id == blocko[i])[0].height / 2 &&
-            ypos <=
-              blocks.filter(a => a.id == blocko[i])[0].y +
-                blocks.filter(a => a.id == blocko[i])[0].height
-          ) {
-            $('.indicator').appendTo(
-              $('.blockid[value=' + blocko[i] + ']').parent()
-            );
-            $('.indicator').css(
-              'left',
-              $('.blockid[value=' + blocko[i] + ']')
-                .parent()
-                .innerWidth() /
-                2 -
-                5 +
-                'px'
-            );
-            $('.indicator').css(
-              'top',
-              $('.blockid[value=' + blocko[i] + ']')
-                .parent()
-                .innerHeight() + 'px'
-            );
+
+        // 🔧 使用SnapEngine模块进行吸附检测
+        if (snapEngine) {
+          const snapResult = snapEngine.detectSnapping(xpos, ypos, blocks);
+
+          if (snapResult && snapResult.indicatorPosition) {
+            // 显示indicator
+            const targetBlockElement = $('.blockid[value=' + snapResult.targetBlockId + ']').parent();
+            $('.indicator').appendTo(targetBlockElement);
+            $('.indicator').css({
+              'left': snapResult.indicatorPosition.left + 'px',
+              'top': snapResult.indicatorPosition.top + 'px'
+            });
             $('.indicator').removeClass('invisible');
-            break;
-          } else if (i == blocks.length - 1) {
+          } else {
+            // 隐藏indicator
             if (!$('.indicator').hasClass('invisible')) {
               $('.indicator').addClass('invisible');
+            }
+          }
+        } else {
+          // 🔄 降级到原始逻辑（如果SnapEngine不可用）
+          const blocko = blocks.map(a => a.id);
+          for (var i = 0; i < blocks.length; i++) {
+            if (
+              xpos >=
+                blocks.filter(a => a.id == blocko[i])[0].x -
+                  blocks.filter(a => a.id == blocko[i])[0].width / 2 -
+                  paddingx &&
+              xpos <=
+                blocks.filter(a => a.id == blocko[i])[0].x +
+                  blocks.filter(a => a.id == blocko[i])[0].width / 2 +
+                  paddingx &&
+              ypos >=
+                blocks.filter(a => a.id == blocko[i])[0].y -
+                  blocks.filter(a => a.id == blocko[i])[0].height / 2 &&
+              ypos <=
+                blocks.filter(a => a.id == blocko[i])[0].y +
+                  blocks.filter(a => a.id == blocko[i])[0].height
+            ) {
+              $('.indicator').appendTo(
+                $('.blockid[value=' + blocko[i] + ']').parent()
+              );
+              $('.indicator').css(
+                'left',
+                $('.blockid[value=' + blocko[i] + ']')
+                  .parent()
+                  .innerWidth() /
+                  2 -
+                  5 +
+                  'px'
+              );
+              $('.indicator').css(
+                'top',
+                $('.blockid[value=' + blocko[i] + ']')
+                  .parent()
+                  .innerHeight() + 'px'
+              );
+              $('.indicator').removeClass('invisible');
+              break;
+            } else if (i == blocks.length - 1) {
+              if (!$('.indicator').hasClass('invisible')) {
+                $('.indicator').addClass('invisible');
+              }
             }
           }
         }

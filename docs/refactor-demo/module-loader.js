@@ -10,9 +10,10 @@
     const moduleStatus = {
         'dom-utils': false,
         'block-manager': false,
+        'snap-engine': false,
         'flowy': false
     };
-    
+
     let loadedModules = 0;
     const totalModules = Object.keys(moduleStatus).length;
     
@@ -59,12 +60,16 @@
             // 2. 然后加载块管理模块（依赖 DOM 工具）
             loadScript('../../src/core/block-manager.js', 'block-manager', function() {
 
-                // 3. 最后加载主 Flowy 模块（依赖前两个模块）
-                loadScript('../../src/flowy.js', 'flowy', function() {
-                    // 确保 flowy 在全局作用域中可用
-                    if (typeof window.flowy === 'undefined' && typeof flowy !== 'undefined') {
-                        window.flowy = flowy;
-                    }
+                // 3. 加载吸附引擎模块（无依赖）
+                loadScript('../../src/core/snap-engine.js', 'snap-engine', function() {
+
+                    // 4. 最后加载主 Flowy 模块（依赖前面所有模块）
+                    loadScript('../../src/flowy.js', 'flowy', function() {
+                        // 确保 flowy 在全局作用域中可用
+                        if (typeof window.flowy === 'undefined' && typeof flowy !== 'undefined') {
+                            window.flowy = flowy;
+                        }
+                    });
                 });
             });
         });

@@ -16,9 +16,9 @@
 ```
 
 ### 模块化进展
-- ✅ **DOM工具模块** (`src/utils/dom-utils.js`) - 已完成
-- ✅ **块管理模块** (`src/core/block-manager.js`) - 已完成
-- ✅ **吸附引擎模块** (`src/core/snap-engine.js`) - 已完成
+- ✅ **DOM工具模块** (`src/utils/dom-utils.js`) - 已完成并集成
+- ✅ **块管理模块** (`src/core/block-manager.js`) - 已完成并集成
+- ✅ **吸附引擎模块** (`src/core/snap-engine.js`) - 已完成并集成 ⭐
 - 📋 **拖拽处理模块** (`src/core/drag-handler.js`) - 计划中
 - 📋 **API模块** (`src/api/`) - 计划中
 
@@ -82,12 +82,21 @@ flowy/
   - 管理blocks数组和相关操作
   - 提供块的创建、删除、查找方法
   - 封装块的位置和尺寸计算
+<<<<<<< HEAD
 - **吸附引擎模块** (`src/core/snap-engine.js`) ⚠️ **未集成**
+=======
+- **吸附引擎模块** (`src/core/snap-engine.js`) ⭐ **已集成**
+>>>>>>> c719032 (✅ 完成SnapEngine模块集成 - 真正的模块化实现)
   - 吸附边界计算和检测逻辑
   - 拖拽位置与目标块的距离判断
   - 吸附条件的实时检测和状态管理
   - Indicator位置计算和可见性管理
+<<<<<<< HEAD
   - **状态**: 模块已完成，但尚未集成到主文件
+=======
+  - 完全替换原始内联吸附逻辑
+  - 提供降级兼容机制
+>>>>>>> c719032 (✅ 完成SnapEngine模块集成 - 真正的模块化实现)
 
 ### 计划中模块 📋
 - **拖拽处理器** 📋: 处理鼠标/触摸事件
