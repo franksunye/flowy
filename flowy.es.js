@@ -63,8 +63,8 @@ var require_flowy_es = __commonJS({
         }
         function clearAllBlocks() {
           if (blockManager2) {
-            blockManager2.clearBlocks();
-            blocks2.length = 0;
+            blockManager2.clearAll();
+            syncBlockReferences2();
           } else {
             blocks2 = [];
           }
