@@ -677,7 +677,7 @@ var require_flowy_es = __commonJS({
                   const originalParentY = parentBlock2.y;
                   $(".blockid[value=" + children.id + "]").parent().css(
                     "top",
-                    parentBlock2.y + paddingy - canvas_div.offset().top + canvas_div.scrollTop() + "px"
+                    parentBlock2.y + paddingy + "px"
                   );
                   parentBlock2.y = parentBlock2.y + paddingy;
                   parentBlock2.originalY = originalParentY;
@@ -686,14 +686,14 @@ var require_flowy_es = __commonJS({
               if (children.childwidth > children.width) {
                 $(".blockid[value=" + children.id + "]").parent().css(
                   "left",
-                  blocks2.filter((id) => id.id == result[z])[0].x - totalwidth / 2 + totalremove + children.childwidth / 2 - children.width / 2 - canvas_div.offset().left + canvas_div.scrollLeft() + "px"
+                  blocks2.filter((id) => id.id == result[z])[0].x - totalwidth / 2 + totalremove + children.childwidth / 2 - children.width / 2 - canvas_div.offset().left + "px"
                 );
                 children.x = blocks2.filter((id) => id.id == result[z])[0].x - totalwidth / 2 + totalremove + children.childwidth / 2;
                 totalremove += children.childwidth + paddingx;
               } else {
                 $(".blockid[value=" + children.id + "]").parent().css(
                   "left",
-                  blocks2.filter((id) => id.id == result[z])[0].x - totalwidth / 2 + totalremove - canvas_div.offset().left + canvas_div.scrollLeft() + "px"
+                  blocks2.filter((id) => id.id == result[z])[0].x - totalwidth / 2 + totalremove - canvas_div.offset().left + "px"
                 );
                 children.x = blocks2.filter((id) => id.id == result[z])[0].x - totalwidth / 2 + totalremove + children.width / 2;
                 totalremove += children.width + paddingx;
@@ -705,17 +705,17 @@ var require_flowy_es = __commonJS({
               const arrowy = arrowhelp.y - arrowhelp.height / 2 - (parentY + parentBlock.height / 2);
               $(".arrowid[value=" + children.id + "]").parent().css(
                 "top",
-                blocks2.filter((id) => id.id == children.parent)[0].y + blocks2.filter((id) => id.id == children.parent)[0].height / 2 - canvas_div.offset().top + canvas_div.scrollTop() + "px"
+                blocks2.filter((id) => id.id == children.parent)[0].y + blocks2.filter((id) => id.id == children.parent)[0].height / 2 - canvas_div.offset().top + "px"
               );
               if (arrowx < 0) {
-                $(".arrowid[value=" + children.id + "]").parent().css("left", arrowhelp.x - 5 - canvas_div.offset().left + canvas_div.scrollLeft() + "px");
+                $(".arrowid[value=" + children.id + "]").parent().css("left", arrowhelp.x - 5 - canvas_div.offset().left + "px");
                 $(".arrowid[value=" + children.id + "]").parent().html(
                   '<input type="hidden" class="arrowid" value="' + children.id + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M' + (blocks2.filter((id) => id.id == children.parent)[0].x - arrowhelp.x + 5) + " 0L" + (blocks2.filter((id) => id.id == children.parent)[0].x - arrowhelp.x + 5) + " " + paddingy / 2 + "L5 " + paddingy / 2 + "L5 " + arrowy + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M0 ' + (arrowy - 5) + "H10L5 " + arrowy + "L0 " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg>'
                 );
               } else {
                 $(".arrowid[value=" + children.id + "]").parent().css(
                   "left",
-                  blocks2.filter((id) => id.id == children.parent)[0].x - 20 - canvas_div.offset().left + canvas_div.scrollLeft() + "px"
+                  blocks2.filter((id) => id.id == children.parent)[0].x - 20 - canvas_div.offset().left + "px"
                 );
                 $(".arrowid[value=" + children.id + "]").parent().html(
                   '<input type="hidden" class="arrowid" value="' + children.id + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 0L20 ' + paddingy / 2 + "L" + arrowx + " " + paddingy / 2 + "L" + arrowx + " " + arrowy + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M' + (arrowx - 5) + " " + (arrowy - 5) + "H" + (arrowx + 5) + "L" + arrowx + " " + arrowy + "L" + (arrowx - 5) + " " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg>'
