@@ -208,7 +208,9 @@
         // 在开发环境中，Vite 会自动处理模块导入
         import flowy from './src/flowy.js';
 
-        // 将 flowy 暴露到全局作用域以便在 HTML 中使用
+        // 将模块暴露到全局作用域以便在 flowy.js 中使用
+        window.DomUtils = DomUtils;
+        window.BlockManager = BlockManager;
         window.flowy = flowy;
         
         // 初始化 Flowy
