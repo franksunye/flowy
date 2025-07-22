@@ -8,13 +8,20 @@
 ## [未发布] - 2025-07-22
 
 ### 新增 (Added)
-- 🏗️ **模块化重构第二阶段完成** (40%进度)
+- 🏗️ **模块化重构第三阶段完成** (60%进度)
   - ✅ 完成DOM工具模块 (`src/utils/dom-utils.js`)
   - ✅ 完成块管理模块 (`src/core/block-manager.js`)
-  - 🔄 吸附引擎模块 (`src/core/snap-engine.js`) - 计划中
+  - ✅ 完成吸附引擎模块 (`src/core/snap-engine.js`)
   - 📋 拖拽处理模块 (`src/core/drag-handler.js`) - 计划中
   - 建立了完整的模块化目录结构 (`src/core/`, `src/utils/`, `src/api/`)
   - 封装了所有jQuery操作接口和blocks数组管理
+- 🧲 **吸附引擎模块** (`src/core/snap-engine.js`)
+  - 提供纯函数式的吸附计算接口
+  - 吸附边界计算和检测逻辑
+  - 拖拽位置与目标块的距离判断
+  - 吸附条件的实时检测和状态管理
+  - Indicator位置计算和可见性管理
+  - 19个专门的单元测试，覆盖所有核心算法
 - 📚 **精益文档化实施** (KISS原则)
   - 文档数量精简: 17 → 7 (减少59%)
   - 合并贡献指南到根README.md
@@ -31,7 +38,7 @@
   - 实现了零功能影响重构策略
   - 完整的Jest单元测试框架
   - 创建了隔离测试环境 (`IsolatedFlowyTestEnvironment`)
-  - 添加了83个单元测试，覆盖所有核心功能
+  - 添加了102个单元测试，覆盖所有核心功能
 - 🔧 **代码质量工具**
   - ESLint配置用于代码质量检查
   - Prettier配置用于代码格式化
