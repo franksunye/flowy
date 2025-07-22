@@ -314,7 +314,7 @@ npm run test:coverage
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](docs/CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guide](docs/33_CONTRIBUTING.md) for details.
 
 ### Development Process
 1. Fork the repository

@@ -5,9 +5,9 @@
 ## 🎯 快速导航
 
 ### 📖 基础文档
-- **[项目概览](PROJECT_OVERVIEW.md)** - 项目整体状况和发展方向
+- **[项目概览](02_PROJECT_OVERVIEW.md)** - 项目整体状况和发展方向
 - **[变更日志](01_CHANGELOG.md)** - 详细的版本变更记录
-- **[贡献指南](CONTRIBUTING.md)** - 如何参与项目贡献
+- **[贡献指南](33_CONTRIBUTING.md)** - 如何参与项目贡献
 
 ### 🏗️ 技术文档
 - **[架构文档](10_ARCHITECTURE.md)** - 系统架构设计和演进
@@ -16,16 +16,16 @@
 
 ### 📋 项目管理
 - **[产品待办事项](00_BACKLOG.md)** - 敏捷开发的产品规划
-- **[重构计划](REFACTORING_PLAN.md)** - 模块化重构详细计划
-- **[重构进度](REFACTORING_PROGRESS.md)** - 重构进展实时跟踪
+- **[重构计划](11_REFACTORING_PLAN.md)** - 模块化重构详细计划
+- **[重构进度](12_REFACTORING_PROGRESS.md)** - 重构进展实时跟踪
 
 ### 🔧 工具和配置
-- **[构建系统](BUILD_SYSTEM.md)** - Vite构建系统说明
-- **[CI/CD](CI_CD.md)** - 持续集成和部署
-- **[代码质量](CODE_QUALITY.md)** - 代码质量工具配置
+- **[构建系统](50_BUILD_SYSTEM.md)** - Vite构建系统说明
+- **[CI/CD](51_CI_CD.md)** - 持续集成和部署
+- **[代码质量](32_CODE_QUALITY.md)** - 代码质量工具配置
 
 ### 🧪 测试和验证
-- **[验证清单](VERIFICATION_CHECKLIST.md)** - 重构验证标准
+- **[验证清单](40_VERIFICATION_CHECKLIST.md)** - 重构验证标准
 - **[测试文档](31_TESTING.md)** - 测试框架和策略
 
 ## 🚀 快速开始
