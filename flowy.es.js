@@ -626,7 +626,7 @@ var require_flowy_es = __commonJS({
           const result = blocks2.map((a) => a.parent);
           for (var z = 0; z < result.length; z++) {
             if (result[z] == -1) {
-              continue;
+              z++;
             }
             let totalwidth = 0;
             let totalremove = 0;
@@ -658,17 +658,11 @@ var require_flowy_es = __commonJS({
             for (var w = 0; w < blocks2.filter((id) => id.parent == result[z]).length; w++) {
               var children = blocks2.filter((id) => id.parent == result[z])[w];
               if (result[z] != -1) {
-                const parentBlock2 = blocks2.filter((id) => id.id == result[z])[0];
-                if (parentBlock2) {
-                  if (parentBlock2.originalY === void 0) {
-                    parentBlock2.originalY = parentBlock2.y;
-                  }
-                  $(".blockid[value=" + children.id + "]").parent().css(
-                    "top",
-                    parentBlock2.y + paddingy + "px"
-                  );
-                  parentBlock2.y = parentBlock2.y + paddingy;
-                }
+                $(".blockid[value=" + children.id + "]").parent().css(
+                  "top",
+                  blocks2.filter((id) => id.id == result[z]).y + paddingy + "px"
+                );
+                blocks2.filter((id) => id.id == result[z]).y = blocks2.filter((id) => id.id == result[z]).y + paddingy;
               }
               if (children.childwidth > children.width) {
                 $(".blockid[value=" + children.id + "]").parent().css(
@@ -687,12 +681,10 @@ var require_flowy_es = __commonJS({
               }
               const arrowhelp = blocks2.filter((a) => a.id == children.id)[0];
               const arrowx = arrowhelp.x - blocks2.filter((a) => a.id == children.parent)[0].x + 20;
-              const parentBlock = blocks2.filter((a) => a.id == children.parent)[0];
-              const parentY = parentBlock.originalY !== void 0 ? parentBlock.originalY : parentBlock.y;
-              const arrowy = arrowhelp.y - arrowhelp.height / 2 - (parentY + parentBlock.height / 2);
+              const arrowy = arrowhelp.y - arrowhelp.height / 2 - (blocks2.filter((a) => a.id == children.parent)[0].y + blocks2.filter((a) => a.id == children.parent)[0].height / 2);
               $(".arrowid[value=" + children.id + "]").parent().css(
                 "top",
-                parentY + parentBlock.height / 2 - canvas_div.offset().top + "px"
+                blocks2.filter((id) => id.id == children.parent)[0].y + blocks2.filter((id) => id.id == children.parent)[0].height / 2 - canvas_div.offset().top + "px"
               );
               if (arrowx < 0) {
                 $(".arrowid[value=" + children.id + "]").parent().css("left", arrowhelp.x - 5 - canvas_div.offset().left + "px");
