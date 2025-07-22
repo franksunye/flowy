@@ -354,26 +354,36 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           window.lastDebugInfo = debugInfo;
           console.log('吸附检测:', debugInfo);
           for (var i = 0; i < blocks.length; i++) {
-            if (
-              xpos >=
-                blocks.filter(a => a.id == blocko[i])[0].x -
-                  blocks.filter(a => a.id == blocko[i])[0].width / 2 -
-                  paddingx &&
-              xpos <=
-                blocks.filter(a => a.id == blocko[i])[0].x +
-                  blocks.filter(a => a.id == blocko[i])[0].width / 2 +
-                  paddingx &&
-              ypos >=
-                blocks.filter(a => a.id == blocko[i])[0].y -
-                  blocks.filter(a => a.id == blocko[i])[0].height / 2 &&
-              ypos <=
-                blocks.filter(a => a.id == blocko[i])[0].y +
-                  blocks.filter(a => a.id == blocko[i])[0].height
-            ) {
+            const targetBlock = blocks.filter(a => a.id == blocko[i])[0];
+            const xMin = targetBlock.x - targetBlock.width / 2 - paddingx;
+            const xMax = targetBlock.x + targetBlock.width / 2 + paddingx;
+            const yMin = targetBlock.y - targetBlock.height / 2;
+            const yMax = targetBlock.y + targetBlock.height;
+
+            const xInRange = xpos >= xMin && xpos <= xMax;
+            const yInRange = ypos >= yMin && ypos <= yMax;
+
+            const snapCheckInfo = {
+              blockId: blocko[i],
+              targetBlock: { x: targetBlock.x, y: targetBlock.y, width: targetBlock.width, height: targetBlock.height },
+              dragPos: { x: xpos, y: ypos },
+              xRange: { min: xMin, max: xMax, inRange: xInRange },
+              yRange: { min: yMin, max: yMax, inRange: yInRange },
+              shouldSnap: xInRange && yInRange,
+              paddingx: paddingx
+            };
+            window.lastSnapCheck = snapCheckInfo;
+            console.log('吸附条件检查:', snapCheckInfo);
+
+            if (xInRange && yInRange) {
+              console.log('🎯 吸附条件满足，开始执行吸附逻辑', { rearrange });
               active = false;
               if (!rearrange) {
+                console.log('📌 执行blockSnap和appendTo');
                 blockSnap(drag);
                 drag.appendTo(canvas_div);
+              } else {
+                console.log('🔄 重排模式，跳过blockSnap');
               }
               let totalwidth = 0;
               let totalremove = 0;
@@ -448,7 +458,6 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                   blocks.filter(id => id.id == blocko[i])[0].height / 2 +
                   paddingy -
                   canvas_div.offset().top +
-                  canvas_div.scrollTop() +
                   'px'
               );
               if (rearrange) {
