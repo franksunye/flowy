@@ -355,11 +355,13 @@ var require_flowy_es = __commonJS({
                     });
                     syncBlockReferences2();
                   }
+                  syncBlockReferences2();
                   const arrowhelp = blocks2.filter(
                     (a) => a.id == parseInt(drag2.children(".blockid").val())
                   )[0];
                   const arrowx = arrowhelp.x - blocks2.filter((a) => a.id == blocko[i])[0].x + 20;
-                  const arrowy = arrowhelp.y - arrowhelp.height / 2 - (blocks2.filter((id) => id.parent == blocko[i])[0].y + blocks2.filter((id) => id.parent == blocko[i])[0].height / 2);
+                  const firstChildOfParent = blocks2.filter((id) => id.parent == blocko[i])[0];
+                  const arrowy = arrowhelp.y - arrowhelp.height / 2 - (firstChildOfParent ? firstChildOfParent.y + firstChildOfParent.height / 2 : arrowhelp.y + arrowhelp.height / 2) + canvas_div.scrollTop();
                   if (arrowx < 0) {
                     drag2.after(
                       '<div class="arrowblock"><input type="hidden" class="arrowid" value="' + drag2.children(".blockid").val() + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M' + (blocks2.filter((a) => a.id == blocko[i])[0].x - arrowhelp.x + 5) + " 0L" + (blocks2.filter((a) => a.id == blocko[i])[0].x - arrowhelp.x + 5) + " " + paddingy / 2 + "L5 " + paddingy / 2 + "L5 " + arrowy + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M0 ' + (arrowy - 5) + "H10L5 " + arrowy + "L0 " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg></div>'
@@ -373,8 +375,9 @@ var require_flowy_es = __commonJS({
                       blocks2.filter((a) => a.id == blocko[i])[0].y + blocks2.filter((a) => a.id == blocko[i])[0].height / 2 - canvas_div.offset().top + canvas_div.scrollTop() + "px"
                     );
                   } else {
+                    const svgPath = `M20 0L20 ${paddingy / 2}L${arrowx} ${paddingy / 2}L${arrowx} ${arrowy}`;
                     drag2.after(
-                      '<div class="arrowblock"><input type="hidden" class="arrowid" value="' + drag2.children(".blockid").val() + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 0L20 ' + paddingy / 2 + "L" + arrowx + " " + paddingy / 2 + "L" + arrowx + " " + arrowy + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M' + (arrowx - 5) + " " + (arrowy - 5) + "H" + (arrowx + 5) + "L" + arrowx + " " + arrowy + "L" + (arrowx - 5) + " " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg></div>'
+                      '<div class="arrowblock"><input type="hidden" class="arrowid" value="' + drag2.children(".blockid").val() + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="' + svgPath + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M' + (arrowx - 5) + " " + (arrowy - 5) + "H" + (arrowx + 5) + "L" + arrowx + " " + arrowy + "L" + (arrowx - 5) + " " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg></div>'
                     );
                     $(
                       ".arrowid[value=" + parseInt(drag2.children(".blockid").val()) + "]"
@@ -669,13 +672,15 @@ var require_flowy_es = __commonJS({
             for (var w = 0; w < blocks2.filter((id) => id.parent == result[z]).length; w++) {
               var children = blocks2.filter((id) => id.parent == result[z])[w];
               if (result[z] != -1) {
-                const parentBlock = blocks2.filter((id) => id.id == result[z])[0];
-                if (parentBlock) {
+                const parentBlock2 = blocks2.filter((id) => id.id == result[z])[0];
+                if (parentBlock2) {
+                  const originalParentY = parentBlock2.y;
                   $(".blockid[value=" + children.id + "]").parent().css(
                     "top",
-                    parentBlock.y + paddingy - canvas_div.offset().top + canvas_div.scrollTop() + "px"
+                    parentBlock2.y + paddingy - canvas_div.offset().top + canvas_div.scrollTop() + "px"
                   );
-                  parentBlock.y = parentBlock.y + paddingy;
+                  parentBlock2.y = parentBlock2.y + paddingy;
+                  parentBlock2.originalY = originalParentY;
                 }
               }
               if (children.childwidth > children.width) {
@@ -695,7 +700,9 @@ var require_flowy_es = __commonJS({
               }
               const arrowhelp = blocks2.filter((a) => a.id == children.id)[0];
               const arrowx = arrowhelp.x - blocks2.filter((a) => a.id == children.parent)[0].x + 20;
-              const arrowy = arrowhelp.y - arrowhelp.height / 2 - (blocks2.filter((a) => a.id == children.parent)[0].y + blocks2.filter((a) => a.id == children.parent)[0].height / 2);
+              const parentBlock = blocks2.filter((a) => a.id == children.parent)[0];
+              const parentY = parentBlock.originalY !== void 0 ? parentBlock.originalY : parentBlock.y;
+              const arrowy = arrowhelp.y - arrowhelp.height / 2 - (parentY + parentBlock.height / 2);
               $(".arrowid[value=" + children.id + "]").parent().css(
                 "top",
                 blocks2.filter((id) => id.id == children.parent)[0].y + blocks2.filter((id) => id.id == children.parent)[0].height / 2 - canvas_div.offset().top + canvas_div.scrollTop() + "px"
