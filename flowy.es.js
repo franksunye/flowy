@@ -601,7 +601,7 @@ var require_flowy_es = __commonJS({
           const result = blocks.map((a) => a.parent);
           for (var z = 0; z < result.length; z++) {
             if (result[z] == -1) {
-              z++;
+              continue;
             }
             let totalwidth = 0;
             let totalremove = 0;
@@ -625,15 +625,20 @@ var require_flowy_es = __commonJS({
               }
             }
             if (result[z] != -1) {
-              blocks.filter((a) => a.id == result[z])[0].childwidth = totalwidth;
+              const parentBlock = blocks.filter((a) => a.id == result[z])[0];
+              if (parentBlock) {
+                parentBlock.childwidth = totalwidth;
+              }
             }
             for (var w = 0; w < blocks.filter((id) => id.parent == result[z]).length; w++) {
               var children = blocks.filter((id) => id.parent == result[z])[w];
-              $(".blockid[value=" + children.id + "]").parent().css(
-                "top",
-                blocks.filter((id) => id.id == result[z]).y + paddingy + "px"
-              );
-              blocks.filter((id) => id.id == result[z]).y = blocks.filter((id) => id.id == result[z]).y + paddingy;
+              if (result[z] != -1) {
+                const parentBlock = blocks.filter((id) => id.id == result[z])[0];
+                if (parentBlock) {
+                  $(".blockid[value=" + children.id + "]").parent().css("top", parentBlock.y + paddingy + "px");
+                  parentBlock.y = parentBlock.y + paddingy;
+                }
+              }
               if (children.childwidth > children.width) {
                 $(".blockid[value=" + children.id + "]").parent().css(
                   "left",
