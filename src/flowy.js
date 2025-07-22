@@ -202,8 +202,18 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         active = true;
         dragx = event.clientX - $(this).offset().left;
         dragy = event.clientY - $(this).offset().top;
-        drag.css('left', event.clientX - dragx + 'px');
-        drag.css('top', event.clientY - dragy + 'px');
+
+        // 确保拖拽元素有正确的绝对位置
+        const initialLeft = event.clientX - dragx;
+        const initialTop = event.clientY - dragy;
+        drag.css({
+          'position': 'absolute',
+          'left': initialLeft + 'px',
+          'top': initialTop + 'px',
+          'z-index': '1000'
+        });
+
+
       }
     });
     $(document).on('mouseup', function (event) {
@@ -804,8 +814,12 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     });
     $(document).on('mousemove', function (event) {
       if (active) {
-        drag.css('left', event.clientX - dragx + 'px');
-        drag.css('top', event.clientY - dragy + 'px');
+        const newLeft = event.clientX - dragx;
+        const newTop = event.clientY - dragy;
+        drag.css({
+          'left': newLeft + 'px',
+          'top': newTop + 'px'
+        });
       } else if (rearrange) {
         drag.css(
           'left',
