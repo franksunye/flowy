@@ -340,6 +340,18 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
             canvas_div.scrollLeft();
           const ypos = drag.offset().top + canvas_div.scrollTop();
           const blocko = blocks.map(a => a.id);
+
+          // 调试信息
+          console.log('吸附检测:', {
+            dragPos: { x: xpos, y: ypos },
+            blocks: blocks.map(b => ({ id: b.id, x: b.x, y: b.y, width: b.width, height: b.height })),
+            dragElement: {
+              offsetLeft: drag.offset().left,
+              offsetTop: drag.offset().top,
+              width: drag.innerWidth(),
+              height: drag.innerHeight()
+            }
+          });
           for (var i = 0; i < blocks.length; i++) {
             if (
               xpos >=
