@@ -674,13 +674,11 @@ var require_flowy_es = __commonJS({
               if (result[z] != -1) {
                 const parentBlock2 = blocks2.filter((id) => id.id == result[z])[0];
                 if (parentBlock2) {
-                  const originalParentY = parentBlock2.y;
                   $(".blockid[value=" + children.id + "]").parent().css(
                     "top",
                     parentBlock2.y + paddingy + "px"
                   );
                   parentBlock2.y = parentBlock2.y + paddingy;
-                  parentBlock2.originalY = originalParentY;
                 }
               }
               if (children.childwidth > children.width) {
@@ -705,7 +703,7 @@ var require_flowy_es = __commonJS({
               const arrowy = arrowhelp.y - arrowhelp.height / 2 - (parentY + parentBlock.height / 2);
               $(".arrowid[value=" + children.id + "]").parent().css(
                 "top",
-                blocks2.filter((id) => id.id == children.parent)[0].y + blocks2.filter((id) => id.id == children.parent)[0].height / 2 - canvas_div.offset().top + "px"
+                parentBlock.y + parentBlock.height / 2 - canvas_div.offset().top + "px"
               );
               if (arrowx < 0) {
                 $(".arrowid[value=" + children.id + "]").parent().css("left", arrowhelp.x - 5 - canvas_div.offset().left + "px");
