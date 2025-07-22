@@ -2,50 +2,86 @@
 
 ![Demo](https://media.giphy.com/media/dv1C56OywrP7Cn20nr/giphy.gif) <br>A modern JavaScript library to create beautiful flowcharts with ease ✨
 
-[Dribbble](demo.com) | [Twitter](demo.com) | [Original Demo](docs/original-demo/) | [Documentation](docs/)
+> **Version**: 1.0.0 | **Tests**: 83/83 pass | **Build**: Vite | **Refactoring**: 40% complete
 
-## 🚀 Project Status
+[Dribbble](demo.com) | [Twitter](demo.com) | [Original Demo](docs/original-demo/)
 
-**Current Version**: 1.0.0 (Modernization in Progress)
-**Development Status**: Active Development
-**Test Coverage**: 83 tests, 100% pass rate
-**Build System**: Modern Vite-based build pipeline
+## 🎯 About Flowy
 
-## 📁 Project Structure
+Flowy is a modern JavaScript flowchart library focused on providing simple and easy-to-use drag-and-drop flowchart creation functionality. The project is undergoing comprehensive modernization refactoring, transitioning from monolithic architecture to modular architecture while maintaining 100% backward compatibility.
+
+### ✨ Core Features
+- ✅ **Responsive Drag & Drop** - Smooth drag interactions
+- ✅ **Auto Snapping** - Intelligent block positioning
+- ✅ **Block Rearrangement** - Dynamic workflow adjustment
+- ✅ **Data Export** - JSON format output
+- ✅ **Multi-format Builds** - ES/UMD/IIFE formats
+- ✅ **Modern Build System** - Vite + 83 unit tests
+
+## ⚡ 30-Second Quick Start
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/flowy/dist/flowy.css">
+    <script src="https://unpkg.com/flowy/dist/flowy.umd.js"></script>
+</head>
+<body>
+    <div class="create-flowy">Drag me!</div>
+    <div id="canvas"></div>
+    <script>flowy($("#canvas"));</script>
+</body>
+</html>
+```
+
+## 📦 Installation
+
+### CDN (Quick Testing)
+```html
+<link rel="stylesheet" href="https://unpkg.com/flowy/dist/flowy.css">
+<script src="https://unpkg.com/flowy/dist/flowy.umd.js"></script>
+```
+
+### npm (Recommended)
+```bash
+npm install flowy
+```
+
+```javascript
+import flowy from 'flowy';
+import 'flowy/dist/flowy.css';
+```
+
+### Development Setup
+```bash
+git clone https://github.com/franksunye/flowy.git
+cd flowy && npm install
+npm test        # Verify environment (83/83 tests)
+npm run dev     # Start development server
+```
+
+## 🏗️ Architecture Overview
 
 ```
-flowy/
-├── src/                    # 🎯 Modern source code (modular architecture)
-│   ├── flowy.js           # Main entry point
-│   ├── flowy.css          # Core stylesheet
-│   ├── core/              # Core modules
-│   │   └── block-manager.js # Block management module
-│   └── utils/             # Utility modules
-│       └── dom-utils.js   # DOM operations module
-├── dist/                   # 📦 Build artifacts (Vite-generated)
-│   ├── flowy.es.js        # ES module format (31.07 kB)
-│   ├── flowy.umd.js       # UMD format (15.06 kB)
-│   └── flowy.iife.js      # IIFE format (15.00 kB)
-├── docs/                   # 📚 Documentation and demos
-│   ├── original-demo/     # ✅ Working baseline demo
-│   ├── refactor-demo/     # 🧪 Refactored version demo
-│   └── *.md               # Project documentation
-├── tests/                  # 🧪 Comprehensive test suite
-│   ├── unit/              # Unit tests (83 tests)
-│   ├── e2e-test.js        # End-to-end tests
-│   └── performance/       # Performance benchmarks
-└── build configs...        # Modern build configuration
+Current Architecture: Modular Refactoring (40% complete)
+├── ✅ Testing Foundation (83 unit tests)
+├── ✅ Modern Build System (Vite)
+├── 🔄 Modular Refactoring
+│   ├── ✅ DOM Utils Module
+│   ├── ✅ Block Manager Module
+│   ├── 🔄 Snap Engine Module
+│   └── 📋 Drag Handler Module
+└── 📋 ES6+ Modernization
 ```
 
-## 🎯 Development Workflow
-
-**Modern Development Strategy:**
-
-1. **Modular Architecture**: Code organized in focused modules with clear responsibilities
-2. **Test-Driven Development**: 83 unit tests ensure stability during refactoring
-3. **Modern Build System**: Vite provides fast development and optimized production builds
-4. **Continuous Integration**: GitHub Actions automate testing and quality checks
-5. **Code Quality**: ESLint + Prettier ensure consistent code style
+**Development Strategy:**
+- **Modular Architecture**: Code organized in focused modules with clear responsibilities
+- **Test-Driven Development**: 83 unit tests ensure stability during refactoring
+- **Modern Build System**: Vite provides fast development and optimized production builds
+- **Continuous Integration**: GitHub Actions automate testing and quality checks
+- **Code Quality**: ESLint + Prettier ensure consistent code style
 
 ## ✅ Current Achievements
 
@@ -365,7 +401,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📚 Documentation
 
 ### Core Docs
-- **[Quick Start](docs/02_QUICK_START.md)** - Installation, usage, project overview
 - **[API Reference](docs/20_API.md)** - Complete API documentation
 - **[Development Guide](docs/30_DEVELOPMENT.md)** - Environment setup, testing, code quality
 - **[Architecture](docs/10_ARCHITECTURE.md)** - System design and technical decisions
