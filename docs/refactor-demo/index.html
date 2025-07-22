@@ -162,5 +162,19 @@
     </div>
     <div id="canvas">
     </div>
+
+    <script>
+        // 等待模块加载完成后初始化demo
+        $(document).ready(function(){
+            if (window.FlowyModuleLoader) {
+                window.FlowyModuleLoader.onReady(function() {
+                    console.log('✅ 所有模块加载完成，初始化Flowy Demo');
+                    initializeFlowyDemo();
+                });
+            } else {
+                console.error('❌ 模块加载器未找到');
+            }
+        });
+    </script>
 </body>
 </html>
