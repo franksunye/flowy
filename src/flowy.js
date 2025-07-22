@@ -1050,7 +1050,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       const result = blocks.map(a => a.parent);
       for (var z = 0; z < result.length; z++) {
         if (result[z] == -1) {
-          continue; // 跳过根块，不要使用z++
+          z++; // 与原始版本保持完全一致
         }
         let totalwidth = 0;
         let totalremove = 0;
@@ -1091,20 +1091,15 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         ) {
           var children = blocks.filter(id => id.parent == result[z])[w];
           if (result[z] != -1) {
-            const parentBlock = blocks.filter(id => id.id == result[z])[0];
-            if (parentBlock) {
-              // 保存父块的原始y位置，用于连线计算
-              if (parentBlock.originalY === undefined) {
-                parentBlock.originalY = parentBlock.y;
-              }
-              $('.blockid[value=' + children.id + ']')
-                .parent()
-                .css(
-                  'top',
-                  parentBlock.y + paddingy + 'px'
-                );
-              parentBlock.y = parentBlock.y + paddingy;
-            }
+            // 与原始版本完全一致：.y属性不使用[0]索引
+            $('.blockid[value=' + children.id + ']')
+              .parent()
+              .css(
+                'top',
+                blocks.filter(id => id.id == result[z]).y + paddingy + 'px'
+              );
+            blocks.filter(id => id.id == result[z]).y =
+              blocks.filter(id => id.id == result[z]).y + paddingy;
           }
           if (children.childwidth > children.width) {
             $('.blockid[value=' + children.id + ']')
@@ -1146,22 +1141,19 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           const arrowhelp = blocks.filter(a => a.id == children.id)[0];
           const arrowx =
             arrowhelp.x - blocks.filter(a => a.id == children.parent)[0].x + 20;
-          const parentBlock = blocks.filter(a => a.id == children.parent)[0];
-          // 使用父块的原始y位置进行连线计算
-          const parentY = parentBlock.originalY !== undefined ? parentBlock.originalY : parentBlock.y;
           const arrowy =
             arrowhelp.y -
             arrowhelp.height / 2 -
-            (parentY + parentBlock.height / 2);
-
-
-
-
+            (blocks.filter(a => a.id == children.parent)[0].y +
+              blocks.filter(a => a.id == children.parent)[0].height / 2);
           $('.arrowid[value=' + children.id + ']')
             .parent()
             .css(
               'top',
-              parentY + parentBlock.height / 2 - canvas_div.offset().top + 'px'
+              blocks.filter(id => id.id == children.parent)[0].y +
+                blocks.filter(id => id.id == children.parent)[0].height / 2 -
+                canvas_div.offset().top +
+                'px'
             );
           if (arrowx < 0) {
             $('.arrowid[value=' + children.id + ']')
