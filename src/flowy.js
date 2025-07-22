@@ -41,14 +41,48 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     spacing_y = 80;
   }
   $(document).ready(function () {
-    // 简化为原始代码的变量声明
-    var blocks = [];
-    var blockstemp = [];
+    // 创建块管理器实例
+    const blockManager = getBlockManager();
+
+    // 保持原有变量作为引用，确保向后兼容
+    let blocks = blockManager ? blockManager.getAllBlocks() : [];
+    let blockstemp = blockManager ? blockManager.getTempBlocks() : [];
     const canvas_div = canvas;
 
-    // 简化的辅助函数
+    // 添加同步函数，确保引用始终是最新的
+    function syncBlockReferences() {
+        if (blockManager) {
+            blocks = blockManager.getAllBlocks();
+            blockstemp = blockManager.getTempBlocks();
+        }
+    }
+    let active = false;
+    const paddingx = spacing_x;
+    const paddingy = spacing_y;
+    let offsetleft = 0;
+    let offsetleftold = 0;
+    let rearrange = false;
+    let lastevent = false;
+    let drag, dragx, dragy, original;
+    canvas_div.append("<div class='indicator invisible'></div>");
+
+    // 辅助函数：获取块数量（兼容原有代码）
     function getBlockCount() {
-      return blocks.length;
+      return blockManager ? blockManager.getBlockCount() : blocks.length;
+    }
+
+    // 辅助函数：获取下一个块ID
+    function getNextBlockId() {
+      if (blockManager) {
+        return blockManager.getNextBlockId();
+      } else {
+        return blocks.length === 0
+          ? 0
+          : Math.max.apply(
+              Math,
+              blocks.map(a => a.id)
+            ) + 1;
+      }
     }
 
     // 辅助函数：清空所有块
@@ -73,17 +107,32 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       }
     }
 
-    // 辅助函数：合并临时块到主数组（简化为原始逻辑）
+    // 辅助函数：合并临时块到主数组
     function mergeTempBlocks() {
-      blocks = $.merge(blocks, blockstemp);
-      blockstemp = [];
+      if (blockManager) {
+        blockManager.mergeTempBlocks();
+        // 同时更新引用数组以保持同步
+        blocks = blockManager.getAllBlocks();
+        blockstemp = blockManager.getTempBlocks();
+      } else {
+        blocks = $.merge(blocks, blockstemp);
+        blockstemp = [];
+      }
     }
 
-    // 辅助函数：移除指定ID的块（简化为原始逻辑）
+    // 辅助函数：移除指定ID的块
     function removeBlockById(blockId) {
-      blocks = $.grep(blocks, function(e) {
-        return e.id != blockId;
-      });
+      if (blockManager) {
+        blockManager.removeBlocks(function (block) {
+          return block.id != blockId;
+        });
+        // 同时更新引用数组以保持同步
+        blocks = blockManager.getAllBlocks();
+      } else {
+        blocks = $.grep(blocks, function (e) {
+          return e.id != blockId;
+        });
+      }
     }
     let active = false;
     const paddingx = spacing_x;
@@ -129,7 +178,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       if (event.which === 1) {
         original = $(this);
         if (getBlockCount() == 0) {
-          var newBlockId = blocks.length; // 与原始代码保持一致
+          var newBlockId = getBlockCount(); // 当blocks为空时，使用0作为第一个ID
           $(this)
             .clone()
             .addClass('block')
@@ -143,7 +192,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           $(this).addClass('dragnow');
           drag = $('.blockid[value=' + newBlockId + ']').parent();
         } else {
-          var newBlockId = Math.max.apply(Math, blocks.map(a => a.id)) + 1; // 与原始代码保持一致
+          var newBlockId = getNextBlockId();
           $(this)
             .clone()
             .addClass('block')
@@ -1209,8 +1258,15 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     original = null;
 
     // 清理块数据
-    blocks.length = 0;
-    blockstemp.length = 0;
+    if (blockManager) {
+      blockManager.clearAll();
+    } else {
+      blocks.length = 0;
+      blockstemp.length = 0;
+    }
+
+    // 同步引用
+    syncBlockReferences();
   }
 
   // 暴露清理函数到全局
