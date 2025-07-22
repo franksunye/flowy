@@ -346,8 +346,8 @@ var require_flowy_es = __commonJS({
                     (a) => a.id == parseInt(drag2.children(".blockid").val())
                   )[0];
                   const arrowx = arrowhelp.x - blocks2.filter((a) => a.id == blocko[i])[0].x + 20;
-                  const firstChildOfParent = blocks2.filter((id) => id.parent == blocko[i])[0];
-                  const arrowy = arrowhelp.y - arrowhelp.height / 2 - (firstChildOfParent ? firstChildOfParent.y + firstChildOfParent.height / 2 : arrowhelp.y + arrowhelp.height / 2) + canvas_div.scrollTop();
+                  const parentBlock = blocks2.filter((a) => a.id == blocko[i])[0];
+                  const arrowy = arrowhelp.y - arrowhelp.height / 2 - (parentBlock.y + parentBlock.height / 2) + canvas_div.scrollTop();
                   if (arrowx < 0) {
                     drag2.after(
                       '<div class="arrowblock"><input type="hidden" class="arrowid" value="' + drag2.children(".blockid").val() + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M' + (blocks2.filter((a) => a.id == blocko[i])[0].x - arrowhelp.x + 5) + " 0L" + (blocks2.filter((a) => a.id == blocko[i])[0].x - arrowhelp.x + 5) + " " + paddingy / 2 + "L5 " + paddingy / 2 + "L5 " + arrowy + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M0 ' + (arrowy - 5) + "H10L5 " + arrowy + "L0 " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg></div>'
@@ -660,6 +660,9 @@ var require_flowy_es = __commonJS({
               if (result[z] != -1) {
                 const parentBlock2 = blocks2.filter((id) => id.id == result[z])[0];
                 if (parentBlock2) {
+                  if (parentBlock2.originalY === void 0) {
+                    parentBlock2.originalY = parentBlock2.y;
+                  }
                   $(".blockid[value=" + children.id + "]").parent().css(
                     "top",
                     parentBlock2.y + paddingy + "px"
@@ -689,7 +692,7 @@ var require_flowy_es = __commonJS({
               const arrowy = arrowhelp.y - arrowhelp.height / 2 - (parentY + parentBlock.height / 2);
               $(".arrowid[value=" + children.id + "]").parent().css(
                 "top",
-                parentBlock.y + parentBlock.height / 2 - canvas_div.offset().top + "px"
+                parentY + parentBlock.height / 2 - canvas_div.offset().top + "px"
               );
               if (arrowx < 0) {
                 $(".arrowid[value=" + children.id + "]").parent().css("left", arrowhelp.x - 5 - canvas_div.offset().left + "px");
