@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flowy 连线和布局修复测试</title>
+    <link href="../src/flowy.css" rel="stylesheet" type="text/css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #test-controls {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #canvas {
+            width: 800px;
+            height: 600px;
+            border: 2px solid #ccc;
+            position: relative;
+            background: #fafafa;
+        }
+        .test-block {
+            width: 120px;
+            height: 60px;
+            background: #4CAF50;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            user-select: none;
+        }
+        .test-block.create-flowy {
+            background: #2196F3;
+        }
+        #test-results {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .result-item {
+            margin: 5px 0;
+            padding: 5px;
+            border-radius: 3px;
+        }
+        .result-pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        .result-fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>Flowy 连线和布局修复测试</h1>
+    
+    <div id="test-controls">
+        <h3>测试控制</h3>
+        <button onclick="runTest1()">测试1: 首次拖拽连线</button>
+        <button onclick="runTest2()">测试2: 三块重排</button>
+        <button onclick="runTest3()">测试3: 清空重试</button>
+        <button onclick="clearCanvas()">清空画布</button>
+        <button onclick="runAllTests()">运行所有测试</button>
+    </div>
+
+    <div style="display: flex;">
+        <div style="width: 200px; margin-right: 20px;">
+            <h3>可拖拽块</h3>
+            <div class="test-block create-flowy" data-type="1">
+                <input type="hidden" name="blockelemtype" class="blockelemtype" value="1">
+                New Visitor
+            </div>
+            <div class="test-block create-flowy" data-type="2">
+                <input type="hidden" name="blockelemtype" class="blockelemtype" value="2">
+                Action Performed
+            </div>
+            <div class="test-block create-flowy" data-type="3">
+                <input type="hidden" name="blockelemtype" class="blockelemtype" value="3">
+                Time Passed
+            </div>
+        </div>
+        
+        <div>
+            <h3>画布</h3>
+            <div id="canvas"></div>
+        </div>
+    </div>
+
+    <div id="test-results">
+        <h3>测试结果</h3>
+        <div id="results-content">等待测试...</div>
+    </div>
+
+    <!-- 直接加载核心文件 -->
+    <script src="../src/utils/dom-utils.js"></script>
+    <script src="../src/core/block-manager.js"></script>
+    <script src="../src/flowy.js"></script>
+    
+    <script>
+        let testResults = [];
+        
+        function logResult(test, passed, details = '') {
+            const result = {
+                test,
+                passed,
+                details,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            testResults.push(result);
+            
+            const resultsDiv = document.getElementById('results-content');
+            const resultItem = document.createElement('div');
+            resultItem.className = `result-item ${passed ? 'result-pass' : 'result-fail'}`;
+            resultItem.innerHTML = `
+                <strong>${passed ? '✅' : '❌'} ${test}</strong><br>
+                <small>${result.timestamp} - ${details}</small>
+            `;
+            resultsDiv.appendChild(resultItem);
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+        
+        function clearCanvas() {
+            try {
+                if (window.clearFlowyCanvas) {
+                    window.clearFlowyCanvas();
+                    logResult('清空画布', true, '画布已清空');
+                } else {
+                    // 手动清理
+                    $('.block').remove();
+                    $('.arrowblock').remove();
+                    $('.indicator').addClass('invisible');
+                    logResult('清空画布', true, '手动清空完成');
+                }
+            } catch (error) {
+                // 手动清理
+                $('.block').remove();
+                $('.arrowblock').remove();
+                $('.indicator').addClass('invisible');
+                logResult('清空画布', true, '手动清空完成');
+            }
+        }
+        
+        function simulateDrag(fromX, fromY, toX, toY) {
+            return new Promise((resolve) => {
+                // 模拟鼠标按下
+                const mouseDownEvent = new MouseEvent('mousedown', {
+                    clientX: fromX,
+                    clientY: fromY,
+                    which: 1,
+                    bubbles: true
+                });
+                
+                // 找到起始元素
+                const startElement = document.elementFromPoint(fromX, fromY);
+                if (startElement) {
+                    startElement.dispatchEvent(mouseDownEvent);
+                }
+                
+                setTimeout(() => {
+                    // 模拟鼠标移动
+                    const mouseMoveEvent = new MouseEvent('mousemove', {
+                        clientX: toX,
+                        clientY: toY,
+                        bubbles: true
+                    });
+                    document.dispatchEvent(mouseMoveEvent);
+                    
+                    setTimeout(() => {
+                        // 模拟鼠标释放
+                        const mouseUpEvent = new MouseEvent('mouseup', {
+                            clientX: toX,
+                            clientY: toY,
+                            which: 1,
+                            bubbles: true
+                        });
+                        document.dispatchEvent(mouseUpEvent);
+                        
+                        setTimeout(resolve, 500);
+                    }, 100);
+                }, 100);
+            });
+        }
+        
+        async function runTest1() {
+            logResult('测试1开始', true, '首次拖拽连线测试');
+            clearCanvas();
+            
+            try {
+                const canvas = document.getElementById('canvas');
+                const canvasRect = canvas.getBoundingClientRect();
+                
+                // 拖拽第一个块
+                await simulateDrag(100, 200, canvasRect.left + 200, canvasRect.top + 100);
+                
+                // 拖拽第二个块
+                await simulateDrag(100, 280, canvasRect.left + 200, canvasRect.top + 250);
+                
+                // 检查连线
+                const arrows = document.querySelectorAll('.arrowblock');
+                const hasConnection = arrows.length > 0;
+                
+                if (hasConnection) {
+                    const svg = arrows[0].querySelector('svg path');
+                    const pathValid = svg && svg.getAttribute('d') && svg.getAttribute('d').length > 10;
+                    logResult('测试1', pathValid, `连线${pathValid ? '完整' : '不完整'}, 路径: ${svg ? svg.getAttribute('d').substring(0, 30) + '...' : '无'}`);
+                } else {
+                    logResult('测试1', false, '未找到连线元素');
+                }
+                
+            } catch (error) {
+                logResult('测试1', false, `错误: ${error.message}`);
+            }
+        }
+        
+        async function runTest2() {
+            logResult('测试2开始', true, '三块重排测试');
+            clearCanvas();
+            
+            try {
+                const canvas = document.getElementById('canvas');
+                const canvasRect = canvas.getBoundingClientRect();
+                
+                // 拖拽三个块
+                await simulateDrag(100, 200, canvasRect.left + 200, canvasRect.top + 100);
+                await simulateDrag(100, 280, canvasRect.left + 200, canvasRect.top + 250);
+                await simulateDrag(100, 360, canvasRect.left + 350, canvasRect.top + 250);
+                
+                // 检查块数量和可见性
+                const blocks = document.querySelectorAll('.block');
+                const blockCount = blocks.length;
+                
+                let allVisible = true;
+                blocks.forEach((block, i) => {
+                    const rect = block.getBoundingClientRect();
+                    const style = window.getComputedStyle(block);
+                    if (style.display === 'none' || style.visibility === 'hidden' || rect.width === 0) {
+                        allVisible = false;
+                    }
+                });
+                
+                // 检查连线
+                const arrows = document.querySelectorAll('.arrowblock');
+                const connectionCount = arrows.length;
+                
+                const testPassed = blockCount === 3 && allVisible && connectionCount >= 1;
+                logResult('测试2', testPassed, `块数量: ${blockCount}/3, 全部可见: ${allVisible}, 连线数: ${connectionCount}`);
+                
+            } catch (error) {
+                logResult('测试2', false, `错误: ${error.message}`);
+            }
+        }
+        
+        async function runTest3() {
+            logResult('测试3开始', true, '清空重试测试');
+            
+            try {
+                // 先运行完整流程
+                await runTest2();
+                
+                // 清空
+                clearCanvas();
+                
+                // 重新运行
+                await runTest1();
+                
+                logResult('测试3', true, '清空重试成功');
+                
+            } catch (error) {
+                logResult('测试3', false, `错误: ${error.message}`);
+            }
+        }
+        
+        async function runAllTests() {
+            document.getElementById('results-content').innerHTML = '';
+            testResults = [];
+            
+            await runTest1();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await runTest2();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await runTest3();
+            
+            // 统计结果
+            const passed = testResults.filter(r => r.passed && r.test.startsWith('测试')).length;
+            const total = testResults.filter(r => r.test.startsWith('测试')).length;
+            
+            logResult('总结', passed === total, `通过 ${passed}/${total} 个测试`);
+        }
+        
+        // 等待页面加载完成
+        $(document).ready(function(){
+            // 等待一下确保所有脚本加载完成
+            setTimeout(function() {
+                if (typeof flowy !== 'undefined') {
+                    console.log('✅ Flowy加载完成，开始初始化');
+
+                    // 初始化Flowy
+                    flowy(
+                        document.getElementById('canvas'),
+                        function(block) { console.log('Block grabbed:', block); },
+                        function() { console.log('Block released'); },
+                        function(drag) {
+                            console.log('Block snapped:', drag);
+                            // 简单的块内容设置
+                            const type = drag.find('.blockelemtype').val();
+                            if (type === '1') {
+                                drag.html('<div style="padding:10px;background:#4CAF50;color:white;border-radius:4px;">New Visitor</div>');
+                            } else if (type === '2') {
+                                drag.html('<div style="padding:10px;background:#2196F3;color:white;border-radius:4px;">Action Performed</div>');
+                            } else if (type === '3') {
+                                drag.html('<div style="padding:10px;background:#FF9800;color:white;border-radius:4px;">Time Passed</div>');
+                            }
+                        }
+                    );
+
+                    logResult('初始化', true, 'Flowy已成功初始化');
+                } else {
+                    logResult('初始化', false, 'Flowy未加载');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

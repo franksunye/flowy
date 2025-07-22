@@ -208,6 +208,14 @@ class BlockManager {
   }
 
   /**
+   * 清空所有块数据
+   */
+  clearAll() {
+    this.blocks = [];
+    this.blockstemp = [];
+  }
+
+  /**
    * 验证块对象的有效性
    * @param {Object} block - 要验证的块
    * @returns {boolean} 是否有效

@@ -41,39 +41,14 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     spacing_y = 80;
   }
   $(document).ready(function () {
-    // 创建块管理器实例
-    const blockManager = getBlockManager();
-
-    // 保持原有变量作为引用，确保向后兼容
-    let blocks = blockManager ? blockManager.getAllBlocks() : [];
-    let blockstemp = blockManager ? blockManager.getTempBlocks() : [];
+    // 简化为原始代码的变量声明
+    var blocks = [];
+    var blockstemp = [];
     const canvas_div = canvas;
 
-    // 添加同步函数，确保引用始终是最新的
-    function syncBlockReferences() {
-        if (blockManager) {
-            blocks = blockManager.getAllBlocks();
-            blockstemp = blockManager.getTempBlocks();
-        }
-    }
-
-    // 辅助函数：获取块数量（兼容原有代码）
+    // 简化的辅助函数
     function getBlockCount() {
-      return blockManager ? blockManager.getBlockCount() : blocks.length;
-    }
-
-    // 辅助函数：获取下一个块ID
-    function getNextBlockId() {
-      if (blockManager) {
-        return blockManager.getNextBlockId();
-      } else {
-        return blocks.length === 0
-          ? 0
-          : Math.max.apply(
-              Math,
-              blocks.map(a => a.id)
-            ) + 1;
-      }
+      return blocks.length;
     }
 
     // 辅助函数：清空所有块
@@ -98,32 +73,17 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       }
     }
 
-    // 辅助函数：合并临时块到主数组
+    // 辅助函数：合并临时块到主数组（简化为原始逻辑）
     function mergeTempBlocks() {
-      if (blockManager) {
-        blockManager.mergeTempBlocks();
-        // 同时更新引用数组以保持同步
-        blocks = blockManager.getAllBlocks();
-        blockstemp = blockManager.getTempBlocks();
-      } else {
-        blocks = $.merge(blocks, blockstemp);
-        blockstemp = [];
-      }
+      blocks = $.merge(blocks, blockstemp);
+      blockstemp = [];
     }
 
-    // 辅助函数：移除指定ID的块
+    // 辅助函数：移除指定ID的块（简化为原始逻辑）
     function removeBlockById(blockId) {
-      if (blockManager) {
-        blockManager.removeBlocks(function (block) {
-          return block.id != blockId;
-        });
-        // 同时更新引用数组以保持同步
-        blocks = blockManager.getAllBlocks();
-      } else {
-        blocks = $.grep(blocks, function (e) {
-          return e.id != blockId;
-        });
-      }
+      blocks = $.grep(blocks, function(e) {
+        return e.id != blockId;
+      });
     }
     let active = false;
     const paddingx = spacing_x;
@@ -169,7 +129,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       if (event.which === 1) {
         original = $(this);
         if (getBlockCount() == 0) {
-          var newBlockId = getBlockCount(); // 当blocks为空时，使用0作为第一个ID
+          var newBlockId = blocks.length; // 与原始代码保持一致
           $(this)
             .clone()
             .addClass('block')
@@ -183,7 +143,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           $(this).addClass('dragnow');
           drag = $('.blockid[value=' + newBlockId + ']').parent();
         } else {
-          var newBlockId = getNextBlockId();
+          var newBlockId = Math.max.apply(Math, blocks.map(a => a.id)) + 1; // 与原始代码保持一致
           $(this)
             .clone()
             .addClass('block')
@@ -195,23 +155,15 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
             .removeClass('create-flowy')
             .appendTo('body');
           $(this).addClass('dragnow');
-          drag = $('.blockid[value=' + newBlockId + ']').parent();
+          drag = $('.blockid[value=' + parseInt(newBlockId) + ']').parent();
         }
         blockGrabbed($(this));
         drag.addClass('dragging');
         active = true;
         dragx = event.clientX - $(this).offset().left;
         dragy = event.clientY - $(this).offset().top;
-
-        // 确保拖拽元素有正确的绝对位置
-        const initialLeft = event.clientX - dragx;
-        const initialTop = event.clientY - dragy;
-        drag.css({
-          'position': 'absolute',
-          'left': initialLeft + 'px',
-          'top': initialTop + 'px',
-          'z-index': '1000'
-        });
+        drag.css('left', event.clientX - dragx + 'px');
+        drag.css('top', event.clientY - dragy + 'px');
 
 
       }
@@ -451,7 +403,6 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                 )[0].x =
                   drag.offset().left +
                   drag.innerWidth() / 2 +
-                  canvas_div.scrollLeft() +
                   canvas_div.scrollLeft();
                 blockstemp.filter(
                   a => a.id == parseInt(drag.children('.blockid').val())
@@ -562,8 +513,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                 arrowhelp.y -
                 arrowhelp.height / 2 -
                 (blocks.filter(id => id.parent == blocko[i])[0].y +
-                  blocks.filter(id => id.parent == blocko[i])[0].height / 2) +
-                canvas_div.scrollTop();
+                  blocks.filter(id => id.parent == blocko[i])[0].height / 2);
               if (arrowx < 0) {
                 drag.after(
                   '<div class="arrowblock"><input type="hidden" class="arrowid" value="' +
@@ -598,6 +548,16 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                       5 -
                       canvas_div.offset().left +
                       canvas_div.scrollLeft() +
+                      'px'
+                  );
+                $('.arrowid[value=' + drag.children('.blockid').val() + ']')
+                  .parent()
+                  .css(
+                    'top',
+                    blocks.filter(a => a.id == blocko[i])[0].y +
+                      blocks.filter(a => a.id == blocko[i])[0].height / 2 -
+                      canvas_div.offset().top +
+                      canvas_div.scrollTop() +
                       'px'
                   );
               } else {
@@ -654,7 +614,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                 .css(
                   'top',
                   blocks.filter(a => a.id == blocko[i])[0].y +
-                    blocks.filter(a => a.id == blocko[i])[0].height / 2 +
+                    blocks.filter(a => a.id == blocko[i])[0].height / 2 -
+                    canvas_div.offset().top +
+                    canvas_div.scrollTop() +
                     'px'
                 );
               if (blocks.filter(a => a.id == blocko[i])[0].parent != -1) {
@@ -729,7 +691,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
               const blockid = parseInt($(this).children('.blockid').val());
               drag = $(this);
               blockstemp.push(blocks.filter(a => a.id == blockid)[0]);
-              removeBlockById(blockid);
+              blocks = $.grep(blocks, function(e) {
+                return e.id != blockid;
+              });
               $('.arrowid[value=' + blockid + ']')
                 .parent()
                 .remove();
@@ -814,12 +778,8 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     });
     $(document).on('mousemove', function (event) {
       if (active) {
-        const newLeft = event.clientX - dragx;
-        const newTop = event.clientY - dragy;
-        drag.css({
-          'left': newLeft + 'px',
-          'top': newTop + 'px'
-        });
+        drag.css('left', event.clientX - dragx + 'px');
+        drag.css('top', event.clientY - dragy + 'px');
       } else if (rearrange) {
         drag.css(
           'left',
@@ -844,7 +804,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         blockstemp.filter(
           a => a.id == parseInt(drag.children('.blockid').val())
         ).y =
-          drag.offset().left + drag.innerHeight() / 2 + canvas_div.scrollTop();
+          drag.offset().top + drag.innerHeight() / 2 + canvas_div.scrollTop();
       }
       if (active || rearrange) {
         const xpos =
@@ -1031,7 +991,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       const result = blocks.map(a => a.parent);
       for (var z = 0; z < result.length; z++) {
         if (result[z] == -1) {
-          z++;
+          continue; // 使用continue而不是z++，避免跳过元素
         }
         let totalwidth = 0;
         let totalremove = 0;
@@ -1072,7 +1032,11 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
             .parent()
             .css(
               'top',
-              blocks.filter(id => id.id == result[z]).y + paddingy + 'px'
+              blocks.filter(id => id.id == result[z])[0].y +
+              paddingy -
+              canvas_div.offset().top +
+              canvas_div.scrollTop() +
+              'px'
             );
           blocks.filter(id => id.id == result[z]).y =
             blocks.filter(id => id.id == result[z]).y + paddingy;
@@ -1087,6 +1051,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                   children.childwidth / 2 -
                   children.width / 2 -
                   canvas_div.offset().left +
+                  canvas_div.scrollLeft() +
                   'px'
               );
             children.x =
@@ -1104,6 +1069,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                   totalwidth / 2 +
                   totalremove -
                   canvas_div.offset().left +
+                  canvas_div.scrollLeft() +
                   'px'
               );
             children.x =
@@ -1128,12 +1094,13 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
               blocks.filter(id => id.id == children.parent)[0].y +
                 blocks.filter(id => id.id == children.parent)[0].height / 2 -
                 canvas_div.offset().top +
+                canvas_div.scrollTop() +
                 'px'
             );
           if (arrowx < 0) {
             $('.arrowid[value=' + children.id + ']')
               .parent()
-              .css('left', arrowhelp.x - 5 - canvas_div.offset().left + 'px');
+              .css('left', arrowhelp.x - 5 - canvas_div.offset().left + canvas_div.scrollLeft() + 'px');
             $('.arrowid[value=' + children.id + ']')
               .parent()
               .html(
@@ -1169,6 +1136,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                 blocks.filter(id => id.id == children.parent)[0].x -
                   20 -
                   canvas_div.offset().left +
+                  canvas_div.scrollLeft() +
                   'px'
               );
             $('.arrowid[value=' + children.id + ']')
@@ -1219,6 +1187,27 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
   function blockSnap(drag) {
     snapping(drag);
   }
+
+  // 添加状态清理函数
+  function clearCanvasState() {
+    // 清理所有块和连线
+    $('.block').remove();
+    $('.arrowblock').remove();
+    $('.indicator').addClass('invisible');
+
+    // 重置状态变量
+    active = false;
+    rearrange = false;
+    drag = null;
+    original = null;
+
+    // 清理块数据
+    blocks.length = 0;
+    blockstemp.length = 0;
+  }
+
+  // 暴露清理函数到全局
+  window.clearFlowyCanvas = clearCanvasState;
 };
 
 // 模块导出支持（用于测试覆盖率追踪）
