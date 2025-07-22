@@ -435,6 +435,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                   blocks.filter(id => id.id == blocko[i])[0].height / 2 +
                   paddingy -
                   canvas_div.offset().top +
+                  canvas_div.scrollTop() +
                   'px'
               );
               if (rearrange) {
@@ -543,6 +544,8 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                   width: drag.innerWidth(),
                   height: drag.innerHeight(),
                 });
+                // 同步引用以确保新添加的块可以被找到
+                syncBlockReferences();
               }
               const arrowhelp = blocks.filter(
                 a => a.id == parseInt(drag.children('.blockid').val())
