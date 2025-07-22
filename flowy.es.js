@@ -4,7 +4,21 @@ var __commonJS = (cb, mod) => function __require() {
 };
 var require_flowy_es = __commonJS({
   "flowy.es.js"(exports, module) {
-    var flowy = function(canvas, grab, release, snapping, spacing_x, spacing_y) {
+    function getBlockManager() {
+      if (typeof window !== "undefined" && window.BlockManager) {
+        return new window.BlockManager();
+      }
+      if (typeof require !== "undefined") {
+        try {
+          const BlockManager = require("./core/block-manager.js");
+          return new BlockManager();
+        } catch (e) {
+          return null;
+        }
+      }
+      return null;
+    }
+    const flowy = function(canvas, grab, release, snapping, spacing_x, spacing_y) {
       if (!grab) {
         grab = function() {
         };
@@ -24,10 +38,10 @@ var require_flowy_es = __commonJS({
         spacing_y = 80;
       }
       $(document).ready(function() {
-        var blockManager = typeof BlockManager !== "undefined" ? new BlockManager() : null;
-        var blocks = blockManager ? blockManager.getAllBlocks() : [];
-        var blockstemp = blockManager ? blockManager.getTempBlocks() : [];
-        var canvas_div = canvas;
+        const blockManager = getBlockManager();
+        let blocks = blockManager ? blockManager.getAllBlocks() : [];
+        let blockstemp = blockManager ? blockManager.getTempBlocks() : [];
+        const canvas_div = canvas;
         function getBlockCount() {
           return blockManager ? blockManager.getBlockCount() : blocks.length;
         }
@@ -35,7 +49,10 @@ var require_flowy_es = __commonJS({
           if (blockManager) {
             return blockManager.getNextBlockId();
           } else {
-            return blocks.length === 0 ? 0 : Math.max.apply(Math, blocks.map((a) => a.id)) + 1;
+            return blocks.length === 0 ? 0 : Math.max.apply(
+              Math,
+              blocks.map((a) => a.id)
+            ) + 1;
           }
         }
         function clearAllBlocks() {
@@ -76,19 +93,19 @@ var require_flowy_es = __commonJS({
             });
           }
         }
-        var active = false;
-        var paddingx = spacing_x;
-        var paddingy = spacing_y;
-        var offsetleft = 0;
-        var offsetleftold = 0;
-        var rearrange = false;
-        var lastevent = false;
-        var drag, dragx, dragy, original;
+        let active = false;
+        const paddingx = spacing_x;
+        const paddingy = spacing_y;
+        let offsetleft = 0;
+        let offsetleftold = 0;
+        let rearrange = false;
+        let lastevent = false;
+        let drag, dragx, dragy, original;
         if (canvas_div && typeof canvas_div.append === "function") {
           canvas_div.append("<div class='indicator invisible'></div>");
         }
         flowy.output = function() {
-          var json_data = [];
+          const json_data = [];
           if (blocks.length > 0) {
             for (var i = 0; i < blocks.length; i++) {
               json_data.push({
@@ -97,8 +114,8 @@ var require_flowy_es = __commonJS({
                 data: []
               });
               $(".blockid[value=" + blocks[i].id + "]").parent().children("input").each(function() {
-                var json_name = $(this).attr("name");
-                var json_value = $(this).val();
+                const json_name = $(this).attr("name");
+                const json_value = $(this).val();
                 json_data[i].data.push({
                   name: json_name,
                   value: json_value
@@ -117,12 +134,16 @@ var require_flowy_es = __commonJS({
             original = $(this);
             if (getBlockCount() == 0) {
               var newBlockId = getBlockCount();
-              $(this).clone().addClass("block").append("<input type='hidden' name='blockid' class='blockid' value='" + newBlockId + "'>").removeClass("create-flowy").appendTo("body");
+              $(this).clone().addClass("block").append(
+                "<input type='hidden' name='blockid' class='blockid' value='" + newBlockId + "'>"
+              ).removeClass("create-flowy").appendTo("body");
               $(this).addClass("dragnow");
               drag = $(".blockid[value=" + newBlockId + "]").parent();
             } else {
               var newBlockId = getNextBlockId();
-              $(this).clone().addClass("block").append("<input type='hidden' name='blockid' class='blockid' value='" + newBlockId + "'>").removeClass("create-flowy").appendTo("body");
+              $(this).clone().addClass("block").append(
+                "<input type='hidden' name='blockid' class='blockid' value='" + newBlockId + "'>"
+              ).removeClass("create-flowy").appendTo("body");
               $(this).addClass("dragnow");
               drag = $(".blockid[value=" + newBlockId + "]").parent();
             }
@@ -150,10 +171,22 @@ var require_flowy_es = __commonJS({
               rearrange = false;
               for (var w = 0; w < blockstemp.length; w++) {
                 if (blockstemp[w].id != parseInt(drag.children(".blockid").val())) {
-                  $(".blockid[value=" + blockstemp[w].id + "]").parent().css("left", $(".blockid[value=" + blockstemp[w].id + "]").parent().offset().left - canvas_div.offset().left + canvas_div.scrollLeft());
-                  $(".blockid[value=" + blockstemp[w].id + "]").parent().css("top", $(".blockid[value=" + blockstemp[w].id + "]").parent().offset().top - canvas_div.offset().top + canvas_div.scrollTop());
-                  $(".arrowid[value=" + blockstemp[w].id + "]").parent().css("left", $(".arrowid[value=" + blockstemp[w].id + "]").parent().offset().left - canvas_div.offset().left + canvas_div.scrollLeft());
-                  $(".arrowid[value=" + blockstemp[w].id + "]").parent().css("top", $(".arrowid[value=" + blockstemp[w].id + "]").parent().offset().top - canvas_div.offset().top + canvas_div.scrollTop() + "px");
+                  $(".blockid[value=" + blockstemp[w].id + "]").parent().css(
+                    "left",
+                    $(".blockid[value=" + blockstemp[w].id + "]").parent().offset().left - canvas_div.offset().left + canvas_div.scrollLeft()
+                  );
+                  $(".blockid[value=" + blockstemp[w].id + "]").parent().css(
+                    "top",
+                    $(".blockid[value=" + blockstemp[w].id + "]").parent().offset().top - canvas_div.offset().top + canvas_div.scrollTop()
+                  );
+                  $(".arrowid[value=" + blockstemp[w].id + "]").parent().css(
+                    "left",
+                    $(".arrowid[value=" + blockstemp[w].id + "]").parent().offset().left - canvas_div.offset().left + canvas_div.scrollLeft()
+                  );
+                  $(".arrowid[value=" + blockstemp[w].id + "]").parent().css(
+                    "top",
+                    $(".arrowid[value=" + blockstemp[w].id + "]").parent().offset().top - canvas_div.offset().top + canvas_div.scrollTop() + "px"
+                  );
                   $(".blockid[value=" + blockstemp[w].id + "]").parent().appendTo(canvas_div);
                   $(".arrowid[value=" + blockstemp[w].id + "]").parent().appendTo(canvas_div);
                   blockstemp[w].x = $(".blockid[value=" + blockstemp[w].id + "]").parent().offset().left + $(".blockid[value=" + blockstemp[w].id + "]").innerWidth() / 2 + canvas_div.scrollLeft();
@@ -166,8 +199,14 @@ var require_flowy_es = __commonJS({
             } else if (active && blocks.length == 0 && drag.offset().top > canvas_div.offset().top && drag.offset().left > canvas_div.offset().left) {
               blockSnap(drag);
               active = false;
-              drag.css("top", drag.offset().top - canvas_div.offset().top + canvas_div.scrollTop() + "px");
-              drag.css("left", drag.offset().left - canvas_div.offset().left + canvas_div.scrollLeft() + "px");
+              drag.css(
+                "top",
+                drag.offset().top - canvas_div.offset().top + canvas_div.scrollTop() + "px"
+              );
+              drag.css(
+                "left",
+                drag.offset().left - canvas_div.offset().left + canvas_div.scrollLeft() + "px"
+              );
               drag.appendTo(canvas_div);
               addBlock({
                 parent: -1,
@@ -181,9 +220,9 @@ var require_flowy_es = __commonJS({
             } else if (active && blocks.length == 0) {
               drag.remove();
             } else if (active || rearrange) {
-              var xpos = drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft();
-              var ypos = drag.offset().top + canvas_div.scrollTop();
-              var blocko = blocks.map((a) => a.id);
+              const xpos = drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft();
+              const ypos = drag.offset().top + canvas_div.scrollTop();
+              const blocko = blocks.map((a) => a.id);
               for (var i = 0; i < blocks.length; i++) {
                 if (xpos >= blocks.filter((a) => a.id == blocko[i])[0].x - blocks.filter((a) => a.id == blocko[i])[0].width / 2 - paddingx && xpos <= blocks.filter((a) => a.id == blocko[i])[0].x + blocks.filter((a) => a.id == blocko[i])[0].width / 2 + paddingx && ypos >= blocks.filter((a) => a.id == blocko[i])[0].y - blocks.filter((a) => a.id == blocko[i])[0].height / 2 && ypos <= blocks.filter((a) => a.id == blocko[i])[0].y + blocks.filter((a) => a.id == blocko[i])[0].height) {
                   active = false;
@@ -191,8 +230,8 @@ var require_flowy_es = __commonJS({
                     blockSnap(drag);
                     drag.appendTo(canvas_div);
                   }
-                  var totalwidth = 0;
-                  var totalremove = 0;
+                  let totalwidth = 0;
+                  let totalremove = 0;
                   for (var w = 0; w < blocks.filter((id) => id.parent == blocko[i]).length; w++) {
                     var children = blocks.filter((id) => id.parent == blocko[i])[w];
                     if (children.childwidth > children.width) {
@@ -205,30 +244,62 @@ var require_flowy_es = __commonJS({
                   for (var w = 0; w < blocks.filter((id) => id.parent == blocko[i]).length; w++) {
                     var children = blocks.filter((id) => id.parent == blocko[i])[w];
                     if (children.childwidth > children.width) {
-                      $(".blockid[value=" + children.id + "]").parent().css("left", blocks.filter((a) => a.id == blocko[i])[0].x - totalwidth / 2 + totalremove + children.childwidth / 2 - children.width / 2 + "px");
+                      $(".blockid[value=" + children.id + "]").parent().css(
+                        "left",
+                        blocks.filter((a) => a.id == blocko[i])[0].x - totalwidth / 2 + totalremove + children.childwidth / 2 - children.width / 2 + "px"
+                      );
                       children.x = blocks.filter((id) => id.parent == blocko[i])[0].x - totalwidth / 2 + totalremove + children.childwidth / 2;
                       totalremove += children.childwidth + paddingx;
                     } else {
-                      $(".blockid[value=" + children.id + "]").parent().css("left", blocks.filter((a) => a.id == blocko[i])[0].x - totalwidth / 2 + totalremove + "px");
+                      $(".blockid[value=" + children.id + "]").parent().css(
+                        "left",
+                        blocks.filter((a) => a.id == blocko[i])[0].x - totalwidth / 2 + totalremove + "px"
+                      );
                       children.x = blocks.filter((id) => id.parent == blocko[i])[0].x - totalwidth / 2 + totalremove + children.width / 2;
                       totalremove += children.width + paddingx;
                     }
                   }
-                  drag.css("left", blocks.filter((id) => id.id == blocko[i])[0].x - totalwidth / 2 + totalremove - canvas_div.offset().left + canvas_div.scrollLeft() + "px");
-                  drag.css("top", blocks.filter((id) => id.id == blocko[i])[0].y + blocks.filter((id) => id.id == blocko[i])[0].height / 2 + paddingy - canvas_div.offset().top + "px");
+                  drag.css(
+                    "left",
+                    blocks.filter((id) => id.id == blocko[i])[0].x - totalwidth / 2 + totalremove - canvas_div.offset().left + canvas_div.scrollLeft() + "px"
+                  );
+                  drag.css(
+                    "top",
+                    blocks.filter((id) => id.id == blocko[i])[0].y + blocks.filter((id) => id.id == blocko[i])[0].height / 2 + paddingy - canvas_div.offset().top + "px"
+                  );
                   if (rearrange) {
-                    blockstemp.filter((a) => a.id == parseInt(drag.children(".blockid").val()))[0].x = drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft() + canvas_div.scrollLeft();
-                    blockstemp.filter((a) => a.id == parseInt(drag.children(".blockid").val()))[0].y = drag.offset().top + drag.innerHeight() / 2 + canvas_div.scrollTop();
-                    blockstemp.filter((a) => a.id == drag.children(".blockid").val())[0].parent = blocko[i];
+                    blockstemp.filter(
+                      (a) => a.id == parseInt(drag.children(".blockid").val())
+                    )[0].x = drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft() + canvas_div.scrollLeft();
+                    blockstemp.filter(
+                      (a) => a.id == parseInt(drag.children(".blockid").val())
+                    )[0].y = drag.offset().top + drag.innerHeight() / 2 + canvas_div.scrollTop();
+                    blockstemp.filter(
+                      (a) => a.id == drag.children(".blockid").val()
+                    )[0].parent = blocko[i];
                     for (var w = 0; w < blockstemp.length; w++) {
                       if (blockstemp[w].id != parseInt(drag.children(".blockid").val())) {
-                        $(".blockid[value=" + blockstemp[w].id + "]").parent().css("left", $(".blockid[value=" + blockstemp[w].id + "]").parent().offset().left - canvas_div.offset().left + canvas_div.scrollLeft());
-                        $(".blockid[value=" + blockstemp[w].id + "]").parent().css("top", $(".blockid[value=" + blockstemp[w].id + "]").parent().offset().top - canvas_div.offset().top + canvas_div.scrollTop());
-                        $(".arrowid[value=" + blockstemp[w].id + "]").parent().css("left", $(".arrowid[value=" + blockstemp[w].id + "]").parent().offset().left - canvas_div.offset().left + canvas_div.scrollLeft() + 20);
-                        $(".arrowid[value=" + blockstemp[w].id + "]").parent().css("top", $(".arrowid[value=" + blockstemp[w].id + "]").parent().offset().top - canvas_div.offset().top + canvas_div.scrollTop());
+                        $(".blockid[value=" + blockstemp[w].id + "]").parent().css(
+                          "left",
+                          $(".blockid[value=" + blockstemp[w].id + "]").parent().offset().left - canvas_div.offset().left + canvas_div.scrollLeft()
+                        );
+                        $(".blockid[value=" + blockstemp[w].id + "]").parent().css(
+                          "top",
+                          $(".blockid[value=" + blockstemp[w].id + "]").parent().offset().top - canvas_div.offset().top + canvas_div.scrollTop()
+                        );
+                        $(".arrowid[value=" + blockstemp[w].id + "]").parent().css(
+                          "left",
+                          $(".arrowid[value=" + blockstemp[w].id + "]").parent().offset().left - canvas_div.offset().left + canvas_div.scrollLeft() + 20
+                        );
+                        $(".arrowid[value=" + blockstemp[w].id + "]").parent().css(
+                          "top",
+                          $(".arrowid[value=" + blockstemp[w].id + "]").parent().offset().top - canvas_div.offset().top + canvas_div.scrollTop()
+                        );
                         $(".blockid[value=" + blockstemp[w].id + "]").parent().appendTo(canvas_div);
                         $(".arrowid[value=" + blockstemp[w].id + "]").parent().appendTo(canvas_div);
-                        blockstemp[w].x = $(".blockid[value=" + blockstemp[w].id + "]").parent().offset().left + $(".blockid[value=" + blockstemp[w].id + "]").innerWidth() / 2 + canvas_div.scrollLeft();
+                        blockstemp[w].x = $(".blockid[value=" + blockstemp[w].id + "]").parent().offset().left + $(
+                          ".blockid[value=" + blockstemp[w].id + "]"
+                        ).innerWidth() / 2 + canvas_div.scrollLeft();
                         blockstemp[w].y = $(".blockid[value=" + blockstemp[w].id + "]").parent().offset().top + $(".blockid[value=" + blockstemp[w].id + "]").parent().innerHeight() / 2 + canvas_div.scrollTop();
                       }
                     }
@@ -244,25 +315,44 @@ var require_flowy_es = __commonJS({
                       height: drag.innerHeight()
                     });
                   }
-                  var arrowhelp = blocks.filter((a) => a.id == parseInt(drag.children(".blockid").val()))[0];
-                  var arrowx = arrowhelp.x - blocks.filter((a) => a.id == blocko[i])[0].x + 20;
-                  var arrowy = arrowhelp.y - arrowhelp.height / 2 - (blocks.filter((id) => id.parent == blocko[i])[0].y + blocks.filter((id) => id.parent == blocko[i])[0].height / 2) + canvas_div.scrollTop();
+                  const arrowhelp = blocks.filter(
+                    (a) => a.id == parseInt(drag.children(".blockid").val())
+                  )[0];
+                  const arrowx = arrowhelp.x - blocks.filter((a) => a.id == blocko[i])[0].x + 20;
+                  const arrowy = arrowhelp.y - arrowhelp.height / 2 - (blocks.filter((id) => id.parent == blocko[i])[0].y + blocks.filter((id) => id.parent == blocko[i])[0].height / 2) + canvas_div.scrollTop();
                   if (arrowx < 0) {
-                    drag.after('<div class="arrowblock"><input type="hidden" class="arrowid" value="' + drag.children(".blockid").val() + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M' + (blocks.filter((a) => a.id == blocko[i])[0].x - arrowhelp.x + 5) + " 0L" + (blocks.filter((a) => a.id == blocko[i])[0].x - arrowhelp.x + 5) + " " + paddingy / 2 + "L5 " + paddingy / 2 + "L5 " + arrowy + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M0 ' + (arrowy - 5) + "H10L5 " + arrowy + "L0 " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg></div>');
-                    $(".arrowid[value=" + drag.children(".blockid").val() + "]").parent().css("left", arrowhelp.x - 5 - canvas_div.offset().left + canvas_div.scrollLeft() + "px");
+                    drag.after(
+                      '<div class="arrowblock"><input type="hidden" class="arrowid" value="' + drag.children(".blockid").val() + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M' + (blocks.filter((a) => a.id == blocko[i])[0].x - arrowhelp.x + 5) + " 0L" + (blocks.filter((a) => a.id == blocko[i])[0].x - arrowhelp.x + 5) + " " + paddingy / 2 + "L5 " + paddingy / 2 + "L5 " + arrowy + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M0 ' + (arrowy - 5) + "H10L5 " + arrowy + "L0 " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg></div>'
+                    );
+                    $(".arrowid[value=" + drag.children(".blockid").val() + "]").parent().css(
+                      "left",
+                      arrowhelp.x - 5 - canvas_div.offset().left + canvas_div.scrollLeft() + "px"
+                    );
                   } else {
-                    drag.after('<div class="arrowblock"><input type="hidden" class="arrowid" value="' + drag.children(".blockid").val() + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 0L20 ' + paddingy / 2 + "L" + arrowx + " " + paddingy / 2 + "L" + arrowx + " " + arrowy + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M' + (arrowx - 5) + " " + (arrowy - 5) + "H" + (arrowx + 5) + "L" + arrowx + " " + arrowy + "L" + (arrowx - 5) + " " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg></div>');
-                    $(".arrowid[value=" + parseInt(drag.children(".blockid").val()) + "]").parent().css("left", blocks.filter((a) => a.id == blocko[i])[0].x - 20 - canvas_div.offset().left + canvas_div.scrollLeft() + "px");
+                    drag.after(
+                      '<div class="arrowblock"><input type="hidden" class="arrowid" value="' + drag.children(".blockid").val() + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 0L20 ' + paddingy / 2 + "L" + arrowx + " " + paddingy / 2 + "L" + arrowx + " " + arrowy + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M' + (arrowx - 5) + " " + (arrowy - 5) + "H" + (arrowx + 5) + "L" + arrowx + " " + arrowy + "L" + (arrowx - 5) + " " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg></div>'
+                    );
+                    $(
+                      ".arrowid[value=" + parseInt(drag.children(".blockid").val()) + "]"
+                    ).parent().css(
+                      "left",
+                      blocks.filter((a) => a.id == blocko[i])[0].x - 20 - canvas_div.offset().left + canvas_div.scrollLeft() + "px"
+                    );
                   }
-                  $(".arrowid[value=" + parseInt(drag.children(".blockid").val()) + "]").parent().css("top", blocks.filter((a) => a.id == blocko[i])[0].y + blocks.filter((a) => a.id == blocko[i])[0].height / 2 + "px");
+                  $(
+                    ".arrowid[value=" + parseInt(drag.children(".blockid").val()) + "]"
+                  ).parent().css(
+                    "top",
+                    blocks.filter((a) => a.id == blocko[i])[0].y + blocks.filter((a) => a.id == blocko[i])[0].height / 2 + "px"
+                  );
                   if (blocks.filter((a) => a.id == blocko[i])[0].parent != -1) {
-                    var flag = false;
+                    let flag = false;
                     var idval = blocko[i];
                     while (!flag) {
                       if (blocks.filter((a) => a.id == idval)[0].parent == -1) {
                         flag = true;
                       } else {
-                        var zwidth = 0;
+                        let zwidth = 0;
                         for (var w = 0; w < blocks.filter((id) => id.parent == idval).length; w++) {
                           var children = blocks.filter((id) => id.parent == idval)[w];
                           if (children.childwidth > children.width) {
@@ -314,22 +404,34 @@ var require_flowy_es = __commonJS({
                   drag.addClass("dragging");
                   dragx = event2.clientX - $(this).offset().left;
                   dragy = event2.clientY - $(this).offset().top;
-                  var blockid = parseInt($(this).children(".blockid").val());
+                  const blockid = parseInt($(this).children(".blockid").val());
                   drag = $(this);
                   blockstemp.push(blocks.filter((a) => a.id == blockid)[0]);
                   removeBlockById(blockid);
                   $(".arrowid[value=" + blockid + "]").parent().remove();
-                  var layer = blocks.filter((a) => a.parent == blockid);
-                  var flag = false;
-                  var foundids = [];
-                  var allids = [];
+                  let layer = blocks.filter((a) => a.parent == blockid);
+                  let flag = false;
+                  let foundids = [];
+                  const allids = [];
                   while (!flag) {
                     for (var i = 0; i < layer.length; i++) {
                       blockstemp.push(blocks.filter((a) => a.id == layer[i].id)[0]);
-                      $(".blockid[value=" + layer[i].id + "]").parent().css("left", $(".blockid[value=" + layer[i].id + "]").parent().offset().left - drag.offset().left);
-                      $(".blockid[value=" + layer[i].id + "]").parent().css("top", $(".blockid[value=" + layer[i].id + "]").parent().offset().top - drag.offset().top);
-                      $(".arrowid[value=" + layer[i].id + "]").parent().css("left", $(".arrowid[value=" + layer[i].id + "]").parent().offset().left - drag.offset().left);
-                      $(".arrowid[value=" + layer[i].id + "]").parent().css("top", $(".arrowid[value=" + layer[i].id + "]").parent().offset().top - drag.offset().top);
+                      $(".blockid[value=" + layer[i].id + "]").parent().css(
+                        "left",
+                        $(".blockid[value=" + layer[i].id + "]").parent().offset().left - drag.offset().left
+                      );
+                      $(".blockid[value=" + layer[i].id + "]").parent().css(
+                        "top",
+                        $(".blockid[value=" + layer[i].id + "]").parent().offset().top - drag.offset().top
+                      );
+                      $(".arrowid[value=" + layer[i].id + "]").parent().css(
+                        "left",
+                        $(".arrowid[value=" + layer[i].id + "]").parent().offset().left - drag.offset().left
+                      );
+                      $(".arrowid[value=" + layer[i].id + "]").parent().css(
+                        "top",
+                        $(".arrowid[value=" + layer[i].id + "]").parent().offset().top - drag.offset().top
+                      );
                       $(".blockid[value=" + layer[i].id + "]").parent().appendTo(drag);
                       $(".arrowid[value=" + layer[i].id + "]").parent().appendTo(drag);
                       foundids.push(layer[i].id);
@@ -367,20 +469,38 @@ var require_flowy_es = __commonJS({
             drag.css("left", event.clientX - dragx + "px");
             drag.css("top", event.clientY - dragy + "px");
           } else if (rearrange) {
-            drag.css("left", event.clientX - dragx - canvas_div.offset().left + canvas_div.scrollLeft() + "px");
-            drag.css("top", event.clientY - dragy - canvas_div.offset().top + canvas_div.scrollTop() + "px");
-            blockstemp.filter((a) => a.id == parseInt(drag.children(".blockid").val())).x = drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft();
-            blockstemp.filter((a) => a.id == parseInt(drag.children(".blockid").val())).y = drag.offset().left + drag.innerHeight() / 2 + canvas_div.scrollTop();
+            drag.css(
+              "left",
+              event.clientX - dragx - canvas_div.offset().left + canvas_div.scrollLeft() + "px"
+            );
+            drag.css(
+              "top",
+              event.clientY - dragy - canvas_div.offset().top + canvas_div.scrollTop() + "px"
+            );
+            blockstemp.filter(
+              (a) => a.id == parseInt(drag.children(".blockid").val())
+            ).x = drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft();
+            blockstemp.filter(
+              (a) => a.id == parseInt(drag.children(".blockid").val())
+            ).y = drag.offset().left + drag.innerHeight() / 2 + canvas_div.scrollTop();
           }
           if (active || rearrange) {
-            var xpos = drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft();
-            var ypos = drag.offset().top + canvas_div.scrollTop();
-            var blocko = blocks.map((a) => a.id);
+            const xpos = drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft();
+            const ypos = drag.offset().top + canvas_div.scrollTop();
+            const blocko = blocks.map((a) => a.id);
             for (var i = 0; i < blocks.length; i++) {
               if (xpos >= blocks.filter((a) => a.id == blocko[i])[0].x - blocks.filter((a) => a.id == blocko[i])[0].width / 2 - paddingx && xpos <= blocks.filter((a) => a.id == blocko[i])[0].x + blocks.filter((a) => a.id == blocko[i])[0].width / 2 + paddingx && ypos >= blocks.filter((a) => a.id == blocko[i])[0].y - blocks.filter((a) => a.id == blocko[i])[0].height / 2 && ypos <= blocks.filter((a) => a.id == blocko[i])[0].y + blocks.filter((a) => a.id == blocko[i])[0].height) {
-                $(".indicator").appendTo($(".blockid[value=" + blocko[i] + "]").parent());
-                $(".indicator").css("left", $(".blockid[value=" + blocko[i] + "]").parent().innerWidth() / 2 - 5 + "px");
-                $(".indicator").css("top", $(".blockid[value=" + blocko[i] + "]").parent().innerHeight() + "px");
+                $(".indicator").appendTo(
+                  $(".blockid[value=" + blocko[i] + "]").parent()
+                );
+                $(".indicator").css(
+                  "left",
+                  $(".blockid[value=" + blocko[i] + "]").parent().innerWidth() / 2 - 5 + "px"
+                );
+                $(".indicator").css(
+                  "top",
+                  $(".blockid[value=" + blocko[i] + "]").parent().innerHeight() + "px"
+                );
                 $(".indicator").removeClass("invisible");
                 break;
               } else if (i == blocks.length - 1) {
@@ -393,23 +513,35 @@ var require_flowy_es = __commonJS({
         });
         function checkOffset() {
           offsetleft = blocks.map((a) => a.x);
-          var widths = blocks.map((a) => a.width);
-          var mathmin = offsetleft.map(function(item, index) {
+          const widths = blocks.map((a) => a.width);
+          const mathmin = offsetleft.map(function(item, index) {
             return item - widths[index] / 2;
           });
           offsetleft = Math.min.apply(Math, mathmin);
           if (offsetleft < canvas_div.offset().left) {
             lastevent = true;
-            var blocko = blocks.map((a) => a.id);
+            const blocko = blocks.map((a) => a.id);
             for (var w = 0; w < blocks.length; w++) {
-              $(".blockid[value=" + blocks.filter((a) => a.id == blocko[w])[0].id + "]").parent().css("left", blocks.filter((a) => a.id == blocko[w])[0].x - blocks.filter((a) => a.id == blocko[w])[0].width / 2 - offsetleft + 20);
+              $(
+                ".blockid[value=" + blocks.filter((a) => a.id == blocko[w])[0].id + "]"
+              ).parent().css(
+                "left",
+                blocks.filter((a) => a.id == blocko[w])[0].x - blocks.filter((a) => a.id == blocko[w])[0].width / 2 - offsetleft + 20
+              );
               if (blocks.filter((a) => a.id == blocko[w])[0].parent != -1) {
-                var arrowhelp = blocks.filter((a) => a.id == blocko[w])[0];
-                var arrowx = arrowhelp.x - blocks.filter((a) => a.id == blocks.filter((a2) => a2.id == blocko[w])[0].parent)[0].x;
+                const arrowhelp = blocks.filter((a) => a.id == blocko[w])[0];
+                const arrowx = arrowhelp.x - blocks.filter(
+                  (a) => a.id == blocks.filter((a2) => a2.id == blocko[w])[0].parent
+                )[0].x;
                 if (arrowx < 0) {
                   $(".arrowid[value=" + blocko[w] + "]").parent().css("left", arrowhelp.x - offsetleft + 20 - 5 + "px");
                 } else {
-                  $(".arrowid[value=" + blocko[w] + "]").parent().css("left", blocks.filter((id) => id.id == blocks.filter((a) => a.id == blocko[w])[0].parent)[0].x - 20 - offsetleft + 20 + "px");
+                  $(".arrowid[value=" + blocko[w] + "]").parent().css(
+                    "left",
+                    blocks.filter(
+                      (id) => id.id == blocks.filter((a) => a.id == blocko[w])[0].parent
+                    )[0].x - 20 - offsetleft + 20 + "px"
+                  );
                 }
               }
             }
@@ -422,17 +554,31 @@ var require_flowy_es = __commonJS({
         function fixOffset() {
           if (offsetleftold < canvas_div.offset().left) {
             lastevent = false;
-            var blocko = blocks.map((a) => a.id);
+            const blocko = blocks.map((a) => a.id);
             for (var w = 0; w < blocks.length; w++) {
-              $(".blockid[value=" + blocks.filter((a) => a.id == blocko[w])[0].id + "]").parent().css("left", blocks.filter((a) => a.id == blocko[w])[0].x - blocks.filter((a) => a.id == blocko[w])[0].width / 2 - offsetleftold - 20);
-              blocks.filter((a) => a.id == blocko[w])[0].x = $(".blockid[value=" + blocks.filter((a) => a.id == blocko[w])[0].id + "]").parent().offset().left + blocks.filter((a) => a.id == blocko[w])[0].width / 2;
+              $(
+                ".blockid[value=" + blocks.filter((a) => a.id == blocko[w])[0].id + "]"
+              ).parent().css(
+                "left",
+                blocks.filter((a) => a.id == blocko[w])[0].x - blocks.filter((a) => a.id == blocko[w])[0].width / 2 - offsetleftold - 20
+              );
+              blocks.filter((a) => a.id == blocko[w])[0].x = $(
+                ".blockid[value=" + blocks.filter((a) => a.id == blocko[w])[0].id + "]"
+              ).parent().offset().left + blocks.filter((a) => a.id == blocko[w])[0].width / 2;
               if (blocks.filter((a) => a.id == blocko[w])[0].parent != -1) {
-                var arrowhelp = blocks.filter((a) => a.id == blocko[w])[0];
-                var arrowx = arrowhelp.x - blocks.filter((a) => a.id == blocks.filter((a2) => a2.id == blocko[w])[0].parent)[0].x;
+                const arrowhelp = blocks.filter((a) => a.id == blocko[w])[0];
+                const arrowx = arrowhelp.x - blocks.filter(
+                  (a) => a.id == blocks.filter((a2) => a2.id == blocko[w])[0].parent
+                )[0].x;
                 if (arrowx < 0) {
                   $(".arrowid[value=" + blocko[w] + "]").parent().css("left", arrowhelp.x - 5 - canvas_div.offset().left + "px");
                 } else {
-                  $(".arrowid[value=" + blocko[w] + "]").parent().css("left", blocks.filter((id) => id.id == blocks.filter((a) => a.id == blocko[w])[0].parent)[0].x - 20 - canvas_div.offset().left + "px");
+                  $(".arrowid[value=" + blocko[w] + "]").parent().css(
+                    "left",
+                    blocks.filter(
+                      (id) => id.id == blocks.filter((a) => a.id == blocko[w])[0].parent
+                    )[0].x - 20 - canvas_div.offset().left + "px"
+                  );
                 }
               }
             }
@@ -442,13 +588,13 @@ var require_flowy_es = __commonJS({
           }
         }
         function rearrangeMe() {
-          var result = blocks.map((a) => a.parent);
+          const result = blocks.map((a) => a.parent);
           for (var z = 0; z < result.length; z++) {
             if (result[z] == -1) {
               z++;
             }
-            var totalwidth = 0;
-            var totalremove = 0;
+            let totalwidth = 0;
+            let totalremove = 0;
             for (var w = 0; w < blocks.filter((id) => id.parent == result[z]).length; w++) {
               var children = blocks.filter((id) => id.parent == result[z])[w];
               if (blocks.filter((id) => id.parent == children.id).length == 0) {
@@ -473,27 +619,46 @@ var require_flowy_es = __commonJS({
             }
             for (var w = 0; w < blocks.filter((id) => id.parent == result[z]).length; w++) {
               var children = blocks.filter((id) => id.parent == result[z])[w];
-              $(".blockid[value=" + children.id + "]").parent().css("top", blocks.filter((id) => id.id == result[z]).y + paddingy + "px");
+              $(".blockid[value=" + children.id + "]").parent().css(
+                "top",
+                blocks.filter((id) => id.id == result[z]).y + paddingy + "px"
+              );
               blocks.filter((id) => id.id == result[z]).y = blocks.filter((id) => id.id == result[z]).y + paddingy;
               if (children.childwidth > children.width) {
-                $(".blockid[value=" + children.id + "]").parent().css("left", blocks.filter((id) => id.id == result[z])[0].x - totalwidth / 2 + totalremove + children.childwidth / 2 - children.width / 2 - canvas_div.offset().left + "px");
+                $(".blockid[value=" + children.id + "]").parent().css(
+                  "left",
+                  blocks.filter((id) => id.id == result[z])[0].x - totalwidth / 2 + totalremove + children.childwidth / 2 - children.width / 2 - canvas_div.offset().left + "px"
+                );
                 children.x = blocks.filter((id) => id.id == result[z])[0].x - totalwidth / 2 + totalremove + children.childwidth / 2;
                 totalremove += children.childwidth + paddingx;
               } else {
-                $(".blockid[value=" + children.id + "]").parent().css("left", blocks.filter((id) => id.id == result[z])[0].x - totalwidth / 2 + totalremove - canvas_div.offset().left + "px");
+                $(".blockid[value=" + children.id + "]").parent().css(
+                  "left",
+                  blocks.filter((id) => id.id == result[z])[0].x - totalwidth / 2 + totalremove - canvas_div.offset().left + "px"
+                );
                 children.x = blocks.filter((id) => id.id == result[z])[0].x - totalwidth / 2 + totalremove + children.width / 2;
                 totalremove += children.width + paddingx;
               }
-              var arrowhelp = blocks.filter((a) => a.id == children.id)[0];
-              var arrowx = arrowhelp.x - blocks.filter((a) => a.id == children.parent)[0].x + 20;
-              var arrowy = arrowhelp.y - arrowhelp.height / 2 - (blocks.filter((a) => a.id == children.parent)[0].y + blocks.filter((a) => a.id == children.parent)[0].height / 2);
-              $(".arrowid[value=" + children.id + "]").parent().css("top", blocks.filter((id) => id.id == children.parent)[0].y + blocks.filter((id) => id.id == children.parent)[0].height / 2 - canvas_div.offset().top + "px");
+              const arrowhelp = blocks.filter((a) => a.id == children.id)[0];
+              const arrowx = arrowhelp.x - blocks.filter((a) => a.id == children.parent)[0].x + 20;
+              const arrowy = arrowhelp.y - arrowhelp.height / 2 - (blocks.filter((a) => a.id == children.parent)[0].y + blocks.filter((a) => a.id == children.parent)[0].height / 2);
+              $(".arrowid[value=" + children.id + "]").parent().css(
+                "top",
+                blocks.filter((id) => id.id == children.parent)[0].y + blocks.filter((id) => id.id == children.parent)[0].height / 2 - canvas_div.offset().top + "px"
+              );
               if (arrowx < 0) {
                 $(".arrowid[value=" + children.id + "]").parent().css("left", arrowhelp.x - 5 - canvas_div.offset().left + "px");
-                $(".arrowid[value=" + children.id + "]").parent().html('<input type="hidden" class="arrowid" value="' + children.id + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M' + (blocks.filter((id) => id.id == children.parent)[0].x - arrowhelp.x + 5) + " 0L" + (blocks.filter((id) => id.id == children.parent)[0].x - arrowhelp.x + 5) + " " + paddingy / 2 + "L5 " + paddingy / 2 + "L5 " + arrowy + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M0 ' + (arrowy - 5) + "H10L5 " + arrowy + "L0 " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg>');
+                $(".arrowid[value=" + children.id + "]").parent().html(
+                  '<input type="hidden" class="arrowid" value="' + children.id + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M' + (blocks.filter((id) => id.id == children.parent)[0].x - arrowhelp.x + 5) + " 0L" + (blocks.filter((id) => id.id == children.parent)[0].x - arrowhelp.x + 5) + " " + paddingy / 2 + "L5 " + paddingy / 2 + "L5 " + arrowy + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M0 ' + (arrowy - 5) + "H10L5 " + arrowy + "L0 " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg>'
+                );
               } else {
-                $(".arrowid[value=" + children.id + "]").parent().css("left", blocks.filter((id) => id.id == children.parent)[0].x - 20 - canvas_div.offset().left + "px");
-                $(".arrowid[value=" + children.id + "]").parent().html('<input type="hidden" class="arrowid" value="' + children.id + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 0L20 ' + paddingy / 2 + "L" + arrowx + " " + paddingy / 2 + "L" + arrowx + " " + arrowy + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M' + (arrowx - 5) + " " + (arrowy - 5) + "H" + (arrowx + 5) + "L" + arrowx + " " + arrowy + "L" + (arrowx - 5) + " " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg>');
+                $(".arrowid[value=" + children.id + "]").parent().css(
+                  "left",
+                  blocks.filter((id) => id.id == children.parent)[0].x - 20 - canvas_div.offset().left + "px"
+                );
+                $(".arrowid[value=" + children.id + "]").parent().html(
+                  '<input type="hidden" class="arrowid" value="' + children.id + '"><svg preserveaspectratio="none" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 0L20 ' + paddingy / 2 + "L" + arrowx + " " + paddingy / 2 + "L" + arrowx + " " + arrowy + '" stroke="#C5CCD0" stroke-width="2px"/><path d="M' + (arrowx - 5) + " " + (arrowy - 5) + "H" + (arrowx + 5) + "L" + arrowx + " " + arrowy + "L" + (arrowx - 5) + " " + (arrowy - 5) + 'Z" fill="#C5CCD0"/></svg>'
+                );
               }
             }
           }
