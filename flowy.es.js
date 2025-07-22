@@ -72,7 +72,6 @@ var require_flowy_es = __commonJS({
         function addBlock(blockData) {
           if (blockManager2) {
             blockManager2.addBlock(blockData);
-            blocks2.push(blockData);
           } else {
             blocks2.push(blockData);
           }
@@ -229,7 +228,7 @@ var require_flowy_es = __commonJS({
               const xpos = drag2.offset().left + drag2.innerWidth() / 2 + canvas_div.scrollLeft();
               const ypos = drag2.offset().top + canvas_div.scrollTop();
               const blocko = blocks2.map((a) => a.id);
-              console.log("吸附检测:", {
+              const debugInfo = {
                 dragPos: { x: xpos, y: ypos },
                 blocks: blocks2.map((b) => ({ id: b.id, x: b.x, y: b.y, width: b.width, height: b.height })),
                 dragElement: {
@@ -238,7 +237,9 @@ var require_flowy_es = __commonJS({
                   width: drag2.innerWidth(),
                   height: drag2.innerHeight()
                 }
-              });
+              };
+              window.lastDebugInfo = debugInfo;
+              console.log("吸附检测:", debugInfo);
               for (var i = 0; i < blocks2.length; i++) {
                 if (xpos >= blocks2.filter((a) => a.id == blocko[i])[0].x - blocks2.filter((a) => a.id == blocko[i])[0].width / 2 - paddingx && xpos <= blocks2.filter((a) => a.id == blocko[i])[0].x + blocks2.filter((a) => a.id == blocko[i])[0].width / 2 + paddingx && ypos >= blocks2.filter((a) => a.id == blocko[i])[0].y - blocks2.filter((a) => a.id == blocko[i])[0].height / 2 && ypos <= blocks2.filter((a) => a.id == blocko[i])[0].y + blocks2.filter((a) => a.id == blocko[i])[0].height) {
                   active2 = false;
