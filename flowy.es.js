@@ -42,6 +42,12 @@ var require_flowy_es = __commonJS({
         let blocks2 = blockManager2 ? blockManager2.getAllBlocks() : [];
         let blockstemp2 = blockManager2 ? blockManager2.getTempBlocks() : [];
         const canvas_div = canvas;
+        function syncBlockReferences2() {
+          if (blockManager2) {
+            blocks2 = blockManager2.getAllBlocks();
+            blockstemp2 = blockManager2.getTempBlocks();
+          }
+        }
         function getBlockCount() {
           return blockManager2 ? blockManager2.getBlockCount() : blocks2.length;
         }
@@ -265,7 +271,7 @@ var require_flowy_es = __commonJS({
                   );
                   drag2.css(
                     "top",
-                    blocks2.filter((id) => id.id == blocko[i])[0].y + blocks2.filter((id) => id.id == blocko[i])[0].height / 2 + paddingy - canvas_div.offset().top + "px"
+                    blocks2.filter((id) => id.id == blocko[i])[0].y + blocks2.filter((id) => id.id == blocko[i])[0].height / 2 + paddingy - canvas_div.offset().top + canvas_div.scrollTop() + "px"
                   );
                   if (rearrange2) {
                     blockstemp2.filter(
@@ -314,6 +320,7 @@ var require_flowy_es = __commonJS({
                       width: drag2.innerWidth(),
                       height: drag2.innerHeight()
                     });
+                    syncBlockReferences2();
                   }
                   const arrowhelp = blocks2.filter(
                     (a) => a.id == parseInt(drag2.children(".blockid").val())
