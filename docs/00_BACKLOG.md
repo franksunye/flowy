@@ -21,12 +21,15 @@
 - [x] **优化开发工作流** - 自动化任务和脚本
 
 #### 模块化重构 🔄 进行中 (40% 完成)
-- [x] **DOM工具模块** - 封装jQuery操作接口
-- [x] **块管理模块** - 提取blocks数组管理逻辑
-- [ ] **吸附引擎模块** - 提取吸附位置计算和indicator管理
-- [ ] **拖拽处理模块** - 提取鼠标事件处理逻辑
-- [ ] **API模块重构** - 重构output和deleteBlocks方法
+- [x] **DOM工具模块** (`src/utils/dom-utils.js`) - 封装jQuery操作接口
+- [x] **块管理模块** (`src/core/block-manager.js`) - 提取blocks数组管理逻辑
+- [ ] **吸附引擎模块** (`src/core/snap-engine.js`) - 提取吸附位置计算和indicator管理
+- [ ] **拖拽处理模块** (`src/core/drag-handler.js`) - 提取鼠标事件处理逻辑
+- [ ] **API模块重构** (`src/api/`) - 重构output和deleteBlocks方法
 - [ ] **主入口重构** - 集成所有模块，保持API兼容
+
+**重构原则**: 向后兼容 | 测试驱动 | 渐进式 | 零功能影响
+**验证标准**: 83/83测试通过 | API完全兼容 | 性能无回归
 
 ### 🚀 中优先级 (Medium Priority)
 

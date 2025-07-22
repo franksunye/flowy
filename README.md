@@ -314,20 +314,40 @@ npm run test:coverage
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](docs/40_CONTRIBUTING.md) for details.
+We welcome all forms of contributions! **Project Status**: 1.0.0 | Active Development | 40% Modular Refactoring
 
-### Development Process
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes with tests
-4. Ensure all tests pass
-5. Submit a pull request
+### 🚀 Quick Start
+```bash
+# 1. Fork and clone
+git clone https://github.com/YOUR_USERNAME/flowy.git
+cd flowy && npm install
 
-### Code Quality
-- Follow ESLint configuration
-- Use Prettier for formatting
-- Write tests for new features
-- Update documentation
+# 2. Verify environment
+npm test                    # 83/83 tests pass
+npm run dev                 # Start dev server
+
+# 3. Development workflow
+npm run test:watch          # Test watch mode
+npm run lint                # Code quality check
+```
+
+### 🎯 How to Contribute
+
+**🐛 Bug Fixes**: Search Issues → Create Issue (if needed) → Fork → Fix → Submit PR
+**✨ New Features**: Discuss in Issues → Get approval → Create branch → Test → Implement → PR
+**📚 Docs/Tests**: Identify issue → Create branch → Improve → Submit PR
+
+### 🔧 Code Standards
+- **Quality**: ESLint + Prettier (run `npm run lint`)
+- **Testing**: All new features need tests (83/83 current)
+- **Commits**: Use clear commit messages (`feat:`, `fix:`, `docs:`)
+- **Branches**: `feature/name`, `fix/issue`, `docs/update`
+
+### 📝 Pull Request Process
+1. **Pre-check**: `npm run lint && npm test`
+2. **Description**: Clear description of changes
+3. **Testing**: All tests pass + new tests added
+4. **Review**: Code review → Merge
 
 ## 📄 License
 
@@ -342,7 +362,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- 📚 **Documentation**: [docs/](docs/)
+## 📚 Documentation
+
+### Core Docs
+- **[Quick Start](docs/02_QUICK_START.md)** - Installation, usage, project overview
+- **[API Reference](docs/20_API.md)** - Complete API documentation
+- **[Development Guide](docs/30_DEVELOPMENT.md)** - Environment setup, testing, code quality
+- **[Architecture](docs/10_ARCHITECTURE.md)** - System design and technical decisions
+- **[Build & Deploy](docs/50_DEPLOYMENT.md)** - Build system, CI/CD, release process
+
+### Project Management
+- **[Product Backlog](docs/00_BACKLOG.md)** - Agile development planning
+- **[Changelog](docs/01_CHANGELOG.md)** - Version change records
+
+## 📞 Support
+
 - 🐛 **Issues**: [GitHub Issues](https://github.com/franksunye/flowy/issues)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/franksunye/flowy/discussions)
 - 📧 **Email**: hi@alyssax.com
