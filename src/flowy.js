@@ -991,7 +991,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       const result = blocks.map(a => a.parent);
       for (var z = 0; z < result.length; z++) {
         if (result[z] == -1) {
-          continue; // 使用continue而不是z++，避免跳过元素
+          continue; // 跳过根块，不要使用z++
         }
         let totalwidth = 0;
         let totalremove = 0;
@@ -1020,7 +1020,10 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           }
         }
         if (result[z] != -1) {
-          blocks.filter(a => a.id == result[z])[0].childwidth = totalwidth;
+          const parentBlock = blocks.filter(a => a.id == result[z])[0];
+          if (parentBlock) {
+            parentBlock.childwidth = totalwidth;
+          }
         }
         for (
           var w = 0;
@@ -1028,18 +1031,22 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           w++
         ) {
           var children = blocks.filter(id => id.parent == result[z])[w];
-          $('.blockid[value=' + children.id + ']')
-            .parent()
-            .css(
-              'top',
-              blocks.filter(id => id.id == result[z])[0].y +
-              paddingy -
-              canvas_div.offset().top +
-              canvas_div.scrollTop() +
-              'px'
-            );
-          blocks.filter(id => id.id == result[z]).y =
-            blocks.filter(id => id.id == result[z]).y + paddingy;
+          if (result[z] != -1) {
+            const parentBlock = blocks.filter(id => id.id == result[z])[0];
+            if (parentBlock) {
+              $('.blockid[value=' + children.id + ']')
+                .parent()
+                .css(
+                  'top',
+                  parentBlock.y +
+                  paddingy -
+                  canvas_div.offset().top +
+                  canvas_div.scrollTop() +
+                  'px'
+                );
+              parentBlock.y = parentBlock.y + paddingy;
+            }
+          }
           if (children.childwidth > children.width) {
             $('.blockid[value=' + children.id + ']')
               .parent()
