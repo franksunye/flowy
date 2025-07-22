@@ -49,6 +49,14 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     let blockstemp = blockManager ? blockManager.getTempBlocks() : [];
     const canvas_div = canvas;
 
+    // 添加同步函数，确保引用始终是最新的
+    function syncBlockReferences() {
+        if (blockManager) {
+            blocks = blockManager.getAllBlocks();
+            blockstemp = blockManager.getTempBlocks();
+        }
+    }
+
     // 辅助函数：获取块数量（兼容原有代码）
     function getBlockCount() {
       return blockManager ? blockManager.getBlockCount() : blocks.length;
