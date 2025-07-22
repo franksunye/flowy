@@ -1099,9 +1099,6 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           if (result[z] != -1) {
             const parentBlock = blocks.filter(id => id.id == result[z])[0];
             if (parentBlock) {
-              // 保存父块的原始y位置，用于后续连线计算
-              const originalParentY = parentBlock.y;
-
               $('.blockid[value=' + children.id + ']')
                 .parent()
                 .css(
@@ -1109,9 +1106,6 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                   parentBlock.y + paddingy + 'px'
                 );
               parentBlock.y = parentBlock.y + paddingy;
-
-              // 将原始y位置存储在临时属性中
-              parentBlock.originalY = originalParentY;
             }
           }
           if (children.childwidth > children.width) {
@@ -1168,10 +1162,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
             .parent()
             .css(
               'top',
-              blocks.filter(id => id.id == children.parent)[0].y +
-                blocks.filter(id => id.id == children.parent)[0].height / 2 -
-                canvas_div.offset().top +
-                'px'
+              parentBlock.y + parentBlock.height / 2 - canvas_div.offset().top + 'px'
             );
           if (arrowx < 0) {
             $('.arrowid[value=' + children.id + ']')
