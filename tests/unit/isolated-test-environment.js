@@ -371,6 +371,62 @@ class IsolatedFlowyTestEnvironment {
           snapping: jest.fn(),
         };
       },
+
+      createTestDragElement(type = '1', text = 'Test Block') {
+        const element = document.createElement('div');
+        element.className = 'create-flowy';
+        element.setAttribute('data-type', type);
+        element.textContent = text;
+        element.style.width = '100px';
+        element.style.height = '50px';
+        element.style.background = '#e0e0e0';
+        element.style.border = '1px solid #ccc';
+        element.style.padding = '10px';
+        element.style.margin = '5px';
+        element.style.cursor = 'pointer';
+        element.style.position = 'absolute';
+        element.style.left = '10px';
+        element.style.top = '10px';
+        document.body.appendChild(element);
+        return element;
+      },
+
+      simulateMouseDown(element, x = 0, y = 0) {
+        const rect = element.getBoundingClientRect();
+        const event = new document.defaultView.MouseEvent('mousedown', {
+          bubbles: true,
+          cancelable: true,
+          clientX: rect.left + x,
+          clientY: rect.top + y,
+          button: 0,
+          which: 1
+        });
+        element.dispatchEvent(event);
+      },
+
+      simulateMouseMove(x, y) {
+        const event = new document.defaultView.MouseEvent('mousemove', {
+          bubbles: true,
+          cancelable: true,
+          clientX: x,
+          clientY: y,
+          button: 0,
+          which: 1
+        });
+        document.dispatchEvent(event);
+      },
+
+      simulateMouseUp(x = 0, y = 0) {
+        const event = new document.defaultView.MouseEvent('mouseup', {
+          bubbles: true,
+          cancelable: true,
+          clientX: x,
+          clientY: y,
+          button: 0,
+          which: 1
+        });
+        document.dispatchEvent(event);
+      },
     };
   }
 
@@ -398,4 +454,24 @@ class IsolatedFlowyTestEnvironment {
   }
 }
 
-module.exports = { IsolatedFlowyTestEnvironment };
+// 全局测试环境实例
+const globalTestEnv = new IsolatedFlowyTestEnvironment();
+
+/**
+ * 便捷函数：在隔离环境中运行测试
+ * @param {string} testId - 测试ID
+ * @param {Function} testFn - 测试函数
+ */
+async function withIsolatedTest(testId, testFn) {
+  const testInstance = globalTestEnv.createIsolatedInstance(testId);
+  try {
+    await testFn(testInstance);
+  } finally {
+    globalTestEnv.cleanupInstance(testId);
+  }
+}
+
+module.exports = {
+  IsolatedFlowyTestEnvironment,
+  withIsolatedTest
+};
