@@ -338,7 +338,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
             drag.offset().top + drag.innerHeight() / 2;
           mergeTempBlocks();
         } else if (
-          active &&
+          (dragStateManager ? dragStateManager.isActiveDragging() : getActive()) &&
           blocks.length == 0 &&
           drag.offset().top > canvas_div.offset().top &&
           drag.offset().left > canvas_div.offset().left
@@ -377,9 +377,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
             width: drag.innerWidth(),
             height: drag.innerHeight(),
           });
-        } else if (active && getBlockCount() == 0) {
+        } else if ((dragStateManager ? dragStateManager.isActiveDragging() : getActive()) && getBlockCount() == 0) {
           drag.remove();
-        } else if (active || rearrange) {
+        } else if ((dragStateManager ? dragStateManager.isDragging() : (getActive() || getRearrange()))) {
           const xpos =
             drag.offset().left +
             drag.innerWidth() / 2 +

@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拖拽状态管理器集成演示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .demo-section {
+            margin-bottom: 30px;
+        }
+        
+        .demo-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .demo-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .create-flowy {
+            padding: 10px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        
+        .create-flowy:hover {
+            background: #0056b3;
+        }
+        
+        .create-flowy.type-start {
+            background: #28a745;
+        }
+        
+        .create-flowy.type-process {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .create-flowy.type-end {
+            background: #dc3545;
+        }
+        
+        .canvas-container {
+            border: 2px dashed #ddd;
+            min-height: 400px;
+            position: relative;
+            background: #fafafa;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .canvas {
+            width: 100%;
+            height: 400px;
+            position: relative;
+        }
+        
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background: #f8f9fa;
+        }
+        
+        .btn.primary {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        
+        .btn.danger {
+            background: #dc3545;
+            color: white;
+            border-color: #dc3545;
+        }
+        
+        .status-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .status-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .status-info {
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .integration-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .integration-status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .integration-status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature-list li {
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .feature-list li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 拖拽状态管理器集成演示</h1>
+            <p>验证拖拽状态管理器是否成功集成到 Flowy 主文件中</p>
+        </div>
+        
+        <div class="demo-section">
+            <div class="demo-title">📋 集成状态检查</div>
+            <div class="demo-description">
+                检查拖拽状态管理器是否正确加载和集成
+            </div>
+            <div class="status-panel">
+                <div class="status-title">集成状态</div>
+                <div class="status-info" id="integrationStatus">
+                    正在检查集成状态...
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <div class="demo-title">🎮 拖拽功能测试</div>
+            <div class="demo-description">
+                从工具栏拖拽块到画布中，测试新的状态管理器是否正常工作
+            </div>
+            
+            <div class="toolbar">
+                <button class="create-flowy type-start" data-type="start">开始块</button>
+                <button class="create-flowy type-process" data-type="process">处理块</button>
+                <button class="create-flowy type-end" data-type="end">结束块</button>
+            </div>
+            
+            <div class="canvas-container">
+                <div class="canvas" id="canvas"></div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn primary" onclick="getOutput()">获取输出</button>
+                <button class="btn" onclick="clearCanvas()">清空画布</button>
+                <button class="btn danger" onclick="testStateManager()">测试状态管理器</button>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <div class="demo-title">📊 实时状态监控</div>
+            <div class="demo-description">
+                实时显示拖拽状态管理器的内部状态
+            </div>
+            <div class="status-panel">
+                <div class="status-title">状态信息</div>
+                <div class="status-info" id="stateInfo">
+                    等待拖拽操作...
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <div class="demo-title">✅ 集成功能验证</div>
+            <div class="demo-description">
+                验证拖拽状态管理器的核心功能是否正常工作
+            </div>
+            <ul class="feature-list">
+                <li>模块加载和初始化</li>
+                <li>拖拽状态管理 (active, rearrange)</li>
+                <li>拖拽元素跟踪 (drag, original)</li>
+                <li>位置偏移管理 (dragx, dragy)</li>
+                <li>状态清理和重置</li>
+                <li>向后兼容性保证</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 加载必要的依赖 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <!-- 加载 Flowy 相关文件 -->
+    <script>
+        // 模拟加载 Flowy 模块
+        // 在实际环境中，这些应该通过正确的路径加载
+        
+        let flowyInstance;
+        let integrationStatus = {
+            dragStateManager: false,
+            blockManager: false,
+            snapEngine: false,
+            mainFile: false
+        };
+        
+        // 检查集成状态
+        function checkIntegrationStatus() {
+            const statusElement = document.getElementById('integrationStatus');
+            
+            try {
+                // 检查主文件是否可用
+                if (typeof flowy !== 'undefined') {
+                    integrationStatus.mainFile = true;
+                }
+                
+                // 检查拖拽状态管理器是否可用
+                if (typeof window.DragStateManager !== 'undefined') {
+                    integrationStatus.dragStateManager = true;
+                }
+                
+                // 更新状态显示
+                updateStatusDisplay();
+                
+                // 尝试初始化 Flowy
+                initializeFlowy();
+                
+            } catch (error) {
+                statusElement.innerHTML = `
+                    <span class="integration-status error">集成失败</span><br>
+                    错误: ${error.message}
+                `;
+            }
+        }
+        
+        function updateStatusDisplay() {
+            const statusElement = document.getElementById('integrationStatus');
+            const allGood = Object.values(integrationStatus).every(status => status);
+            
+            statusElement.innerHTML = `
+                <span class="integration-status ${allGood ? 'success' : 'error'}">
+                    ${allGood ? '集成成功' : '部分集成'}
+                </span><br>
+                主文件: ${integrationStatus.mainFile ? '✓' : '✗'}<br>
+                拖拽状态管理器: ${integrationStatus.dragStateManager ? '✓' : '✗'}<br>
+                块管理器: ${integrationStatus.blockManager ? '✓' : '✗'}<br>
+                吸附引擎: ${integrationStatus.snapEngine ? '✓' : '✗'}
+            `;
+        }
+        
+        function initializeFlowy() {
+            try {
+                const canvas = document.getElementById('canvas');
+                
+                // 模拟 Flowy 初始化
+                // flowyInstance = flowy(canvas, onGrab, onRelease, onSnap, 20, 80);
+                
+                console.log('Flowy 初始化尝试完成');
+                
+                // 开始状态监控
+                startStateMonitoring();
+                
+            } catch (error) {
+                console.error('Flowy 初始化失败:', error);
+            }
+        }
+        
+        function startStateMonitoring() {
+            setInterval(() => {
+                updateStateInfo();
+            }, 1000);
+        }
+        
+        function updateStateInfo() {
+            const stateElement = document.getElementById('stateInfo');
+            
+            try {
+                // 尝试获取状态信息
+                let stateInfo = '状态管理器信息:\n';
+                
+                if (typeof window.DragStateManager !== 'undefined') {
+                    stateInfo += '✓ DragStateManager 已加载\n';
+                } else {
+                    stateInfo += '✗ DragStateManager 未加载\n';
+                }
+                
+                if (flowyInstance && typeof flowyInstance.output === 'function') {
+                    const output = flowyInstance.output();
+                    stateInfo += `画布块数量: ${output ? output.length : 0}\n`;
+                } else {
+                    stateInfo += '画布状态: 未初始化\n';
+                }
+                
+                stateInfo += `时间: ${new Date().toLocaleTimeString()}`;
+                
+                stateElement.textContent = stateInfo;
+                
+            } catch (error) {
+                stateElement.textContent = `状态监控错误: ${error.message}`;
+            }
+        }
+        
+        function getOutput() {
+            try {
+                if (flowyInstance && typeof flowyInstance.output === 'function') {
+                    const output = flowyInstance.output();
+                    alert(`画布输出:\n${JSON.stringify(output, null, 2)}`);
+                } else {
+                    alert('Flowy 实例未初始化或 output 方法不可用');
+                }
+            } catch (error) {
+                alert(`获取输出失败: ${error.message}`);
+            }
+        }
+        
+        function clearCanvas() {
+            try {
+                if (flowyInstance && typeof flowyInstance.deleteBlocks === 'function') {
+                    flowyInstance.deleteBlocks();
+                    alert('画布已清空');
+                } else {
+                    alert('Flowy 实例未初始化或 deleteBlocks 方法不可用');
+                }
+            } catch (error) {
+                alert(`清空画布失败: ${error.message}`);
+            }
+        }
+        
+        function testStateManager() {
+            try {
+                if (typeof window.DragStateManager !== 'undefined') {
+                    const testManager = new window.DragStateManager();
+                    
+                    // 测试基本功能
+                    testManager.set('active', true);
+                    testManager.set('dragx', 100);
+                    testManager.set('dragy', 200);
+                    
+                    const summary = testManager.getSummary();
+                    
+                    alert(`状态管理器测试结果:\n${JSON.stringify(summary, null, 2)}`);
+                } else {
+                    alert('DragStateManager 不可用');
+                }
+            } catch (error) {
+                alert(`状态管理器测试失败: ${error.message}`);
+            }
+        }
+        
+        // 页面加载完成后检查集成状态
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(checkIntegrationStatus, 500);
+        });
+        
+        // 模拟回调函数
+        function onGrab(block) {
+            console.log('Block grabbed:', block);
+        }
+        
+        function onRelease() {
+            console.log('Block released');
+        }
+        
+        function onSnap(block) {
+            console.log('Block snapped:', block);
+        }
+    </script>
+</body>
+</html>
