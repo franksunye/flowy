@@ -44,6 +44,21 @@ function getDomUtils() {
   return null;
 }
 
+function getDragStateManager() {
+  if (typeof window !== 'undefined' && window.DragStateManager) {
+    return new window.DragStateManager();
+  }
+  if (typeof require !== 'undefined') {
+    try {
+      const DragStateManager = require('./core/drag-state-manager.js');
+      return new DragStateManager();
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
 const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
   if (!grab) {
     grab = function () {};
@@ -64,6 +79,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     const blockManager = getBlockManager();
     const snapEngine = getSnapEngine(spacing_x, spacing_y, snapping);
     const domUtils = getDomUtils();
+    const dragStateManager = getDragStateManager();
 
     let blocks = blockManager ? blockManager.getAllBlocks() : [];
     let blockstemp = blockManager ? blockManager.getTempBlocks() : [];
@@ -110,14 +126,24 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         syncBlockReferences();
       }
     }
-    let active = false;
+    // 🔧 使用拖拽状态管理器替代传统状态变量
+    // 保留兼容性的访问器函数
     const paddingx = spacing_x;
     const paddingy = spacing_y;
+
+    // 兼容性访问器 - 逐步迁移到dragStateManager
+    function getActive() { return dragStateManager ? dragStateManager.get('active') : false; }
+    function setActive(value) { if (dragStateManager) dragStateManager.set('active', value); }
+    function getRearrange() { return dragStateManager ? dragStateManager.get('rearrange') : false; }
+    function setRearrange(value) { if (dragStateManager) dragStateManager.set('rearrange', value); }
+    function getDrag() { return dragStateManager ? dragStateManager.getCurrentDragElement() : null; }
+    function getOriginal() { return dragStateManager ? dragStateManager.getOriginalElement() : null; }
+    function getDragOffset() { return dragStateManager ? dragStateManager.getDragOffset() : {x: 0, y: 0}; }
+
+    // 辅助状态仍使用传统方式（后续可迁移）
     let offsetleft = 0;
     let offsetleftold = 0;
-    let rearrange = false;
     let lastevent = false;
-    let drag, dragx, dragy, original;
     if (canvas_div && typeof canvas_div.append === 'function') {
       canvas_div.append("<div class='indicator invisible'></div>");
     }
@@ -166,7 +192,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     };
     $(document).on('mousedown', '.create-flowy', function (event) {
       if (event.which === 1) {
-        original = $(this);
+        const original = $(this);
+        let drag;
+
         if (getBlockCount() == 0) {
           var newBlockId = getBlockCount(); // 当blocks为空时，使用0作为第一个ID
           $(this)
@@ -196,30 +224,47 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           $(this).addClass('dragnow');
           drag = $('.blockid[value=' + parseInt(newBlockId) + ']').parent();
         }
+
         blockGrabbed($(this));
         drag.addClass('dragging');
-        active = true;
-        dragx = event.clientX - $(this).offset().left;
-        dragy = event.clientY - $(this).offset().top;
+
+        // 🔧 使用拖拽状态管理器
+        const dragx = event.clientX - $(this).offset().left;
+        const dragy = event.clientY - $(this).offset().top;
+
+        if (dragStateManager) {
+          dragStateManager.startActiveDrag(drag, original, dragx, dragy);
+        }
+
         drag.css('left', event.clientX - dragx + 'px');
         drag.css('top', event.clientY - dragy + 'px');
-
-
       }
     });
     $(document).on('mouseup', function (event) {
-      if (event.which === 1 && (active || rearrange)) {
+      // 🔧 使用拖拽状态管理器检查拖拽状态
+      const isDragging = dragStateManager ? dragStateManager.isDragging() : (getActive() || getRearrange());
+
+      if (event.which === 1 && isDragging) {
         blockReleased();
         if (!$('.indicator').hasClass('invisible')) {
           $('.indicator').addClass('invisible');
         }
-        if (active) {
+
+        // 获取当前拖拽状态和元素
+        const isActive = dragStateManager ? dragStateManager.isActiveDragging() : getActive();
+        const drag = dragStateManager ? dragStateManager.getCurrentDragElement() : getDrag();
+        const original = dragStateManager ? dragStateManager.getOriginalElement() : getOriginal();
+
+        if (isActive && original && drag) {
           original.removeClass('dragnow');
           drag.removeClass('dragging');
         }
-        if (parseInt(drag.children('.blockid').val()) == 0 && rearrange) {
+        const isRearranging = dragStateManager ? dragStateManager.isRearranging() : getRearrange();
+        if (parseInt(drag.children('.blockid').val()) == 0 && isRearranging) {
           drag.removeClass('dragging');
-          rearrange = false;
+          if (dragStateManager) {
+            dragStateManager.set('rearrange', false);
+          }
           for (var w = 0; w < blockstemp.length; w++) {
             if (blockstemp[w].id != parseInt(drag.children('.blockid').val())) {
               $('.blockid[value=' + blockstemp[w].id + ']')
@@ -299,7 +344,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           drag.offset().left > canvas_div.offset().left
         ) {
           blockSnap(drag);
-          active = false;
+          if (dragStateManager) {
+            dragStateManager.set('active', false);
+          }
           drag.css(
             'top',
             drag.offset().top -
@@ -364,8 +411,11 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
 
 
             if (xInRange && yInRange) {
-              active = false;
-              if (!rearrange) {
+              if (dragStateManager) {
+                dragStateManager.set('active', false);
+              }
+              const currentRearrange = dragStateManager ? dragStateManager.isRearranging() : getRearrange();
+              if (!currentRearrange) {
                 blockSnap(drag);
                 drag.appendTo(canvas_div);
               }
@@ -705,19 +755,27 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                 }
                 blocks.filter(id => id.id == idval)[0].childwidth = totalwidth;
               }
-              if (rearrange) {
-                rearrange = false;
+              const currentRearrangeState = dragStateManager ? dragStateManager.isRearranging() : getRearrange();
+              if (currentRearrangeState) {
+                if (dragStateManager) {
+                  dragStateManager.set('rearrange', false);
+                }
                 drag.removeClass('dragging');
               }
               rearrangeMe();
               checkOffset();
               break;
             } else if (i == blocks.length - 1) {
-              if (rearrange) {
-                rearrange = false;
+              const currentRearrange2 = dragStateManager ? dragStateManager.isRearranging() : getRearrange();
+              if (currentRearrange2) {
+                if (dragStateManager) {
+                  dragStateManager.set('rearrange', false);
+                }
                 blockstemp = [];
               }
-              active = false;
+              if (dragStateManager) {
+                dragStateManager.set('active', false);
+              }
               drag.remove();
             }
           }
@@ -728,14 +786,20 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       $(document).on('mouseup mousemove', '.block', function handler(event) {
         if (event.type !== 'mouseup') {
           if (event.which === 1) {
-            if (!active && !rearrange) {
-              rearrange = true;
-              drag = $(this);
+            // 🔧 使用拖拽状态管理器检查状态
+            const isCurrentlyDragging = dragStateManager ? dragStateManager.isDragging() : (getActive() || getRearrange());
+
+            if (!isCurrentlyDragging) {
+              const drag = $(this);
               drag.addClass('dragging');
-              dragx = event.clientX - $(this).offset().left;
-              dragy = event.clientY - $(this).offset().top;
+              const dragx = event.clientX - $(this).offset().left;
+              const dragy = event.clientY - $(this).offset().top;
               const blockid = parseInt($(this).children('.blockid').val());
-              drag = $(this);
+
+              // 🔧 使用拖拽状态管理器开始重排
+              if (dragStateManager) {
+                dragStateManager.startRearrange(drag, dragx, dragy);
+              }
               blockstemp.push(blocks.filter(a => a.id == blockid)[0]);
               blocks = $.grep(blocks, function(e) {
                 return e.id != blockid;
@@ -823,10 +887,16 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       });
     });
     $(document).on('mousemove', function (event) {
-      if (active) {
-        drag.css('left', event.clientX - dragx + 'px');
-        drag.css('top', event.clientY - dragy + 'px');
-      } else if (rearrange) {
+      // 🔧 使用拖拽状态管理器获取状态和元素
+      const isActive = dragStateManager ? dragStateManager.isActiveDragging() : getActive();
+      const isRearranging = dragStateManager ? dragStateManager.isRearranging() : getRearrange();
+      const drag = dragStateManager ? dragStateManager.getCurrentDragElement() : getDrag();
+      const dragOffset = dragStateManager ? dragStateManager.getDragOffset() : getDragOffset();
+
+      if (isActive && drag) {
+        drag.css('left', event.clientX - dragOffset.x + 'px');
+        drag.css('top', event.clientY - dragOffset.y + 'px');
+      } else if (isRearranging && drag) {
         drag.css(
           'left',
           event.clientX -
@@ -852,7 +922,11 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         ).y =
           drag.offset().top + drag.innerHeight() / 2 + canvas_div.scrollTop();
       }
-      if (active || rearrange) {
+
+      // 🔧 使用拖拽状态管理器检查是否正在拖拽
+      const isDragging = dragStateManager ? dragStateManager.isDragging() : (isActive || isRearranging);
+
+      if (isDragging && drag) {
         const xpos =
           drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft();
         const ypos = drag.offset().top + canvas_div.scrollTop();
@@ -1220,11 +1294,10 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     $('.arrowblock').remove();
     $('.indicator').addClass('invisible');
 
-    // 重置状态变量
-    active = false;
-    rearrange = false;
-    drag = null;
-    original = null;
+    // 🔧 使用拖拽状态管理器重置状态
+    if (dragStateManager) {
+      dragStateManager.reset();
+    }
 
     // 清理块数据
     if (blockManager) {
