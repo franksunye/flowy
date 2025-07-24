@@ -494,7 +494,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                   canvas_div.offset().top +
                   'px'
               );
-              if (rearrange) {
+              if (dragStateManager ? dragStateManager.isRearranging() : getRearrange()) {
                 blockstemp.filter(
                   a => a.id == parseInt(drag.children('.blockid').val())
                 )[0].x =
