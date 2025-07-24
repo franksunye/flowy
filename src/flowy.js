@@ -76,58 +76,38 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     }
 
     function getBlockCount() {
-      return blockManager ? blockManager.getBlockCount() : blocks.length;
+      return blockManager ? blockManager.getBlockCount() : 0;
     }
     function getNextBlockId() {
-      if (blockManager) {
-        return blockManager.getNextBlockId();
-      } else {
-        return blocks.length === 0
-          ? 0
-          : Math.max.apply(
-              Math,
-              blocks.map(a => a.id)
-            ) + 1;
-      }
+      return blockManager ? blockManager.getNextBlockId() : 0;
     }
 
     function clearAllBlocks() {
       if (blockManager) {
         blockManager.clearAll();
         syncBlockReferences();
-      } else {
-        blocks = [];
       }
     }
 
     function addBlock(blockData) {
       if (blockManager) {
         blockManager.addBlock(blockData);
-      } else {
-        blocks.push(blockData);
       }
     }
 
     function mergeTempBlocks() {
       if (blockManager) {
         blockManager.mergeTempBlocks();
-        blocks = blockManager.getAllBlocks();
-        blockstemp = blockManager.getTempBlocks();
-      } else {
-        blocks = $.merge(blocks, blockstemp);
-        blockstemp = [];
+        syncBlockReferences();
       }
     }
+
     function removeBlockById(blockId) {
       if (blockManager) {
         blockManager.removeBlocks(function (block) {
           return block.id != blockId;
         });
-        blocks = blockManager.getAllBlocks();
-      } else {
-        blocks = $.grep(blocks, function (e) {
-          return e.id != blockId;
-        });
+        syncBlockReferences();
       }
     }
     let active = false;
@@ -142,28 +122,31 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       canvas_div.append("<div class='indicator invisible'></div>");
     }
     flowy.output = function () {
+      if (!blockManager) return undefined;
+
+      const blocks = blockManager.getAllBlocks();
+      if (blocks.length === 0) return undefined;
+
       const json_data = [];
-      if (blocks.length > 0) {
-        for (var i = 0; i < blocks.length; i++) {
-          json_data.push({
-            id: blocks[i].id,
-            parent: blocks[i].parent,
-            data: [],
-          });
-          $('.blockid[value=' + blocks[i].id + ']')
-            .parent()
-            .children('input')
-            .each(function () {
-              const json_name = $(this).attr('name');
-              const json_value = $(this).val();
-              json_data[i].data.push({
-                name: json_name,
-                value: json_value,
-              });
+      for (var i = 0; i < blocks.length; i++) {
+        json_data.push({
+          id: blocks[i].id,
+          parent: blocks[i].parent,
+          data: [],
+        });
+        $('.blockid[value=' + blocks[i].id + ']')
+          .parent()
+          .children('input')
+          .each(function () {
+            const json_name = $(this).attr('name');
+            const json_value = $(this).val();
+            json_data[i].data.push({
+              name: json_name,
+              value: json_value,
             });
-        }
-        return json_data;
+          });
       }
+      return json_data;
     };
     flowy.deleteBlocks = function () {
       clearAllBlocks();
@@ -347,7 +330,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
             width: drag.innerWidth(),
             height: drag.innerHeight(),
           });
-        } else if (active && blocks.length == 0) {
+        } else if (active && getBlockCount() == 0) {
           drag.remove();
         } else if (active || rearrange) {
           const xpos =
@@ -1246,12 +1229,8 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     // 清理块数据
     if (blockManager) {
       blockManager.clearAll();
-    } else {
-      blocks.length = 0;
-      blockstemp.length = 0;
+      syncBlockReferences();
     }
-
-    syncBlockReferences();
   }
 
   // 暴露清理函数到全局
