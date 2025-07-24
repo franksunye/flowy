@@ -97,6 +97,14 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     const dragStateManager = getDragStateManager();
     const positionCalculator = getPositionCalculator();
 
+    // 🔧 验证核心服务可用性，快速失败原则
+    if (!dragStateManager) {
+      throw new Error('DragStateManager service is required but not available');
+    }
+    if (!positionCalculator) {
+      throw new Error('PositionCalculator service is required but not available');
+    }
+
     let blocks = blockManager ? blockManager.getAllBlocks() : [];
     let blockstemp = blockManager ? blockManager.getTempBlocks() : [];
     const canvas_div = canvas;
@@ -253,18 +261,12 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         }
 
         // 🔧 使用位置计算服务计算拖拽位置
-        if (positionCalculator) {
-          const position = positionCalculator.calculateDragPosition(
-            { clientX: event.clientX, clientY: event.clientY },
-            { x: dragx, y: dragy }
-          );
-          drag.css('left', position.left + 'px');
-          drag.css('top', position.top + 'px');
-        } else {
-          // 降级到原始计算方式
-          drag.css('left', event.clientX - dragx + 'px');
-          drag.css('top', event.clientY - dragy + 'px');
-        }
+        const position = positionCalculator.calculateDragPosition(
+          { clientX: event.clientX, clientY: event.clientY },
+          { x: dragx, y: dragy }
+        );
+        drag.css('left', position.left + 'px');
+        drag.css('top', position.top + 'px');
       }
     });
     $(document).on('mouseup', function (event) {
@@ -375,51 +377,24 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
             dragStateManager.set('active', false);
           }
           // 🔧 使用位置计算服务进行画布坐标转换
-          if (positionCalculator) {
-            const canvasPosition = positionCalculator.calculateCanvasPosition(
-              { left: drag.offset().left, top: drag.offset().top },
-              {
-                offsetLeft: canvas_div.offset().left,
-                offsetTop: canvas_div.offset().top,
-                scrollLeft: canvas_div.scrollLeft(),
-                scrollTop: canvas_div.scrollTop()
-              }
-            );
-            drag.css('left', canvasPosition.left + 'px');
-            drag.css('top', canvasPosition.top + 'px');
-          } else {
-            // 降级到原始计算方式
-            drag.css(
-              'top',
-              drag.offset().top -
-                canvas_div.offset().top +
-                canvas_div.scrollTop() +
-                'px'
-            );
-            drag.css(
-              'left',
-              drag.offset().left -
-                canvas_div.offset().left +
-                canvas_div.scrollLeft() +
-                'px'
-            );
-          }
+          const canvasPosition = positionCalculator.calculateCanvasPosition(
+            { left: drag.offset().left, top: drag.offset().top },
+            {
+              offsetLeft: canvas_div.offset().left,
+              offsetTop: canvas_div.offset().top,
+              scrollLeft: canvas_div.scrollLeft(),
+              scrollTop: canvas_div.scrollTop()
+            }
+          );
+          drag.css('left', canvasPosition.left + 'px');
+          drag.css('top', canvasPosition.top + 'px');
           drag.appendTo(canvas_div);
           // 🔧 使用位置计算服务计算块中心点
-          let blockCenter;
-          if (positionCalculator) {
-            blockCenter = positionCalculator.calculateBlockCenter(
-              { left: drag.offset().left, top: drag.offset().top },
-              { width: drag.innerWidth(), height: drag.innerHeight() },
-              { scrollLeft: canvas_div.scrollLeft(), scrollTop: canvas_div.scrollTop() }
-            );
-          } else {
-            // 降级到原始计算方式
-            blockCenter = {
-              x: drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft(),
-              y: drag.offset().top + drag.innerHeight() / 2 + canvas_div.scrollTop()
-            };
-          }
+          const blockCenter = positionCalculator.calculateBlockCenter(
+            { left: drag.offset().left, top: drag.offset().top },
+            { width: drag.innerWidth(), height: drag.innerHeight() },
+            { scrollLeft: canvas_div.scrollLeft(), scrollTop: canvas_div.scrollTop() }
+          );
 
           addBlock({
             parent: -1,
@@ -948,67 +923,32 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
 
       if (isActive && drag) {
         // 🔧 使用位置计算服务计算基础拖拽位置
-        if (positionCalculator) {
-          const position = positionCalculator.calculateDragPosition(
-            { clientX: event.clientX, clientY: event.clientY },
-            { x: dragOffset.x, y: dragOffset.y }
-          );
-          drag.css('left', position.left + 'px');
-          drag.css('top', position.top + 'px');
-        } else {
-          // 降级到原始计算方式
-          drag.css('left', event.clientX - dragOffset.x + 'px');
-          drag.css('top', event.clientY - dragOffset.y + 'px');
-        }
+        const position = positionCalculator.calculateDragPosition(
+          { clientX: event.clientX, clientY: event.clientY },
+          { x: dragOffset.x, y: dragOffset.y }
+        );
+        drag.css('left', position.left + 'px');
+        drag.css('top', position.top + 'px');
       } else if (isRearranging && drag) {
         // 🔧 使用位置计算服务计算重排拖拽位置
-        if (positionCalculator) {
-          const position = positionCalculator.calculateRearrangeDragPosition(
-            { clientX: event.clientX, clientY: event.clientY },
-            { x: dragOffset.x, y: dragOffset.y },
-            {
-              offsetLeft: canvas_div.offset().left,
-              offsetTop: canvas_div.offset().top,
-              scrollLeft: canvas_div.scrollLeft(),
-              scrollTop: canvas_div.scrollTop()
-            }
-          );
-          drag.css('left', position.left + 'px');
-          drag.css('top', position.top + 'px');
-        } else {
-          // 降级到原始计算方式
-          drag.css(
-            'left',
-            event.clientX -
-              dragOffset.x -
-              canvas_div.offset().left +
-              canvas_div.scrollLeft() +
-              'px'
-          );
-          drag.css(
-            'top',
-            event.clientY -
-              dragOffset.y -
-              canvas_div.offset().top +
-              canvas_div.scrollTop() +
-              'px'
-          );
-        }
+        const position = positionCalculator.calculateRearrangeDragPosition(
+          { clientX: event.clientX, clientY: event.clientY },
+          { x: dragOffset.x, y: dragOffset.y },
+          {
+            offsetLeft: canvas_div.offset().left,
+            offsetTop: canvas_div.offset().top,
+            scrollLeft: canvas_div.scrollLeft(),
+            scrollTop: canvas_div.scrollTop()
+          }
+        );
+        drag.css('left', position.left + 'px');
+        drag.css('top', position.top + 'px');
         // 🔧 使用位置计算服务计算块中心点
-        let blockCenter;
-        if (positionCalculator) {
-          blockCenter = positionCalculator.calculateBlockCenter(
-            { left: drag.offset().left, top: drag.offset().top },
-            { width: drag.innerWidth(), height: drag.innerHeight() },
-            { scrollLeft: canvas_div.scrollLeft(), scrollTop: canvas_div.scrollTop() }
-          );
-        } else {
-          // 降级到原始计算方式
-          blockCenter = {
-            x: drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft(),
-            y: drag.offset().top + drag.innerHeight() / 2 + canvas_div.scrollTop()
-          };
-        }
+        const blockCenter = positionCalculator.calculateBlockCenter(
+          { left: drag.offset().left, top: drag.offset().top },
+          { width: drag.innerWidth(), height: drag.innerHeight() },
+          { scrollLeft: canvas_div.scrollLeft(), scrollTop: canvas_div.scrollTop() }
+        );
 
         blockstemp.filter(
           a => a.id == parseInt(drag.children('.blockid').val())
@@ -1023,20 +963,11 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
 
       if (isDragging && drag) {
         // 🔧 使用位置计算服务计算块中心点位置
-        let blockCenter;
-        if (positionCalculator) {
-          blockCenter = positionCalculator.calculateBlockCenter(
-            { left: drag.offset().left, top: drag.offset().top },
-            { width: drag.innerWidth(), height: drag.innerHeight() },
-            { scrollLeft: canvas_div.scrollLeft(), scrollTop: canvas_div.scrollTop() }
-          );
-        } else {
-          // 降级到原始计算方式
-          blockCenter = {
-            x: drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft(),
-            y: drag.offset().top + canvas_div.scrollTop()
-          };
-        }
+        const blockCenter = positionCalculator.calculateBlockCenter(
+          { left: drag.offset().left, top: drag.offset().top },
+          { width: drag.innerWidth(), height: drag.innerHeight() },
+          { scrollLeft: canvas_div.scrollLeft(), scrollTop: canvas_div.scrollTop() }
+        );
         const xpos = blockCenter.x;
         const ypos = blockCenter.y;
 
