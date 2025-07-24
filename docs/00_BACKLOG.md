@@ -44,11 +44,12 @@
   - 测试覆盖: 24个单元测试，100%通过率
   - 风险: 极低 (纯数据管理，无业务逻辑)
 
-- [ ] **1.2b-2 创建位置计算服务** 🎯 **业务逻辑任务**
-  - 创建文件: src/services/position-calculator.js
+- [x] **1.2b-2 创建位置计算服务** ✅ 已完成 (2025-07-24)
+  - 创建文件: src/services/position-calculator.js (314行完整实现)
   - 职责: 纯函数式位置计算 (拖拽位置、吸附位置、布局位置)
-  - 接口: calculateDragPosition(), calculateSnapPosition(), calculateLayoutPosition()
-  - 预计工作量: 1.5小时
+  - 接口: calculateDragPosition(), calculateSnapPosition(), calculateChildrenLayout()等
+  - 实际工作量: 1.5小时 (包含完整测试套件)
+  - 测试覆盖: 27个单元测试 + 18个集成测试，100%通过率
   - 风险: 低 (纯计算，易测试)
 
 - [ ] **1.2b-3 创建拖拽控制器** 🎯 **协调层任务**
