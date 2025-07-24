@@ -895,6 +895,26 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                 var blocknumber = allids[i];
                 removeBlockById(blocknumber);
               }
+
+              // 🔧 修复：子块移除后，重新计算所有父块的childwidth
+              syncBlockReferences();
+              const allParentIds = [...new Set(blocks.map(b => b.parent).filter(p => p !== -1))];
+              allParentIds.forEach(parentId => {
+                const parentBlock = blocks.find(b => b.id === parentId);
+                if (parentBlock) {
+                  const children = blocks.filter(b => b.parent === parentId);
+                  let totalChildWidth = 0;
+                  children.forEach((child, index) => {
+                    const childWidth = child.childwidth > child.width ? child.childwidth : child.width;
+                    totalChildWidth += childWidth;
+                    if (index < children.length - 1) {
+                      totalChildWidth += paddingx;
+                    }
+                  });
+                  parentBlock.childwidth = totalChildWidth;
+                }
+              });
+
               if (blocks.length > 1) {
                 rearrangeMe();
               }
@@ -1131,29 +1151,47 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         let totalwidth = 0;
         let totalremove = 0;
         const maxheight = 0;
-        for (
-          var w = 0;
-          w < blocks.filter(id => id.parent == result[z]).length;
-          w++
-        ) {
-          var children = blocks.filter(id => id.parent == result[z])[w];
-          if (blocks.filter(id => id.parent == children.id).length == 0) {
+
+        // 🔧 修复：获取当前父块的所有有效子块
+        const currentChildren = blocks.filter(id => id.parent == result[z]);
+
+        for (var w = 0; w < currentChildren.length; w++) {
+          var children = currentChildren[w];
+
+          // 🔧 修复：重新计算子块的childwidth，确保移除的子块不被计算
+          const grandChildren = blocks.filter(id => id.parent == children.id);
+          if (grandChildren.length == 0) {
             children.childwidth = 0;
+          } else {
+            // 重新计算子块的childwidth
+            let childTotalWidth = 0;
+            for (let gc = 0; gc < grandChildren.length; gc++) {
+              const grandChild = grandChildren[gc];
+              if (gc == grandChildren.length - 1) {
+                childTotalWidth += grandChild.childwidth > grandChild.width ? grandChild.childwidth : grandChild.width;
+              } else {
+                childTotalWidth += (grandChild.childwidth > grandChild.width ? grandChild.childwidth : grandChild.width) + paddingx;
+              }
+            }
+            children.childwidth = childTotalWidth;
           }
+
           if (children.childwidth > children.width) {
-            if (w == blocks.filter(id => id.parent == result[z]).length - 1) {
+            if (w == currentChildren.length - 1) {
               totalwidth += children.childwidth;
             } else {
               totalwidth += children.childwidth + paddingx;
             }
           } else {
-            if (w == blocks.filter(id => id.parent == result[z]).length - 1) {
+            if (w == currentChildren.length - 1) {
               totalwidth += children.width;
             } else {
               totalwidth += children.width + paddingx;
             }
           }
         }
+
+        // 🔧 修复：确保父块的childwidth被正确更新
         if (result[z] != -1) {
           const parentBlock = blocks.filter(a => a.id == result[z])[0];
           if (parentBlock) {
