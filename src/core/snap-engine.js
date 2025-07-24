@@ -193,8 +193,9 @@ class SnapEngine {
       left: newLeft,
       top: newTop,
       parentId: targetBlockId,
-      x: newLeft + dragBlockInfo.width / 2 + (canvasInfo?.scrollLeft || 0),
-      y: newTop + dragBlockInfo.height / 2 + (canvasInfo?.scrollTop || 0),
+      // 🔧 修复：避免重复添加scrollLeft，因为newLeft已经包含了滚动调整
+      x: newLeft + dragBlockInfo.width / 2,
+      y: newTop + dragBlockInfo.height / 2,
       childPositions: childPositions
     };
   }

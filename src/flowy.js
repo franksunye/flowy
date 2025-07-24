@@ -398,8 +398,15 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
             width: drag.innerWidth(),
             height: drag.innerHeight(),
           });
-        } else if ((dragStateManager ? dragStateManager.isActiveDragging() : getActive()) && getBlockCount() == 0) {
+        } else if ((dragStateManager ? dragStateManager.isActiveDragging() : getActive()) && blocks.length == 0) {
+          // 🔧 修复：与原版保持一致，使用blocks.length而不是getBlockCount()
+          // 完全清理拖拽元素和相关状态
           drag.remove();
+
+          // 清理拖拽状态
+          if (dragStateManager) {
+            dragStateManager.endDrag();
+          }
         } else if ((dragStateManager ? dragStateManager.isDragging() : (getActive() || getRearrange()))) {
           const xpos =
             drag.offset().left +
