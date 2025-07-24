@@ -44,6 +44,27 @@ function getSnapEngine(paddingx, paddingy, snappingCallback) {
   return null;
 }
 
+// 获取DomUtils实例的辅助函数
+function getDomUtils() {
+  // 在浏览器环境中，尝试从全局作用域获取
+  if (typeof window !== 'undefined' && window.DomUtils) {
+    return window.DomUtils;
+  }
+  // 在Node.js测试环境中，尝试require
+  if (typeof require !== 'undefined') {
+    try {
+      const DomUtils = require('./utils/dom-utils.js');
+      return DomUtils;
+    } catch (e) {
+      // 如果模块不可用，返回null
+      console.log('DomUtils module not available, using fallback');
+      return null;
+    }
+  }
+  // 如果都不可用，返回null
+  return null;
+}
+
 const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
   if (!grab) {
     grab = function () {};
@@ -66,6 +87,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
 
     // 创建吸附引擎实例
     const snapEngine = getSnapEngine(spacing_x, spacing_y, snapping);
+
+    // 创建DOM工具实例（用于未来的DOM操作标准化）
+    const domUtils = getDomUtils();
 
     // 保持原有变量作为引用，确保向后兼容
     let blocks = blockManager ? blockManager.getAllBlocks() : [];
@@ -186,7 +210,19 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     };
     flowy.deleteBlocks = function () {
       clearAllBlocks();
-      canvas_div.html("<div class='indicator invisible'></div>");
+      // 重新创建indicator元素，优先使用DomUtils
+      if (domUtils) {
+        try {
+          const indicatorElement = domUtils.createElement('div', {
+            'class': 'indicator invisible'
+          });
+          canvas_div.empty().append(indicatorElement);
+        } catch (e) {
+          canvas_div.html("<div class='indicator invisible'></div>");
+        }
+      } else {
+        canvas_div.html("<div class='indicator invisible'></div>");
+      }
     };
     $(document).on('mousedown', '.create-flowy', function (event) {
       if (event.which === 1) {
@@ -914,50 +950,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
             }
           }
         } else {
-          // 🔄 降级到原始逻辑（如果SnapEngine不可用）
-          const blocko = blocks.map(a => a.id);
-          for (var i = 0; i < blocks.length; i++) {
-            if (
-              xpos >=
-                blocks.filter(a => a.id == blocko[i])[0].x -
-                  blocks.filter(a => a.id == blocko[i])[0].width / 2 -
-                  paddingx &&
-              xpos <=
-                blocks.filter(a => a.id == blocko[i])[0].x +
-                  blocks.filter(a => a.id == blocko[i])[0].width / 2 +
-                  paddingx &&
-              ypos >=
-                blocks.filter(a => a.id == blocko[i])[0].y -
-                  blocks.filter(a => a.id == blocko[i])[0].height / 2 &&
-              ypos <=
-                blocks.filter(a => a.id == blocko[i])[0].y +
-                  blocks.filter(a => a.id == blocko[i])[0].height
-            ) {
-              $('.indicator').appendTo(
-                $('.blockid[value=' + blocko[i] + ']').parent()
-              );
-              $('.indicator').css(
-                'left',
-                $('.blockid[value=' + blocko[i] + ']')
-                  .parent()
-                  .innerWidth() /
-                  2 -
-                  5 +
-                  'px'
-              );
-              $('.indicator').css(
-                'top',
-                $('.blockid[value=' + blocko[i] + ']')
-                  .parent()
-                  .innerHeight() + 'px'
-              );
-              $('.indicator').removeClass('invisible');
-              break;
-            } else if (i == blocks.length - 1) {
-              if (!$('.indicator').hasClass('invisible')) {
-                $('.indicator').addClass('invisible');
-              }
-            }
+          // SnapEngine不可用时隐藏indicator
+          if (!$('.indicator').hasClass('invisible')) {
+            $('.indicator').addClass('invisible');
           }
         }
       }
