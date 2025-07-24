@@ -155,14 +155,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     const paddingx = spacing_x;
     const paddingy = spacing_y;
 
-    // 兼容性访问器 - 逐步迁移到dragStateManager
-    function getActive() { return dragStateManager ? dragStateManager.get('active') : false; }
-    function setActive(value) { if (dragStateManager) dragStateManager.set('active', value); }
-    function getRearrange() { return dragStateManager ? dragStateManager.get('rearrange') : false; }
-    function setRearrange(value) { if (dragStateManager) dragStateManager.set('rearrange', value); }
-    function getDrag() { return dragStateManager ? dragStateManager.getCurrentDragElement() : null; }
-    function getOriginal() { return dragStateManager ? dragStateManager.getOriginalElement() : null; }
-    function getDragOffset() { return dragStateManager ? dragStateManager.getDragOffset() : {x: 0, y: 0}; }
+
 
     // 辅助状态仍使用传统方式（后续可迁移）
     let offsetleft = 0;
@@ -271,7 +264,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     });
     $(document).on('mouseup', function (event) {
       // 🔧 使用拖拽状态管理器检查拖拽状态
-      const isDragging = dragStateManager ? dragStateManager.isDragging() : (getActive() || getRearrange());
+      const isDragging = dragStateManager.isDragging();
 
       if (event.which === 1 && isDragging) {
         blockReleased();
@@ -280,9 +273,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         }
 
         // 获取当前拖拽状态和元素
-        const isActive = dragStateManager ? dragStateManager.isActiveDragging() : getActive();
-        const drag = dragStateManager ? dragStateManager.getCurrentDragElement() : getDrag();
-        const original = dragStateManager ? dragStateManager.getOriginalElement() : getOriginal();
+        const isActive = dragStateManager.isActiveDragging();
+        const drag = dragStateManager.getCurrentDragElement();
+        const original = dragStateManager.getOriginalElement();
 
         if (isActive && original && drag) {
           original.removeClass('dragnow');
@@ -815,7 +808,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         if (event.type !== 'mouseup') {
           if (event.which === 1) {
             // 🔧 使用拖拽状态管理器检查状态
-            const isCurrentlyDragging = dragStateManager ? dragStateManager.isDragging() : (getActive() || getRearrange());
+            const isCurrentlyDragging = dragStateManager.isDragging();
 
             if (!isCurrentlyDragging) {
               const drag = $(this);
@@ -916,10 +909,10 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     });
     $(document).on('mousemove', function (event) {
       // 🔧 使用拖拽状态管理器获取状态和元素
-      const isActive = dragStateManager ? dragStateManager.isActiveDragging() : getActive();
-      const isRearranging = dragStateManager ? dragStateManager.isRearranging() : getRearrange();
-      const drag = dragStateManager ? dragStateManager.getCurrentDragElement() : getDrag();
-      const dragOffset = dragStateManager ? dragStateManager.getDragOffset() : getDragOffset();
+      const isActive = dragStateManager.isActiveDragging();
+      const isRearranging = dragStateManager.isRearranging();
+      const drag = dragStateManager.getCurrentDragElement();
+      const dragOffset = dragStateManager.getDragOffset();
 
       if (isActive && drag) {
         // 🔧 使用位置计算服务计算基础拖拽位置
