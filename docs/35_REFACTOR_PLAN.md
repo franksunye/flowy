@@ -1,4 +1,4 @@
-# 🔧 Flowy 重构计划 - 文件瘦身与架构优化
+# 35_REFACTOR_PLAN - Flowy 重构计划
 
 ## 📊 当前问题分析
 
