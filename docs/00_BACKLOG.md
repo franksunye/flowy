@@ -60,10 +60,12 @@
 
 - [ ] **1.2b-5 创建DOM渲染管理器** 🎯 **表现层任务**
   - 创建文件: src/renderers/dom-renderer.js
-  - 职责: 统一管理DOM更新 (位置、样式、连线等)
-  - 接口: updateBlockPosition(), updateArrow(), showIndicator()
+  - 职责: 特定于Flowy业务的DOM渲染逻辑 (块位置、连线、指示器等)
+  - 依赖: 使用src/utils/dom-utils.js作为底层DOM操作工具
+  - 接口: updateBlockPosition(), updateArrow(), showIndicator(), highlightBlock()
+  - 与DomUtils关系: 高级业务渲染逻辑，调用DomUtils的基础DOM操作
   - 预计工作量: 1.5小时
-  - 风险: 低 (DOM操作封装)
+  - 风险: 低 (基于已有DomUtils工具)
 
 - [ ] **1.2b-6 端到端集成测试** 🎯 **验证任务**
   - 操作: 全面测试新架构的拖拽功能
@@ -110,6 +112,35 @@
 - 每个新模块都有单元测试
 - 集成测试覆盖所有拖拽场景
 - 性能基准测试确保无回归
+
+##### 🔗 **模块关系澄清**
+
+**DomUtils vs DOM渲染管理器**:
+
+**DomUtils (src/utils/dom-utils.js)** - 基础设施层
+- 职责: 通用DOM操作工具，jQuery API封装
+- 抽象级别: 低级API (createElement, addClass, css, on等)
+- 复用性: 通用，可在任何地方使用
+- 状态: ✅ 已存在 (278行完整实现)
+
+**DOM渲染管理器 (src/renderers/dom-renderer.js)** - 表现层
+- 职责: Flowy特定的业务渲染逻辑
+- 抽象级别: 高级业务API (updateBlockPosition, showIndicator等)
+- 复用性: 专用于Flowy拖拽场景
+- 依赖关系: 使用DomUtils作为底层工具
+- 状态: 📋 待创建
+
+**关系**: DOM渲染管理器是DomUtils的高级封装，专门处理Flowy的业务渲染需求
+
+**示例**:
+```javascript
+// DomUtils (通用工具)
+DomUtils.css(element, {left: '100px', top: '50px'});
+
+// DOM渲染管理器 (业务逻辑)
+DOMRenderer.updateBlockPosition(blockId, {x: 100, y: 50});
+// 内部调用: DomUtils.css() + 业务逻辑
+```
 
 - [ ] **1.3 提取重排算法模块** (预计减少200行) 🎯 **独立模块任务**
   - 具体位置: src/flowy.js 行1096-1234 rearrangeMe()函数 + 19处rearrange状态
