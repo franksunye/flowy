@@ -1,67 +1,46 @@
-// 导入模块
-// 在浏览器环境中，模块会被自动加载到window对象
-// 在Node.js测试环境中，通过require加载
-// - DomUtils: DOM操作工具
-// - BlockManager: 块管理模块
-// - SnapEngine: 吸附引擎模块
-
-// 检查模块是否可用
+// 模块加载函数
 function getBlockManager() {
-  // 在浏览器环境中，尝试从全局作用域获取
   if (typeof window !== 'undefined' && window.BlockManager) {
     return new window.BlockManager();
   }
-  // 在Node.js测试环境中，尝试require
   if (typeof require !== 'undefined') {
     try {
       const BlockManager = require('./core/block-manager.js');
       return new BlockManager();
     } catch (e) {
-      // 如果模块不可用，返回null
       return null;
     }
   }
-  // 如果都不可用，返回null
   return null;
 }
 
 function getSnapEngine(paddingx, paddingy, snappingCallback) {
-  // 在浏览器环境中，尝试从全局作用域获取
   if (typeof window !== 'undefined' && window.SnapEngine) {
     return new window.SnapEngine(paddingx, paddingy, snappingCallback);
   }
-  // 在Node.js测试环境中，尝试require
   if (typeof require !== 'undefined') {
     try {
       const SnapEngine = require('./core/snap-engine.js');
       return new SnapEngine(paddingx, paddingy, snappingCallback);
     } catch (e) {
-      // 如果模块不可用，返回null
       return null;
     }
   }
-  // 如果都不可用，返回null
   return null;
 }
 
-// 获取DomUtils实例的辅助函数
 function getDomUtils() {
-  // 在浏览器环境中，尝试从全局作用域获取
   if (typeof window !== 'undefined' && window.DomUtils) {
     return window.DomUtils;
   }
-  // 在Node.js测试环境中，尝试require
   if (typeof require !== 'undefined') {
     try {
       const DomUtils = require('./utils/dom-utils.js');
       return DomUtils;
     } catch (e) {
-      // 如果模块不可用，返回null
-      console.log('DomUtils module not available, using fallback');
       return null;
     }
   }
-  // 如果都不可用，返回null
   return null;
 }
 
@@ -82,21 +61,13 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     spacing_y = 80;
   }
   $(document).ready(function () {
-    // 创建块管理器实例
     const blockManager = getBlockManager();
-
-    // 创建吸附引擎实例
     const snapEngine = getSnapEngine(spacing_x, spacing_y, snapping);
-
-    // 创建DOM工具实例（用于未来的DOM操作标准化）
     const domUtils = getDomUtils();
 
-    // 保持原有变量作为引用，确保向后兼容
     let blocks = blockManager ? blockManager.getAllBlocks() : [];
     let blockstemp = blockManager ? blockManager.getTempBlocks() : [];
     const canvas_div = canvas;
-
-    // 添加同步函数，确保引用始终是最新的
     function syncBlockReferences() {
         if (blockManager) {
             blocks = blockManager.getAllBlocks();
@@ -104,12 +75,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         }
     }
 
-    // 辅助函数：获取块数量（兼容原有代码）
     function getBlockCount() {
       return blockManager ? blockManager.getBlockCount() : blocks.length;
     }
-
-    // 辅助函数：获取下一个块ID
     function getNextBlockId() {
       if (blockManager) {
         return blockManager.getNextBlockId();
@@ -123,33 +91,26 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       }
     }
 
-    // 辅助函数：清空所有块
     function clearAllBlocks() {
       if (blockManager) {
-        // 🔧 修复：使用clearAll()同时清空blocks和blockstemp
         blockManager.clearAll();
-        // 🔧 修复：立即同步引用，确保blocks数组正确更新
         syncBlockReferences();
       } else {
         blocks = [];
       }
     }
 
-    // 辅助函数：添加块
     function addBlock(blockData) {
       if (blockManager) {
         blockManager.addBlock(blockData);
-        // 不要重复添加到blocks数组，通过syncBlockReferences同步
       } else {
         blocks.push(blockData);
       }
     }
 
-    // 辅助函数：合并临时块到主数组
     function mergeTempBlocks() {
       if (blockManager) {
         blockManager.mergeTempBlocks();
-        // 同时更新引用数组以保持同步
         blocks = blockManager.getAllBlocks();
         blockstemp = blockManager.getTempBlocks();
       } else {
@@ -157,14 +118,11 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         blockstemp = [];
       }
     }
-
-    // 辅助函数：移除指定ID的块
     function removeBlockById(blockId) {
       if (blockManager) {
         blockManager.removeBlocks(function (block) {
           return block.id != blockId;
         });
-        // 同时更新引用数组以保持同步
         blocks = blockManager.getAllBlocks();
       } else {
         blocks = $.grep(blocks, function (e) {
@@ -180,7 +138,6 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     let rearrange = false;
     let lastevent = false;
     let drag, dragx, dragy, original;
-    // 添加条件检查，确保 canvas_div 存在且有 append 方法
     if (canvas_div && typeof canvas_div.append === 'function') {
       canvas_div.append("<div class='indicator invisible'></div>");
     }
@@ -400,17 +357,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           const ypos = drag.offset().top + canvas_div.scrollTop();
           const blocko = blocks.map(a => a.id);
 
-          // 调试信息
-          const debugInfo = {
-            dragPos: { x: xpos, y: ypos },
-            blocks: blocks.map(b => ({ id: b.id, x: b.x, y: b.y, width: b.width, height: b.height })),
-            dragElement: {
-              offsetLeft: drag.offset().left,
-              offsetTop: drag.offset().top,
-              width: drag.innerWidth(),
-              height: drag.innerHeight()
-            }
-          };
+
 
           for (var i = 0; i < blocks.length; i++) {
             const targetBlock = blocks.filter(a => a.id == blocko[i])[0];
@@ -620,17 +567,14 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                   width: drag.innerWidth(),
                   height: drag.innerHeight(),
                 });
-                // 同步引用以确保新添加的块可以被找到
                 syncBlockReferences();
               }
-              // 确保在连线计算前块数据是最新的
               syncBlockReferences();
               const arrowhelp = blocks.filter(
                 a => a.id == parseInt(drag.children('.blockid').val())
               )[0];
               const arrowx =
                 arrowhelp.x - blocks.filter(a => a.id == blocko[i])[0].x + 20;
-              // 使用父块的位置计算arrowy，与原始版本保持一致
               const parentBlock = blocks.filter(a => a.id == blocko[i])[0];
               const arrowy =
                 arrowhelp.y -
@@ -1092,7 +1036,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       const result = blocks.map(a => a.parent);
       for (var z = 0; z < result.length; z++) {
         if (result[z] == -1) {
-          z++; // 与原始版本保持完全一致
+          z++;
         }
         let totalwidth = 0;
         let totalremove = 0;
@@ -1133,7 +1077,6 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
         ) {
           var children = blocks.filter(id => id.parent == result[z])[w];
           if (result[z] != -1) {
-            // 与原始版本完全一致：.y属性不使用[0]索引
             $('.blockid[value=' + children.id + ']')
               .parent()
               .css(
@@ -1308,7 +1251,6 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       blockstemp.length = 0;
     }
 
-    // 同步引用
     syncBlockReferences();
   }
 
