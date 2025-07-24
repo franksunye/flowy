@@ -505,15 +505,12 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                   totalremove += children.width + paddingx;
                 }
               }
-              drag.css(
-                'left',
-                blocks.filter(id => id.id == blocko[i])[0].x -
-                  totalwidth / 2 +
-                  totalremove -
-                  canvas_div.offset().left +
-                  canvas_div.scrollLeft() +
-                  'px'
-              );
+              // 🔧 修复：确保位置计算与原版完全一致
+              const targetBlockX = blocks.filter(id => id.id == blocko[i])[0].x;
+              const newLeft = targetBlockX - totalwidth / 2 + totalremove;
+              const finalLeft = newLeft - canvas_div.offset().left + canvas_div.scrollLeft();
+
+              drag.css('left', finalLeft + 'px');
               drag.css(
                 'top',
                 blocks.filter(id => id.id == blocko[i])[0].y +
@@ -613,6 +610,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                 }
                 mergeTempBlocks();
               } else {
+                // 🔧 修复：恢复原版逻辑，基于DOM位置计算数据坐标
                 addBlock({
                   childwidth: 0,
                   parent: blocko[i],
@@ -1072,16 +1070,15 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           }
         }
         for (var w = 0; w < blocks.length; w++) {
-          blocks[w].x =
-            $('.blockid[value=' + blocks[w].id + ']')
-              .parent()
-              .offset().left +
-            canvas_div.offset().left -
-            $('.blockid[value=' + blocks[w].id + ']')
-              .parent()
-              .innerWidth() /
-              2 -
-            40;
+          // 🔧 修复：添加安全检查，防止访问已删除块的DOM元素
+          const blockElement = $('.blockid[value=' + blocks[w].id + ']').parent();
+          if (blockElement.length > 0 && blockElement.offset()) {
+            blocks[w].x =
+              blockElement.offset().left +
+              canvas_div.offset().left -
+              blockElement.innerWidth() / 2 -
+              40;
+          }
         }
         offsetleftold = offsetleft;
       }
