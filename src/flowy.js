@@ -105,8 +105,29 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       throw new Error('PositionCalculator service is required but not available');
     }
 
-    let blocks = blockManager ? blockManager.getAllBlocks() : [];
-    let blockstemp = blockManager ? blockManager.getTempBlocks() : [];
+    // 🔧 修复：确保blocks数组被正确初始化，与原版保持一致
+    let blocks = [];
+    let blockstemp = [];
+
+    // 如果blockManager可用，尝试从中获取现有数据
+    if (blockManager) {
+      const existingBlocks = blockManager.getAllBlocks();
+      const existingTemp = blockManager.getTempBlocks();
+      if (Array.isArray(existingBlocks)) {
+        blocks = existingBlocks;
+      }
+      if (Array.isArray(existingTemp)) {
+        blockstemp = existingTemp;
+      }
+    }
+
+    // 🔧 暴露关键变量到全局作用域，便于调试和与原版保持一致
+    window.blocks = blocks;
+    window.blockstemp = blockstemp;
+    window.blockManager = blockManager;
+    window.dragStateManager = dragStateManager;
+    window.snapEngine = snapEngine;
+    window.positionCalculator = positionCalculator;
     const canvas_div = canvas;
     function syncBlockReferences() {
         if (blockManager) {
@@ -408,14 +429,18 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
             dragStateManager.endDrag();
           }
         } else if ((dragStateManager ? dragStateManager.isDragging() : (getActive() || getRearrange()))) {
+          // 🔧 修复：当没有块时，直接删除拖拽元素，与原版保持一致
+          if (blocks.length === 0) {
+            drag.remove();
+            return;
+          }
+
           const xpos =
             drag.offset().left +
             drag.innerWidth() / 2 +
             canvas_div.scrollLeft();
           const ypos = drag.offset().top + canvas_div.scrollTop();
           const blocko = blocks.map(a => a.id);
-
-
 
           for (var i = 0; i < blocks.length; i++) {
             const targetBlock = blocks.filter(a => a.id == blocko[i])[0];
