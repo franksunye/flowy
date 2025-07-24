@@ -59,6 +59,21 @@ function getDragStateManager() {
   return null;
 }
 
+function getPositionCalculator() {
+  if (typeof window !== 'undefined' && window.PositionCalculator) {
+    return new window.PositionCalculator();
+  }
+  if (typeof require !== 'undefined') {
+    try {
+      const PositionCalculator = require('./services/position-calculator.js');
+      return new PositionCalculator();
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}
+
 const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
   if (!grab) {
     grab = function () {};
@@ -80,6 +95,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     const snapEngine = getSnapEngine(spacing_x, spacing_y, snapping);
     const domUtils = getDomUtils();
     const dragStateManager = getDragStateManager();
+    const positionCalculator = getPositionCalculator();
 
     let blocks = blockManager ? blockManager.getAllBlocks() : [];
     let blockstemp = blockManager ? blockManager.getTempBlocks() : [];
@@ -236,8 +252,19 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           dragStateManager.startActiveDrag(drag, original, dragx, dragy);
         }
 
-        drag.css('left', event.clientX - dragx + 'px');
-        drag.css('top', event.clientY - dragy + 'px');
+        // 🔧 使用位置计算服务计算拖拽位置
+        if (positionCalculator) {
+          const position = positionCalculator.calculateDragPosition(
+            { clientX: event.clientX, clientY: event.clientY },
+            { x: dragx, y: dragy }
+          );
+          drag.css('left', position.left + 'px');
+          drag.css('top', position.top + 'px');
+        } else {
+          // 降级到原始计算方式
+          drag.css('left', event.clientX - dragx + 'px');
+          drag.css('top', event.clientY - dragy + 'px');
+        }
       }
     });
     $(document).on('mouseup', function (event) {
@@ -347,33 +374,59 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
           if (dragStateManager) {
             dragStateManager.set('active', false);
           }
-          drag.css(
-            'top',
-            drag.offset().top -
-              canvas_div.offset().top +
-              canvas_div.scrollTop() +
-              'px'
-          );
-          drag.css(
-            'left',
-            drag.offset().left -
-              canvas_div.offset().left +
-              canvas_div.scrollLeft() +
-              'px'
-          );
+          // 🔧 使用位置计算服务进行画布坐标转换
+          if (positionCalculator) {
+            const canvasPosition = positionCalculator.calculateCanvasPosition(
+              { left: drag.offset().left, top: drag.offset().top },
+              {
+                offsetLeft: canvas_div.offset().left,
+                offsetTop: canvas_div.offset().top,
+                scrollLeft: canvas_div.scrollLeft(),
+                scrollTop: canvas_div.scrollTop()
+              }
+            );
+            drag.css('left', canvasPosition.left + 'px');
+            drag.css('top', canvasPosition.top + 'px');
+          } else {
+            // 降级到原始计算方式
+            drag.css(
+              'top',
+              drag.offset().top -
+                canvas_div.offset().top +
+                canvas_div.scrollTop() +
+                'px'
+            );
+            drag.css(
+              'left',
+              drag.offset().left -
+                canvas_div.offset().left +
+                canvas_div.scrollLeft() +
+                'px'
+            );
+          }
           drag.appendTo(canvas_div);
+          // 🔧 使用位置计算服务计算块中心点
+          let blockCenter;
+          if (positionCalculator) {
+            blockCenter = positionCalculator.calculateBlockCenter(
+              { left: drag.offset().left, top: drag.offset().top },
+              { width: drag.innerWidth(), height: drag.innerHeight() },
+              { scrollLeft: canvas_div.scrollLeft(), scrollTop: canvas_div.scrollTop() }
+            );
+          } else {
+            // 降级到原始计算方式
+            blockCenter = {
+              x: drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft(),
+              y: drag.offset().top + drag.innerHeight() / 2 + canvas_div.scrollTop()
+            };
+          }
+
           addBlock({
             parent: -1,
             childwidth: 0,
             id: parseInt(drag.children('.blockid').val()),
-            x:
-              drag.offset().left +
-              drag.innerWidth() / 2 +
-              canvas_div.scrollLeft(),
-            y:
-              drag.offset().top +
-              drag.innerHeight() / 2 +
-              canvas_div.scrollTop(),
+            x: blockCenter.x,
+            y: blockCenter.y,
             width: drag.innerWidth(),
             height: drag.innerHeight(),
           });
@@ -894,42 +947,98 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       const dragOffset = dragStateManager ? dragStateManager.getDragOffset() : getDragOffset();
 
       if (isActive && drag) {
-        drag.css('left', event.clientX - dragOffset.x + 'px');
-        drag.css('top', event.clientY - dragOffset.y + 'px');
+        // 🔧 使用位置计算服务计算基础拖拽位置
+        if (positionCalculator) {
+          const position = positionCalculator.calculateDragPosition(
+            { clientX: event.clientX, clientY: event.clientY },
+            { x: dragOffset.x, y: dragOffset.y }
+          );
+          drag.css('left', position.left + 'px');
+          drag.css('top', position.top + 'px');
+        } else {
+          // 降级到原始计算方式
+          drag.css('left', event.clientX - dragOffset.x + 'px');
+          drag.css('top', event.clientY - dragOffset.y + 'px');
+        }
       } else if (isRearranging && drag) {
-        drag.css(
-          'left',
-          event.clientX -
-            dragx -
-            canvas_div.offset().left +
-            canvas_div.scrollLeft() +
-            'px'
-        );
-        drag.css(
-          'top',
-          event.clientY -
-            dragy -
-            canvas_div.offset().top +
-            canvas_div.scrollTop() +
-            'px'
-        );
+        // 🔧 使用位置计算服务计算重排拖拽位置
+        if (positionCalculator) {
+          const position = positionCalculator.calculateRearrangeDragPosition(
+            { clientX: event.clientX, clientY: event.clientY },
+            { x: dragOffset.x, y: dragOffset.y },
+            {
+              offsetLeft: canvas_div.offset().left,
+              offsetTop: canvas_div.offset().top,
+              scrollLeft: canvas_div.scrollLeft(),
+              scrollTop: canvas_div.scrollTop()
+            }
+          );
+          drag.css('left', position.left + 'px');
+          drag.css('top', position.top + 'px');
+        } else {
+          // 降级到原始计算方式
+          drag.css(
+            'left',
+            event.clientX -
+              dragOffset.x -
+              canvas_div.offset().left +
+              canvas_div.scrollLeft() +
+              'px'
+          );
+          drag.css(
+            'top',
+            event.clientY -
+              dragOffset.y -
+              canvas_div.offset().top +
+              canvas_div.scrollTop() +
+              'px'
+          );
+        }
+        // 🔧 使用位置计算服务计算块中心点
+        let blockCenter;
+        if (positionCalculator) {
+          blockCenter = positionCalculator.calculateBlockCenter(
+            { left: drag.offset().left, top: drag.offset().top },
+            { width: drag.innerWidth(), height: drag.innerHeight() },
+            { scrollLeft: canvas_div.scrollLeft(), scrollTop: canvas_div.scrollTop() }
+          );
+        } else {
+          // 降级到原始计算方式
+          blockCenter = {
+            x: drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft(),
+            y: drag.offset().top + drag.innerHeight() / 2 + canvas_div.scrollTop()
+          };
+        }
+
         blockstemp.filter(
           a => a.id == parseInt(drag.children('.blockid').val())
-        ).x =
-          drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft();
+        ).x = blockCenter.x;
         blockstemp.filter(
           a => a.id == parseInt(drag.children('.blockid').val())
-        ).y =
-          drag.offset().top + drag.innerHeight() / 2 + canvas_div.scrollTop();
+        ).y = blockCenter.y;
       }
 
       // 🔧 使用拖拽状态管理器检查是否正在拖拽
       const isDragging = dragStateManager ? dragStateManager.isDragging() : (isActive || isRearranging);
 
       if (isDragging && drag) {
-        const xpos =
-          drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft();
-        const ypos = drag.offset().top + canvas_div.scrollTop();
+        // 🔧 使用位置计算服务计算块中心点位置
+        let blockCenter;
+        if (positionCalculator) {
+          blockCenter = positionCalculator.calculateBlockCenter(
+            { left: drag.offset().left, top: drag.offset().top },
+            { width: drag.innerWidth(), height: drag.innerHeight() },
+            { scrollLeft: canvas_div.scrollLeft(), scrollTop: canvas_div.scrollTop() }
+          );
+        } else {
+          // 降级到原始计算方式
+          blockCenter = {
+            x: drag.offset().left + drag.innerWidth() / 2 + canvas_div.scrollLeft(),
+            y: drag.offset().top + canvas_div.scrollTop()
+          };
+        }
+        const xpos = blockCenter.x;
+        const ypos = blockCenter.y;
 
         // 🔧 使用SnapEngine模块进行吸附检测
         if (snapEngine) {

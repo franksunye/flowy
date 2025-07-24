@@ -12,6 +12,7 @@
         'block-manager': false,
         'snap-engine': false,
         'drag-state-manager': false,
+        'position-calculator': false,
         'flowy': false
     };
 
@@ -67,12 +68,16 @@
                     // 4. 加载拖拽状态管理器模块（无依赖）
                     loadScript('../../src/core/drag-state-manager.js', 'drag-state-manager', function() {
 
-                        // 5. 最后加载主 Flowy 模块（依赖前面所有模块）
-                        loadScript('../../src/flowy.js', 'flowy', function() {
-                            // 确保 flowy 在全局作用域中可用
-                            if (typeof window.flowy === 'undefined' && typeof flowy !== 'undefined') {
-                                window.flowy = flowy;
-                            }
+                        // 5. 加载位置计算服务模块（无依赖）
+                        loadScript('../../src/services/position-calculator.js', 'position-calculator', function() {
+
+                            // 6. 最后加载主 Flowy 模块（依赖前面所有模块）
+                            loadScript('../../src/flowy.js', 'flowy', function() {
+                                // 确保 flowy 在全局作用域中可用
+                                if (typeof window.flowy === 'undefined' && typeof flowy !== 'undefined') {
+                                    window.flowy = flowy;
+                                }
+                            });
                         });
                     });
                 });
