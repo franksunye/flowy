@@ -10,7 +10,7 @@
 
 ## 📖 第一部分：原始Flowy架构分析
 
-### 🏗️ 原始架构概览 (docs/archive/src-demo/flowy.js)
+### 🏗️ 原始架构概览 (docs/src-demo/flowy.js) ⭐ **重构关键参考**
 
 **架构特征**:
 - **架构模式**: 单体JavaScript文件 (478行)

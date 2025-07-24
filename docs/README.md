@@ -20,6 +20,18 @@
 
 ### 🎨 演示和示例
 
+#### 重构参考演示 (关键参考对象)
+- **`original-demo/`** - 原始演示版本 ⭐ **重构基准**
+  - 使用 `flowy.min.js` 的最初演示
+  - **重构阶段关键参考**: 功能对比和行为基准
+  - 确保重构后功能与原版100%一致
+
+- **`src-demo/`** - 源码演示版本 ⭐ **重构起点**
+  - 使用原始 `src/flowy.js` (478行单体文件)
+  - **重构阶段关键参考**: 代码结构分析和模块提取
+  - 包含完整的原始架构实现
+
+#### 重构验证演示
 - **`refactor-demo/`** - 重构过程实时验证演示
   - 用于验证模块化重构的功能完整性
   - 提供与原版完全一致的用户体验
@@ -61,7 +73,9 @@
 **重构工作**:
 1. [35_REFACTOR_PLAN.md](35_REFACTOR_PLAN.md) - 重构计划
 2. [10_ARCHITECTURE.md](10_ARCHITECTURE.md) - 架构设计
-3. [refactor-demo/](refactor-demo/) - 功能验证
+3. [original-demo/](original-demo/) - 功能基准参考
+4. [src-demo/](src-demo/) - 原始代码参考
+5. [refactor-demo/](refactor-demo/) - 功能验证
 
 **问题排查**:
 1. [archive/historical-reports/](archive/historical-reports/) - 历史问题分析
