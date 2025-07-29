@@ -502,8 +502,13 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                         children.width / 2 +
                         'px'
                     );
-                  // 🔧 修复：与原版完全一致 - 使用第一个子块的x坐标作为基准
-                  children.x = blocks.filter(id => id.parent == blocko[i])[0].x - totalwidth / 2 + totalremove + children.childwidth / 2;
+                  // 🔧 关键修复：避免循环引用，使用父块位置作为基准
+                  // 当只有一个子块时，使用父块的x坐标；多个子块时使用第一个已存在子块的x坐标
+                  const existingChildren = blocks.filter(id => id.parent == blocko[i] && id.id != parseInt(drag.children(".blockid").val()));
+                  const referenceX = existingChildren.length > 0
+                    ? existingChildren[0].x
+                    : blocks.filter(a => a.id == blocko[i])[0].x;
+                  children.x = referenceX - totalwidth / 2 + totalremove + children.childwidth / 2;
                   totalremove += children.childwidth + paddingx;
                 } else {
                   $('.blockid[value=' + children.id + ']')
@@ -515,8 +520,13 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                         totalremove +
                         'px'
                     );
-                  // 🔧 修复：与原版完全一致 - 使用第一个子块的x坐标作为基准
-                  children.x = blocks.filter(id => id.parent == blocko[i])[0].x - totalwidth / 2 + totalremove + children.width / 2;
+                  // 🔧 关键修复：避免循环引用，使用父块位置作为基准
+                  // 当只有一个子块时，使用父块的x坐标；多个子块时使用第一个已存在子块的x坐标
+                  const existingChildren2 = blocks.filter(id => id.parent == blocko[i] && id.id != parseInt(drag.children(".blockid").val()));
+                  const referenceX2 = existingChildren2.length > 0
+                    ? existingChildren2[0].x
+                    : blocks.filter(a => a.id == blocko[i])[0].x;
+                  children.x = referenceX2 - totalwidth / 2 + totalremove + children.width / 2;
                   totalremove += children.width + paddingx;
                 }
               }
