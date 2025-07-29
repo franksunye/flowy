@@ -502,13 +502,8 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                         children.width / 2 +
                         'px'
                     );
-                  // 🔧 关键修复：使用与原版完全一致的逻辑
-                  // 当有子块时使用第一个子块的x坐标，没有子块时使用父块的x坐标
-                  const referenceX = blocks.filter(id => id.parent == blocko[i]).length > 0
-                    ? blocks.filter(id => id.parent == blocko[i])[0].x
-                    : blocks.filter(a => a.id == blocko[i])[0].x;
-
-                  children.x = referenceX - totalwidth / 2 + totalremove + children.childwidth / 2;
+                  // 🔧 修复：与原版完全一致 - 使用第一个子块的x坐标作为基准
+                  children.x = blocks.filter(id => id.parent == blocko[i])[0].x - totalwidth / 2 + totalremove + children.childwidth / 2;
                   totalremove += children.childwidth + paddingx;
                 } else {
                   $('.blockid[value=' + children.id + ']')
@@ -520,13 +515,8 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                         totalremove +
                         'px'
                     );
-                  // 🔧 关键修复：使用与原版完全一致的逻辑
-                  // 当有子块时使用第一个子块的x坐标，没有子块时使用父块的x坐标
-                  const referenceX2 = blocks.filter(id => id.parent == blocko[i]).length > 0
-                    ? blocks.filter(id => id.parent == blocko[i])[0].x
-                    : blocks.filter(a => a.id == blocko[i])[0].x;
-
-                  children.x = referenceX2 - totalwidth / 2 + totalremove + children.width / 2;
+                  // 🔧 修复：与原版完全一致 - 使用第一个子块的x坐标作为基准
+                  children.x = blocks.filter(id => id.parent == blocko[i])[0].x - totalwidth / 2 + totalremove + children.width / 2;
                   totalremove += children.width + paddingx;
                 }
               }
