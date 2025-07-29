@@ -476,13 +476,10 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
               let totalremove = 0;
               const maxheight = 0;
 
-              // 🔧 关键修复：临时移除新块，避免循环引用，与原版逻辑一致
-              const newBlockId = parseInt(drag.children('.blockid').val());
-              const existingChildren = blocks.filter(id => id.parent == blocko[i] && id.id !== newBlockId);
-
-              // 🔧 恢复原始算法：与原版完全一致的子块过滤逻辑（但排除新块）
-              for (var w = 0; w < existingChildren.length; w++) {
-                var children = existingChildren[w];
+              // 🔧 恢复原始算法：与原版完全一致的子块过滤逻辑
+              // 现在新块不在blocks数组中，所以不会有循环引用问题
+              for (var w = 0; w < blocks.filter(id => id.parent == blocko[i]).length; w++) {
+                var children = blocks.filter(id => id.parent == blocko[i])[w];
                 if (children.childwidth > children.width) {
                   totalwidth += children.childwidth + paddingx;
                 } else {
@@ -491,9 +488,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
               }
               totalwidth += drag.innerWidth();
 
-              // 🔧 恢复原始算法：与原版完全一致的子块重新定位逻辑（但排除新块）
-              for (var w = 0; w < existingChildren.length; w++) {
-                var children = existingChildren[w];
+              // 🔧 恢复原始算法：与原版完全一致的子块重新定位逻辑
+              for (var w = 0; w < blocks.filter(id => id.parent == blocko[i]).length; w++) {
+                var children = blocks.filter(id => id.parent == blocko[i])[w];
                 if (children.childwidth > children.width) {
                   $('.blockid[value=' + children.id + ']')
                     .parent()
@@ -506,11 +503,8 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                         children.width / 2 +
                         'px'
                     );
-                  // 🔧 修复：使用已存在子块或父块作为基准，避免循环引用
-                  const referenceX = existingChildren.length > 0
-                    ? existingChildren[0].x
-                    : blocks.filter(a => a.id == blocko[i])[0].x;
-                  children.x = referenceX - totalwidth / 2 + totalremove + children.childwidth / 2;
+                  // 🔧 恢复原版逻辑：与原版第151行完全一致
+                  children.x = blocks.filter(id => id.parent == blocko[i])[0].x - totalwidth / 2 + totalremove + children.childwidth / 2;
                   totalremove += children.childwidth + paddingx;
                 } else {
                   $('.blockid[value=' + children.id + ']')
@@ -522,11 +516,8 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                         totalremove +
                         'px'
                     );
-                  // 🔧 修复：使用已存在子块或父块作为基准，避免循环引用
-                  const referenceX2 = existingChildren.length > 0
-                    ? existingChildren[0].x
-                    : blocks.filter(a => a.id == blocko[i])[0].x;
-                  children.x = referenceX2 - totalwidth / 2 + totalremove + children.width / 2;
+                  // 🔧 恢复原版逻辑：与原版第155行完全一致
+                  children.x = blocks.filter(id => id.parent == blocko[i])[0].x - totalwidth / 2 + totalremove + children.width / 2;
                   totalremove += children.width + paddingx;
                 }
               }
@@ -631,8 +622,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                 }
                 mergeTempBlocks();
               } else {
-                // 🔧 修复：恢复原版逻辑，基于DOM位置计算数据坐标
-                addBlock({
+                // 🔧 关键修复：延迟添加新块，与原版第182行逻辑完全一致
+                // 先不添加到blocks数组，等位置计算完成后再添加
+                window.tempNewBlock = {
                   childwidth: 0,
                   parent: blocko[i],
                   id: parseInt(drag.children('.blockid').val()),
@@ -646,9 +638,15 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                     canvas_div.scrollTop(),
                   width: drag.innerWidth(),
                   height: drag.innerHeight(),
-                });
-                syncBlockReferences();
+                };
               }
+
+              // 🔧 关键修复：现在添加新块，与原版第182行时序完全一致
+              if (window.tempNewBlock) {
+                addBlock(window.tempNewBlock);
+                window.tempNewBlock = null;
+              }
+
               syncBlockReferences();
               const arrowhelp = blocks.filter(
                 a => a.id == parseInt(drag.children('.blockid').val())
