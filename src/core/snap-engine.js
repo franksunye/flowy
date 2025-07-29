@@ -143,7 +143,23 @@ class SnapEngine {
     let totalwidth = 0;
     let totalremove = 0;
 
-    const childBlocks = blocks.filter(block => block.parent === targetBlockId);
+    // 🔧 修复：只获取在DOM中实际存在的子块
+    // 过滤掉那些在blocks数组中但DOM中已被删除的"幽灵"块
+    const childBlocks = blocks.filter(block => {
+      if (block.parent !== targetBlockId) return false;
+
+      // 检查对应的DOM元素是否存在
+      const domElement = document.querySelector(`.blockid[value="${block.id}"]`);
+      const exists = domElement && domElement.parentElement &&
+             document.getElementById('canvas').contains(domElement.parentElement);
+
+      // 🔧 添加调试信息
+      console.log(`🔧 SnapEngine修复: Block ${block.id}, parent=${block.parent}, DOM存在=${exists}`);
+
+      return exists;
+    });
+
+    console.log(`🔧 SnapEngine修复: 原始子块数量=${blocks.filter(b => b.parent === targetBlockId).length}, 修复后子块数量=${childBlocks.length}`);
 
     for (let w = 0; w < childBlocks.length; w++) {
       const child = childBlocks[w];

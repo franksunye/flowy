@@ -475,11 +475,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
               let totalwidth = 0;
               let totalremove = 0;
               const maxheight = 0;
-              for (
-                var w = 0;
-                w < blocks.filter(id => id.parent == blocko[i]).length;
-                w++
-              ) {
+
+              // 🔧 恢复原始算法：与原版完全一致的子块过滤逻辑
+              for (var w = 0; w < blocks.filter(id => id.parent == blocko[i]).length; w++) {
                 var children = blocks.filter(id => id.parent == blocko[i])[w];
                 if (children.childwidth > children.width) {
                   totalwidth += children.childwidth + paddingx;
@@ -488,11 +486,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                 }
               }
               totalwidth += drag.innerWidth();
-              for (
-                var w = 0;
-                w < blocks.filter(id => id.parent == blocko[i]).length;
-                w++
-              ) {
+
+              // 🔧 恢复原始算法：与原版完全一致的子块重新定位逻辑
+              for (var w = 0; w < blocks.filter(id => id.parent == blocko[i]).length; w++) {
                 var children = blocks.filter(id => id.parent == blocko[i])[w];
                 if (children.childwidth > children.width) {
                   $('.blockid[value=' + children.id + ']')
@@ -506,11 +502,13 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                         children.width / 2 +
                         'px'
                     );
-                  children.x =
-                    blocks.filter(id => id.parent == blocko[i])[0].x -
-                    totalwidth / 2 +
-                    totalremove +
-                    children.childwidth / 2;
+                  // 🔧 关键修复：使用与原版完全一致的逻辑
+                  // 当有子块时使用第一个子块的x坐标，没有子块时使用父块的x坐标
+                  const referenceX = blocks.filter(id => id.parent == blocko[i]).length > 0
+                    ? blocks.filter(id => id.parent == blocko[i])[0].x
+                    : blocks.filter(a => a.id == blocko[i])[0].x;
+
+                  children.x = referenceX - totalwidth / 2 + totalremove + children.childwidth / 2;
                   totalremove += children.childwidth + paddingx;
                 } else {
                   $('.blockid[value=' + children.id + ']')
@@ -522,20 +520,18 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                         totalremove +
                         'px'
                     );
-                  children.x =
-                    blocks.filter(id => id.parent == blocko[i])[0].x -
-                    totalwidth / 2 +
-                    totalremove +
-                    children.width / 2;
+                  // 🔧 关键修复：使用与原版完全一致的逻辑
+                  // 当有子块时使用第一个子块的x坐标，没有子块时使用父块的x坐标
+                  const referenceX2 = blocks.filter(id => id.parent == blocko[i]).length > 0
+                    ? blocks.filter(id => id.parent == blocko[i])[0].x
+                    : blocks.filter(a => a.id == blocko[i])[0].x;
+
+                  children.x = referenceX2 - totalwidth / 2 + totalremove + children.width / 2;
                   totalremove += children.width + paddingx;
                 }
               }
-              // 🔧 修复：确保位置计算与原版完全一致
-              const targetBlockX = blocks.filter(id => id.id == blocko[i])[0].x;
-              const newLeft = targetBlockX - totalwidth / 2 + totalremove;
-              const finalLeft = newLeft - canvas_div.offset().left + canvas_div.scrollLeft();
-
-              drag.css('left', finalLeft + 'px');
+              // 🔧 恢复原始算法：与原版完全一致的最终位置计算
+              drag.css('left', blocks.filter(id => id.id == blocko[i])[0].x - (totalwidth / 2) + totalremove - canvas_div.offset().left + canvas_div.scrollLeft() + 'px');
               drag.css(
                 'top',
                 blocks.filter(id => id.id == blocko[i])[0].y +
@@ -913,18 +909,31 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                   foundids = [];
                 }
               }
+              // 🔧 终极修复：确保blockManager和blocks数组完全同步
               for (
                 var i = 0;
                 i < blocks.filter(a => a.parent == blockid).length;
                 i++
               ) {
                 var blocknumber = blocks.filter(a => a.parent == blockid)[i];
-                removeBlockById(blocknumber);
+                // 从blockManager中删除
+                if (blockManager) {
+                  blockManager.removeBlocks(function(block) {
+                    return block.id !== blocknumber.id;
+                  });
+                }
               }
               for (var i = 0; i < allids.length; i++) {
                 var blocknumber = allids[i];
-                removeBlockById(blocknumber);
+                // 从blockManager中删除
+                if (blockManager) {
+                  blockManager.removeBlocks(function(block) {
+                    return block.id !== blocknumber;
+                  });
+                }
               }
+              // 同步blocks数组
+              syncBlockReferences();
 
               // 🔧 修复：子块移除后，重新计算所有父块的childwidth
               syncBlockReferences();
