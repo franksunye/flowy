@@ -476,9 +476,13 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
               let totalremove = 0;
               const maxheight = 0;
 
-              // 🔧 恢复原始算法：与原版完全一致的子块过滤逻辑
-              for (var w = 0; w < blocks.filter(id => id.parent == blocko[i]).length; w++) {
-                var children = blocks.filter(id => id.parent == blocko[i])[w];
+              // 🔧 关键修复：临时移除新块，避免循环引用，与原版逻辑一致
+              const newBlockId = parseInt(drag.children('.blockid').val());
+              const existingChildren = blocks.filter(id => id.parent == blocko[i] && id.id !== newBlockId);
+
+              // 🔧 恢复原始算法：与原版完全一致的子块过滤逻辑（但排除新块）
+              for (var w = 0; w < existingChildren.length; w++) {
+                var children = existingChildren[w];
                 if (children.childwidth > children.width) {
                   totalwidth += children.childwidth + paddingx;
                 } else {
@@ -487,9 +491,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
               }
               totalwidth += drag.innerWidth();
 
-              // 🔧 恢复原始算法：与原版完全一致的子块重新定位逻辑
-              for (var w = 0; w < blocks.filter(id => id.parent == blocko[i]).length; w++) {
-                var children = blocks.filter(id => id.parent == blocko[i])[w];
+              // 🔧 恢复原始算法：与原版完全一致的子块重新定位逻辑（但排除新块）
+              for (var w = 0; w < existingChildren.length; w++) {
+                var children = existingChildren[w];
                 if (children.childwidth > children.width) {
                   $('.blockid[value=' + children.id + ']')
                     .parent()
@@ -502,9 +506,7 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                         children.width / 2 +
                         'px'
                     );
-                  // 🔧 关键修复：避免循环引用，使用父块位置作为基准
-                  // 当只有一个子块时，使用父块的x坐标；多个子块时使用第一个已存在子块的x坐标
-                  const existingChildren = blocks.filter(id => id.parent == blocko[i] && id.id != parseInt(drag.children(".blockid").val()));
+                  // 🔧 修复：使用已存在子块或父块作为基准，避免循环引用
                   const referenceX = existingChildren.length > 0
                     ? existingChildren[0].x
                     : blocks.filter(a => a.id == blocko[i])[0].x;
@@ -520,11 +522,9 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
                         totalremove +
                         'px'
                     );
-                  // 🔧 关键修复：避免循环引用，使用父块位置作为基准
-                  // 当只有一个子块时，使用父块的x坐标；多个子块时使用第一个已存在子块的x坐标
-                  const existingChildren2 = blocks.filter(id => id.parent == blocko[i] && id.id != parseInt(drag.children(".blockid").val()));
-                  const referenceX2 = existingChildren2.length > 0
-                    ? existingChildren2[0].x
+                  // 🔧 修复：使用已存在子块或父块作为基准，避免循环引用
+                  const referenceX2 = existingChildren.length > 0
+                    ? existingChildren[0].x
                     : blocks.filter(a => a.id == blocko[i])[0].x;
                   children.x = referenceX2 - totalwidth / 2 + totalremove + children.width / 2;
                   totalremove += children.width + paddingx;
