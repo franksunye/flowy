@@ -44,8 +44,40 @@ class ModuleLoader {
       // 2. 尝试从require加载 (Node.js环境)
       else if (typeof require !== 'undefined') {
         try {
-          ModuleClass = require(modulePath);
-          this.loadedModules.add(`${moduleName}:require`);
+          // 🔧 SLIM-001: 尝试多个路径解析策略
+          const pathsToTry = [
+            modulePath,
+            modulePath.replace('./src/', './'),
+            modulePath.replace('./', './src/'),
+            `../${modulePath}`,
+            `./${modulePath}`,
+            // 添加更多Node.js环境的路径尝试
+            require.resolve ? (() => {
+              try { return require.resolve(modulePath); } catch { return null; }
+            })() : null,
+            // 尝试从项目根目录开始的绝对路径
+            modulePath.startsWith('./') ? modulePath.substring(2) : modulePath,
+            // 尝试相对于当前工作目录
+            process.cwd ? `${process.cwd()}/${modulePath.replace('./', '')}` : null
+          ].filter(Boolean);
+
+          let loadSuccess = false;
+          for (const pathToTry of pathsToTry) {
+            try {
+              ModuleClass = require(pathToTry);
+              this.loadedModules.add(`${moduleName}:require:${pathToTry}`);
+              loadSuccess = true;
+              break;
+            } catch (pathError) {
+              // 继续尝试下一个路径
+              continue;
+            }
+          }
+
+          if (!loadSuccess) {
+            console.warn(`ModuleLoader: Failed to require ${moduleName} from any of:`, pathsToTry);
+            return null;
+          }
         } catch (requireError) {
           console.warn(`ModuleLoader: Failed to require ${moduleName} from ${modulePath}:`, requireError.message);
           return null;
@@ -150,18 +182,26 @@ class ModuleLoader {
   preloadFlowyModules(config = {}) {
     const { spacing_x = 20, spacing_y = 80, snapping = () => {} } = config;
 
+    // 🔧 SLIM-001: 修复模块路径解析问题
+    // 使用绝对路径而非相对路径，确保在不同环境下都能正确解析
     const moduleConfigs = [
-      { name: 'BlockManager', path: '../core/block-manager.js' },
-      { name: 'SnapEngine', path: '../core/snap-engine.js', args: [spacing_x, spacing_y, snapping] },
-      { name: 'DomUtils', path: './dom-utils.js', instance: false },
-      { name: 'DragStateManager', path: '../core/drag-state-manager.js' },
-      { name: 'PositionCalculator', path: '../services/position-calculator.js' }
+      { name: 'BlockManager', path: './src/core/block-manager.js' },
+      { name: 'SnapEngine', path: './src/core/snap-engine.js', args: [spacing_x, spacing_y, snapping] },
+      { name: 'DomUtils', path: './src/utils/dom-utils.js', instance: false },
+      { name: 'DragStateManager', path: './src/core/drag-state-manager.js' },
+      { name: 'PositionCalculator', path: './src/services/position-calculator.js' }
     ];
 
     const { results, errors } = this.loadBatch(moduleConfigs);
 
     if (errors.length > 0) {
       console.warn('ModuleLoader: Some modules failed to load:', errors);
+      // 🔧 SLIM-001: 提供详细的错误信息用于调试
+      console.warn('ModuleLoader: Failed module details:', errors.map(err => ({
+        error: err,
+        cwd: typeof process !== 'undefined' ? process.cwd() : 'browser',
+        moduleConfigs: moduleConfigs
+      })));
     }
 
     return results;
