@@ -78,15 +78,37 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     const loader = getModuleLoader();
     let blockManager, snapEngine, domUtils, dragStateManager, positionCalculator;
 
+    // 🔧 SLIM-003: 增强模块加载错误处理
     if (loader) {
-      // 使用统一加载器批量加载模块
-      const modules = loader.preloadFlowyModules({ spacing_x, spacing_y, snapping });
-      blockManager = modules.BlockManager;
-      snapEngine = modules.SnapEngine;
-      domUtils = modules.DomUtils;
-      dragStateManager = modules.DragStateManager;
-      positionCalculator = modules.PositionCalculator;
+      try {
+        // 使用统一加载器批量加载模块
+        const modules = loader.preloadFlowyModules({ spacing_x, spacing_y, snapping });
+        blockManager = modules.BlockManager;
+        snapEngine = modules.SnapEngine;
+        domUtils = modules.DomUtils;
+        dragStateManager = modules.DragStateManager;
+        positionCalculator = modules.PositionCalculator;
+
+        // 验证关键模块是否成功加载
+        const criticalModules = ['BlockManager', 'DragStateManager'];
+        const failedCritical = criticalModules.filter(name => !modules[name]);
+
+        if (failedCritical.length > 0) {
+          console.error('Critical modules failed to load:', failedCritical);
+          throw new Error(`Critical modules failed: ${failedCritical.join(', ')}`);
+        }
+
+      } catch (loaderError) {
+        console.error('Module loader failed, falling back to direct loading:', loaderError.message);
+        // 降级到直接加载 (保持兼容性)
+        blockManager = getBlockManagerDirect();
+        snapEngine = getSnapEngineDirect(spacing_x, spacing_y, snapping);
+        domUtils = getDomUtilsDirect();
+        dragStateManager = getDragStateManagerDirect();
+        positionCalculator = getPositionCalculatorDirect();
+      }
     } else {
+      console.warn('Module loader not available, using direct loading');
       // 降级到直接加载 (保持兼容性)
       blockManager = getBlockManagerDirect();
       snapEngine = getSnapEngineDirect(spacing_x, spacing_y, snapping);
@@ -162,6 +184,21 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       blockstemp = existingTemp;
     }
 
+    // 🔧 SLIM-003: 执行模块健康检查
+    if (loader && typeof loader.healthCheck === 'function') {
+      const healthReport = loader.healthCheck();
+      console.info('Module Health Check:', healthReport);
+
+      if (healthReport.overall === 'poor') {
+        console.warn('Poor module health detected. System may not function optimally.');
+      } else if (healthReport.overall === 'fair') {
+        console.info('Fair module health. Some modules using fallback implementations.');
+      }
+
+      // 暴露健康报告到全局作用域用于调试
+      window.moduleHealthReport = healthReport;
+    }
+
     // 🎯 瘦身：暴露调试变量
     window.blocks = blocks;
     window.blockstemp = blockstemp;
@@ -169,25 +206,50 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     window.dragStateManager = dragStateManager;
     window.snapEngine = snapEngine;
     window.positionCalculator = positionCalculator;
+    window.moduleLoader = loader; // 暴露模块加载器用于调试
     const canvas_div = canvas;
 
-    // 🎯 瘦身：加载提炼的服务模块（带降级处理）
+    // 🔧 SLIM-003: 增强服务模块加载错误处理
     let OffsetManager = null;
     let LayoutManager = null;
     let ArrowRenderer = null;
     let EventHandler = null;
     let InitializationManager = null;
 
-    if (loader && typeof loader.loadModule === 'function') {
+    if (loader && typeof loader.load === 'function') {
       try {
-        OffsetManager = loader.loadModule('OffsetManager', 'src/services/offset-manager.js');
-        LayoutManager = loader.loadModule('LayoutManager', 'src/services/layout-manager.js');
-        ArrowRenderer = loader.loadModule('ArrowRenderer', 'src/services/arrow-renderer.js');
-        EventHandler = loader.loadModule('EventHandler', 'src/core/event-handler.js');
-        InitializationManager = loader.loadModule('InitializationManager', 'src/core/initialization-manager.js');
+        // 尝试加载可选服务模块，失败时使用降级实现
+        const serviceModules = [
+          { name: 'OffsetManager', path: 'src/services/offset-manager.js' },
+          { name: 'LayoutManager', path: 'src/services/layout-manager.js' },
+          { name: 'ArrowRenderer', path: 'src/services/arrow-renderer.js' },
+          { name: 'EventHandler', path: 'src/core/event-handler.js' },
+          { name: 'InitializationManager', path: 'src/core/initialization-manager.js' }
+        ];
+
+        for (const module of serviceModules) {
+          try {
+            const loadedModule = loader.load(module.name, module.path);
+            if (loadedModule) {
+              switch (module.name) {
+                case 'OffsetManager': OffsetManager = loadedModule; break;
+                case 'LayoutManager': LayoutManager = loadedModule; break;
+                case 'ArrowRenderer': ArrowRenderer = loadedModule; break;
+                case 'EventHandler': EventHandler = loadedModule; break;
+                case 'InitializationManager': InitializationManager = loadedModule; break;
+              }
+            } else {
+              console.warn(`Service module ${module.name} failed to load, will use inline implementation`);
+            }
+          } catch (moduleError) {
+            console.warn(`Service module ${module.name} loading error:`, moduleError.message);
+          }
+        }
       } catch (e) {
-        console.warn('Failed to load some modules, using fallback implementations:', e.message);
+        console.warn('Failed to load service modules, using fallback implementations:', e.message);
       }
+    } else {
+      console.info('Service modules will use inline implementations (loader not available)');
     }
     function syncBlockReferences() {
         blocks = blockManager.getAllBlocks();
@@ -340,27 +402,51 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
     let offsetleft = 0;
     let offsetleftold = 0;
     let lastevent = false;
-    // 🎯 瘦身：使用InitializationManager处理API和初始化
+    // 🔧 SLIM-003: 增强InitializationManager错误处理
     if (InitializationManager) {
-      const initManager = new InitializationManager({
-        canvas: canvas_div,
-        blockManager: blockManager,
-        dragStateManager: dragStateManager,
-        domUtils: domUtils,
-        spacing_x: spacing_x,
-        spacing_y: spacing_y,
-        grab: grab,
-        release: release,
-        snapping: snapping
-      });
+      try {
+        if (typeof InitializationManager === 'function') {
+          const initManager = new InitializationManager({
+            canvas: canvas_div,
+            blockManager: blockManager,
+            dragStateManager: dragStateManager,
+            domUtils: domUtils,
+            spacing_x: spacing_x,
+            spacing_y: spacing_y,
+            grab: grab,
+            release: release,
+            snapping: snapping
+          });
 
-      const flowyAPI = initManager.initialize();
-      flowy.output = flowyAPI.output;
-      flowy.deleteBlocks = flowyAPI.deleteBlocks;
-      flowy.import = flowyAPI.import;
-      flowy.getBlockCount = flowyAPI.getBlockCount;
-      flowy.getNextBlockId = flowyAPI.getNextBlockId;
-    } else {
+          if (typeof initManager.initialize === 'function') {
+            const flowyAPI = initManager.initialize();
+            if (flowyAPI) {
+              flowy.output = flowyAPI.output;
+              flowy.deleteBlocks = flowyAPI.deleteBlocks;
+              flowy.import = flowyAPI.import;
+              flowy.getBlockCount = flowyAPI.getBlockCount;
+              flowy.getNextBlockId = flowyAPI.getNextBlockId;
+            } else {
+              console.warn('InitializationManager.initialize() returned null, using inline API');
+              throw new Error('InitializationManager API initialization failed');
+            }
+          } else {
+            console.warn('InitializationManager instance missing initialize method');
+            throw new Error('InitializationManager missing initialize method');
+          }
+        } else {
+          console.warn('InitializationManager is not a constructor, using inline API');
+          throw new Error('InitializationManager is not a constructor');
+        }
+      } catch (initError) {
+        console.error('InitializationManager failed:', initError.message);
+        console.info('Falling back to inline API implementation');
+        // 降级到内联API实现
+        InitializationManager = null;
+      }
+    }
+
+    if (!InitializationManager) {
       // 降级：直接设置API函数
       flowy.output = function () {
         // 如果没有blockManager，使用全局blocks数组
@@ -420,36 +506,76 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       };
     }
 
-    // 🎯 瘦身：使用EventHandler处理所有事件
+    // 🔧 SLIM-003: 增强EventHandler错误处理
     if (EventHandler) {
-      const eventHandler = new EventHandler({
-        canvas: canvas_div,
-        dragStateManager: dragStateManager,
-        blockManager: blockManager,
-        snapEngine: snapEngine,
-        positionCalculator: positionCalculator,
-        domUtils: domUtils,
-        grab: grab,
-        release: release,
-        snapping: snapping,
-        spacing_x: spacing_x,
-        spacing_y: spacing_y,
-        updateBlockPosition: updateBlockPosition,
-        updateArrowPosition: updateArrowPosition,
-        getBlockElement: getBlockElement,
-        getArrowElement: getArrowElement,
-        getBlockById: getBlockById,
-        getChildrenByParent: getChildrenByParent,
-        calculateChildPosition: calculateChildPosition,
-        addBlock: addBlock,
-        mergeTempBlocks: mergeTempBlocks,
-        syncBlockReferences: syncBlockReferences,
-        getNextBlockId: getNextBlockId,
-        rearrangeMe: rearrangeMe,
-        checkOffset: checkOffset
-      });
+      try {
+        if (typeof EventHandler === 'function') {
+          const eventHandler = new EventHandler({
+            canvas: canvas_div,
+            dragStateManager: dragStateManager,
+            blockManager: blockManager,
+            snapEngine: snapEngine,
+            positionCalculator: positionCalculator,
+            domUtils: domUtils,
+            grab: grab,
+            release: release,
+            snapping: snapping,
+            spacing_x: spacing_x,
+            spacing_y: spacing_y,
+            updateBlockPosition: updateBlockPosition,
+            updateArrowPosition: updateArrowPosition,
+            getBlockElement: getBlockElement,
+            getArrowElement: getArrowElement,
+            getBlockById: getBlockById,
+            getChildrenByParent: getChildrenByParent,
+            calculateChildPosition: calculateChildPosition,
+            addBlock: addBlock,
+            mergeTempBlocks: mergeTempBlocks,
+            syncBlockReferences: syncBlockReferences,
+            getNextBlockId: getNextBlockId,
+            rearrangeMe: rearrangeMe,
+            checkOffset: checkOffset
+          });
 
-      eventHandler.initializeEventListeners();
+          if (typeof eventHandler.initializeEventListeners === 'function') {
+            eventHandler.initializeEventListeners();
+          } else {
+            console.warn('EventHandler instance missing initializeEventListeners method');
+            throw new Error('EventHandler missing initializeEventListeners method');
+          }
+        } else {
+          console.warn('EventHandler is not a constructor, using inline event handling');
+          throw new Error('EventHandler is not a constructor');
+        }
+      } catch (eventError) {
+        console.error('EventHandler failed:', eventError.message);
+        console.info('Falling back to inline event handling');
+        // 降级到内联事件处理
+        EventHandler = null;
+      }
+    }
+
+    if (!EventHandler) {
+      console.info('Using inline event handling implementation');
+      // 这里会继续使用原有的内联事件处理代码
+    }
+
+    // 🔧 SLIM-003: 通用服务模块实例化函数
+    function createServiceInstance(ServiceClass, serviceName, config) {
+      if (!ServiceClass) return null;
+
+      try {
+        if (typeof ServiceClass === 'function') {
+          const instance = new ServiceClass(config);
+          return instance;
+        } else {
+          console.warn(`${serviceName} is not a constructor, skipping`);
+          return null;
+        }
+      } catch (error) {
+        console.error(`${serviceName} instantiation failed:`, error.message);
+        return null;
+      }
     }
 
     // 🎯 确保indicator元素被创建
@@ -496,17 +622,14 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       }
     }
 
-    // 🎯 瘦身：使用OffsetManager替代checkOffset和fixOffset
-    let offsetManager = null;
-    if (OffsetManager) {
-      offsetManager = new OffsetManager({
-        canvas: canvas_div,
-        updateBlockPosition: updateBlockPosition,
-        updateArrowPosition: updateArrowPosition,
-        getBlockElement: getBlockElement,
-        getBlockById: getBlockById
-      });
-    }
+    // 🔧 SLIM-003: 使用通用函数创建OffsetManager实例
+    let offsetManager = createServiceInstance(OffsetManager, 'OffsetManager', {
+      canvas: canvas_div,
+      updateBlockPosition: updateBlockPosition,
+      updateArrowPosition: updateArrowPosition,
+      getBlockElement: getBlockElement,
+      getBlockById: getBlockById
+    });
 
     function checkOffset() {
       if (offsetManager) {
@@ -528,20 +651,17 @@ const flowy = function (canvas, grab, release, snapping, spacing_x, spacing_y) {
       }
     }
 
-    // 🎯 瘦身：使用LayoutManager替代rearrangeMe
-    let layoutManager = null;
-    if (LayoutManager) {
-      layoutManager = new LayoutManager({
-        canvas: canvas_div,
-        updateBlockPosition: updateBlockPosition,
-        updateArrowPosition: updateArrowPosition,
-        getBlockById: getBlockById,
-        getChildrenByParent: getChildrenByParent,
-        calculateChildPosition: calculateChildPosition,
-        spacing_x: spacing_x,
-        spacing_y: spacing_y
-      });
-    }
+    // 🔧 SLIM-003: 使用通用函数创建LayoutManager实例
+    let layoutManager = createServiceInstance(LayoutManager, 'LayoutManager', {
+      canvas: canvas_div,
+      updateBlockPosition: updateBlockPosition,
+      updateArrowPosition: updateArrowPosition,
+      getBlockById: getBlockById,
+      getChildrenByParent: getChildrenByParent,
+      calculateChildPosition: calculateChildPosition,
+      spacing_x: spacing_x,
+      spacing_y: spacing_y
+    });
 
     function rearrangeMe() {
       if (layoutManager) {

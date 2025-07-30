@@ -123,26 +123,47 @@ class ModuleLoader {
 
   /**
    * 批量加载模块
-   * @param {Array} modules - 模块配置数组 [{name, path, instance, args}]
+   * @param {Array} modules - 模块配置数组 [{name, path, instance, args, fallback}]
    * @returns {Object} 加载结果对象
    */
   loadBatch(modules) {
     const results = {};
     const errors = [];
+    const warnings = [];
 
     for (const config of modules) {
-      const { name, path, instance = true, args = [] } = config;
+      const { name, path, instance = true, args = [], fallback = null } = config;
       try {
         results[name] = this.load(name, path, instance, args);
         if (!results[name]) {
-          errors.push(`Failed to load ${name}`);
+          // 🔧 SLIM-003: 尝试使用降级实现
+          if (fallback && typeof fallback === 'function') {
+            try {
+              results[name] = fallback();
+              warnings.push(`${name} loaded using fallback implementation`);
+            } catch (fallbackError) {
+              errors.push(`Failed to load ${name} and fallback failed: ${fallbackError.message}`);
+            }
+          } else {
+            errors.push(`Failed to load ${name} and no fallback provided`);
+          }
         }
       } catch (error) {
-        errors.push(`Error loading ${name}: ${error.message}`);
+        // 🔧 SLIM-003: 增强错误处理，尝试降级
+        if (fallback && typeof fallback === 'function') {
+          try {
+            results[name] = fallback();
+            warnings.push(`${name} loaded using fallback after error: ${error.message}`);
+          } catch (fallbackError) {
+            errors.push(`Error loading ${name}: ${error.message}, fallback also failed: ${fallbackError.message}`);
+          }
+        } else {
+          errors.push(`Error loading ${name}: ${error.message}`);
+        }
       }
     }
 
-    return { results, errors };
+    return { results, errors, warnings };
   }
 
   /**
@@ -167,6 +188,81 @@ class ModuleLoader {
   }
 
   /**
+   * 🔧 SLIM-003: 模块健康检查
+   * @param {Array} moduleNames - 要检查的模块名称数组
+   * @returns {Object} 健康检查结果
+   */
+  healthCheck(moduleNames = ['BlockManager', 'SnapEngine', 'DomUtils', 'DragStateManager', 'PositionCalculator']) {
+    const results = {
+      healthy: [],
+      unhealthy: [],
+      missing: [],
+      fallback: [],
+      overall: 'unknown'
+    };
+
+    for (const moduleName of moduleNames) {
+      const isLoaded = this.isLoaded(moduleName);
+      const cacheKey = `${moduleName}_true`;
+      const cachedInstance = this.cache.get(cacheKey);
+
+      if (isLoaded && cachedInstance) {
+        // 检查实例是否有基本方法
+        if (this.validateModuleInstance(moduleName, cachedInstance)) {
+          results.healthy.push(moduleName);
+        } else {
+          results.unhealthy.push(moduleName);
+        }
+      } else if (cachedInstance) {
+        // 有缓存但未标记为已加载，可能是降级实现
+        results.fallback.push(moduleName);
+      } else {
+        results.missing.push(moduleName);
+      }
+    }
+
+    // 计算整体健康状态
+    const totalModules = moduleNames.length;
+    const healthyCount = results.healthy.length;
+    const fallbackCount = results.fallback.length;
+
+    if (healthyCount === totalModules) {
+      results.overall = 'excellent';
+    } else if (healthyCount + fallbackCount === totalModules) {
+      results.overall = 'good';
+    } else if (healthyCount + fallbackCount >= totalModules * 0.7) {
+      results.overall = 'fair';
+    } else {
+      results.overall = 'poor';
+    }
+
+    return results;
+  }
+
+  /**
+   * 验证模块实例是否有效
+   * @param {string} moduleName - 模块名称
+   * @param {Object} instance - 模块实例
+   * @returns {boolean} 是否有效
+   */
+  validateModuleInstance(moduleName, instance) {
+    if (!instance) return false;
+
+    const requiredMethods = {
+      'BlockManager': ['getAllBlocks', 'addBlock', 'clearAll'],
+      'SnapEngine': ['detectSnapping', 'calculateSnapBounds'],
+      'DragStateManager': ['get', 'set', 'isDragging'],
+      'PositionCalculator': ['calculateDragPosition', 'calculateCanvasPosition'],
+      'DomUtils': ['updateBlockPosition', 'getBlockElement']
+    };
+
+    const required = requiredMethods[moduleName];
+    if (!required) return true; // 未知模块，假设有效
+
+    return required.every(method => typeof instance[method] === 'function');
+  }
+
+  /**
    * 清理缓存
    */
   clearCache() {
@@ -182,29 +278,211 @@ class ModuleLoader {
   preloadFlowyModules(config = {}) {
     const { spacing_x = 20, spacing_y = 80, snapping = () => {} } = config;
 
-    // 🔧 SLIM-001: 修复模块路径解析问题
-    // 使用绝对路径而非相对路径，确保在不同环境下都能正确解析
+    // 🔧 SLIM-003: 增强模块加载错误处理 - 添加降级实现
     const moduleConfigs = [
-      { name: 'BlockManager', path: './src/core/block-manager.js' },
-      { name: 'SnapEngine', path: './src/core/snap-engine.js', args: [spacing_x, spacing_y, snapping] },
-      { name: 'DomUtils', path: './src/utils/dom-utils.js', instance: false },
-      { name: 'DragStateManager', path: './src/core/drag-state-manager.js' },
-      { name: 'PositionCalculator', path: './src/services/position-calculator.js' }
+      {
+        name: 'BlockManager',
+        path: './src/core/block-manager.js',
+        fallback: () => this.createBlockManagerFallback()
+      },
+      {
+        name: 'SnapEngine',
+        path: './src/core/snap-engine.js',
+        args: [spacing_x, spacing_y, snapping],
+        fallback: () => this.createSnapEngineFallback(spacing_x, spacing_y, snapping)
+      },
+      {
+        name: 'DomUtils',
+        path: './src/utils/dom-utils.js',
+        instance: false,
+        fallback: () => this.createDomUtilsFallback()
+      },
+      {
+        name: 'DragStateManager',
+        path: './src/core/drag-state-manager.js',
+        fallback: () => this.createDragStateManagerFallback()
+      },
+      {
+        name: 'PositionCalculator',
+        path: './src/services/position-calculator.js',
+        fallback: () => this.createPositionCalculatorFallback()
+      }
     ];
 
-    const { results, errors } = this.loadBatch(moduleConfigs);
+    const { results, errors, warnings } = this.loadBatch(moduleConfigs);
+
+    // 🔧 SLIM-003: 改进错误和警告报告
+    if (warnings && warnings.length > 0) {
+      console.warn('ModuleLoader: Some modules using fallback implementations:', warnings);
+    }
 
     if (errors.length > 0) {
-      console.warn('ModuleLoader: Some modules failed to load:', errors);
-      // 🔧 SLIM-001: 提供详细的错误信息用于调试
-      console.warn('ModuleLoader: Failed module details:', errors.map(err => ({
-        error: err,
+      console.error('ModuleLoader: Critical module loading failures:', errors);
+      // 提供详细的错误信息用于调试
+      console.error('ModuleLoader: Failed module details:', {
+        errors: errors,
+        environment: typeof process !== 'undefined' ? 'node' : 'browser',
         cwd: typeof process !== 'undefined' ? process.cwd() : 'browser',
-        moduleConfigs: moduleConfigs
-      })));
+        moduleConfigs: moduleConfigs.map(config => ({ name: config.name, path: config.path }))
+      });
     }
 
     return results;
+  }
+
+  /**
+   * 🔧 SLIM-003: 降级实现方法 - 当模块加载失败时提供最小功能
+   */
+
+  /**
+   * 创建BlockManager降级实现
+   * @returns {Object} 最小化的BlockManager实现
+   */
+  createBlockManagerFallback() {
+    return {
+      blocks: [],
+      blockstemp: [],
+      getAllBlocks: function() { return this.blocks; },
+      getTempBlocks: function() { return this.blockstemp; },
+      setBlocks: function(blocks) { this.blocks = blocks; },
+      setTempBlocks: function(blockstemp) { this.blockstemp = blockstemp; },
+      addBlock: function(block) { this.blocks.push(block); },
+      addTempBlock: function(block) { this.blockstemp.push(block); },
+      removeBlocks: function(filterFn) { this.blocks = this.blocks.filter(filterFn); },
+      clearAll: function() { this.blocks = []; this.blockstemp = []; },
+      mergeTempBlocks: function() { this.blocks = [...this.blocks, ...this.blockstemp]; this.blockstemp = []; },
+      getBlockCount: function() { return this.blocks.length; },
+      getNextBlockId: function() { return this.blocks.length > 0 ? Math.max(...this.blocks.map(b => b.id || 0)) + 1 : 0; },
+      createBlock: function(options = {}) {
+        return { parent: -1, childwidth: 0, id: this.getNextBlockId(), x: 0, y: 0, width: 100, height: 50, ...options };
+      },
+      isValidBlock: function(block) { return block && typeof block.id === 'number'; },
+      getStats: function() { return { totalBlocks: this.blocks.length, tempBlocks: this.blockstemp.length }; },
+      reset: function() { this.clearAll(); }
+    };
+  }
+
+  /**
+   * 创建SnapEngine降级实现
+   * @param {number} paddingx - X轴间距
+   * @param {number} paddingy - Y轴间距
+   * @param {Function} snappingCallback - 吸附回调
+   * @returns {Object} 最小化的SnapEngine实现
+   */
+  createSnapEngineFallback(paddingx = 20, paddingy = 80, snappingCallback = () => {}) {
+    return {
+      paddingx: paddingx,
+      paddingy: paddingy,
+      snappingCallback: snappingCallback,
+      isIndicatorVisible: false,
+      calculateSnapBounds: function(targetBlock) {
+        return {
+          xMin: targetBlock.x - targetBlock.width / 2 - this.paddingx,
+          xMax: targetBlock.x + targetBlock.width / 2 + this.paddingx,
+          yMin: targetBlock.y - targetBlock.height / 2,
+          yMax: targetBlock.y + targetBlock.height
+        };
+      },
+      isInSnapRange: function(xpos, ypos, bounds) {
+        return xpos >= bounds.xMin && xpos <= bounds.xMax && ypos >= bounds.yMin && ypos <= bounds.yMax;
+      },
+      detectSnapping: function(xpos, ypos, blocks) { return null; }, // 简化实现
+      setIndicatorVisible: function(visible) { this.isIndicatorVisible = visible; },
+      getStatus: function() { return { isIndicatorVisible: this.isIndicatorVisible, paddingx: this.paddingx, paddingy: this.paddingy }; }
+    };
+  }
+
+  /**
+   * 创建DragStateManager降级实现
+   * @returns {Object} 最小化的DragStateManager实现
+   */
+  createDragStateManagerFallback() {
+    const state = { dragging: false, activeDragging: false, rearranging: false };
+    return {
+      state: state,
+      get: function(key) { return this.state[key]; },
+      set: function(key, value) { this.state[key] = value; },
+      setState: function(newState) { Object.assign(this.state, newState); },
+      getState: function() { return { ...this.state }; },
+      isDragging: function() { return this.state.dragging; },
+      isActiveDragging: function() { return this.state.activeDragging; },
+      isRearranging: function() { return this.state.rearranging; },
+      startActiveDrag: function() { this.state.activeDragging = true; this.state.dragging = true; },
+      startRearrange: function() { this.state.rearranging = true; this.state.dragging = true; },
+      endDrag: function() { this.state.dragging = false; this.state.activeDragging = false; this.state.rearranging = false; },
+      reset: function() { this.state = { dragging: false, activeDragging: false, rearranging: false }; },
+      updateDragOffset: function() {},
+      getCurrentDragElement: function() { return null; },
+      getOriginalElement: function() { return null; },
+      getDragOffset: function() { return { x: 0, y: 0 }; },
+      getSummary: function() { return this.getState(); }
+    };
+  }
+
+  /**
+   * 创建PositionCalculator降级实现
+   * @returns {Object} 最小化的PositionCalculator实现
+   */
+  createPositionCalculatorFallback() {
+    return {
+      calculateDragPosition: function(mouseX, mouseY, offsetX, offsetY) {
+        return { x: mouseX - offsetX, y: mouseY - offsetY };
+      },
+      calculateRearrangeDragPosition: function(mouseX, mouseY, scrollLeft) {
+        return { x: mouseX + scrollLeft, y: mouseY };
+      },
+      calculateCanvasPosition: function(clientX, clientY, canvasRect) {
+        return { x: clientX - canvasRect.left, y: clientY - canvasRect.top };
+      },
+      calculateBlockCenter: function(blockRect) {
+        return { x: blockRect.left + blockRect.width / 2, y: blockRect.top + blockRect.height / 2 };
+      },
+      calculateSnapPosition: function() { return { x: 0, y: 0 }; },
+      calculateChildrenLayout: function() { return []; },
+      calculateBlocksBounds: function() { return { left: 0, top: 0, right: 0, bottom: 0 }; },
+      calculateOffsetCorrection: function() { return { needsCorrection: false, offset: 0 }; },
+      getCacheStats: function() { return { size: 0, hits: 0, misses: 0 }; },
+      clearCache: function() {}
+    };
+  }
+
+  /**
+   * 创建DomUtils降级实现
+   * @returns {Object} 最小化的DomUtils实现
+   */
+  createDomUtilsFallback() {
+    return {
+      updateBlockPosition: function(blockId, x, y) {
+        try {
+          const blockInput = document.querySelector('.blockid[value="' + blockId + '"]');
+          if (blockInput && blockInput.parentElement) {
+            if (x !== null) blockInput.parentElement.style.left = x + 'px';
+            if (y !== null) blockInput.parentElement.style.top = y + 'px';
+          }
+        } catch (e) { /* 静默失败 */ }
+      },
+      updateArrowPosition: function(blockId, x, y) {
+        try {
+          const arrowInput = document.querySelector('.arrowid[value="' + blockId + '"]');
+          if (arrowInput && arrowInput.parentElement) {
+            if (x !== null) arrowInput.parentElement.style.left = x + 'px';
+            if (y !== null) arrowInput.parentElement.style.top = y + 'px';
+          }
+        } catch (e) { /* 静默失败 */ }
+      },
+      getBlockElement: function(blockId) {
+        try {
+          const blockInput = document.querySelector('.blockid[value="' + blockId + '"]');
+          return blockInput ? blockInput.parentElement : null;
+        } catch (e) { return null; }
+      },
+      getArrowElement: function(blockId) {
+        try {
+          const arrowInput = document.querySelector('.arrowid[value="' + blockId + '"]');
+          return arrowInput ? arrowInput.parentElement : null;
+        } catch (e) { return null; }
+      }
+    };
   }
 }
 
