@@ -267,6 +267,76 @@ class DomUtils {
       ? window.$.merge(first, second)
       : [...first, ...second];
   }
+
+  /**
+   * 🎯 瘦身：从 flowy.js 提炼的DOM操作辅助函数
+   */
+
+  /**
+   * 更新块的位置
+   * @param {number} blockId - 块ID
+   * @param {number|null} x - X坐标
+   * @param {number|null} y - Y坐标
+   */
+  static updateBlockPosition(blockId, x, y) {
+    const element = $('.blockid[value=' + blockId + ']').parent();
+    const css = {};
+    if (x !== null) css.left = x + 'px';
+    if (y !== null) css.top = y + 'px';
+    element.css(css);
+  }
+
+  /**
+   * 更新箭头的位置
+   * @param {number} blockId - 块ID
+   * @param {number|null} x - X坐标
+   * @param {number|null} y - Y坐标
+   */
+  static updateArrowPosition(blockId, x, y) {
+    const element = $('.arrowid[value=' + blockId + ']').parent();
+    const css = {};
+    if (x !== null) css.left = x + 'px';
+    if (y !== null) css.top = y + 'px';
+    element.css(css);
+  }
+
+  /**
+   * 获取块元素
+   * @param {number} blockId - 块ID
+   * @returns {jQuery} 块元素
+   */
+  static getBlockElement(blockId) {
+    return $('.blockid[value=' + blockId + ']').parent();
+  }
+
+  /**
+   * 获取箭头元素
+   * @param {number} blockId - 块ID
+   * @returns {jQuery} 箭头元素
+   */
+  static getArrowElement(blockId) {
+    return $('.arrowid[value=' + blockId + ']').parent();
+  }
+
+  /**
+   * 批量更新块位置
+   * @param {Array} updates - 更新数组 [{id, x, y}, ...]
+   */
+  static batchUpdateBlockPositions(updates) {
+    updates.forEach(update => {
+      this.updateBlockPosition(update.id, update.x, update.y);
+    });
+  }
+
+  /**
+   * 批量更新箭头位置
+   * @param {Array} updates - 更新数组 [{id, x, y}, ...]
+   */
+  static batchUpdateArrowPositions(updates) {
+    updates.forEach(update => {
+      this.updateArrowPosition(update.id, update.x, update.y);
+    });
+  }
 }
 
 // 导出模块
