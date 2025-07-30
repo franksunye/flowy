@@ -412,9 +412,14 @@ class EventHandler {
   }
 }
 
-// 导出模块
+// 🔧 SLIM-002: 统一模块导出格式 - 支持ES模块和CommonJS
+export default EventHandler;
+
+// 向后兼容：支持CommonJS和浏览器环境
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = EventHandler;
-} else if (typeof window !== 'undefined') {
+  module.exports.default = EventHandler;
+}
+if (typeof window !== 'undefined') {
   window.EventHandler = EventHandler;
 }

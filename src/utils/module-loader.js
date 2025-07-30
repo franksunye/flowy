@@ -211,12 +211,18 @@ class ModuleLoader {
 // 创建全局单例实例
 const moduleLoader = new ModuleLoader();
 
-// 模块导出支持
+// 🔧 SLIM-002: 统一模块导出格式 - 支持ES模块和CommonJS
+export default ModuleLoader;
+export { moduleLoader };
+
+// 向后兼容：支持CommonJS和浏览器环境
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = ModuleLoader;
   module.exports.instance = moduleLoader;
-  module.exports.default = moduleLoader;
-} else if (typeof window !== 'undefined') {
+  module.exports.default = ModuleLoader;
+  module.exports.moduleLoader = moduleLoader;
+}
+if (typeof window !== 'undefined') {
   window.ModuleLoader = ModuleLoader;
   window.moduleLoader = moduleLoader;
 }

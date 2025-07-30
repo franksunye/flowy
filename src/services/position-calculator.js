@@ -305,9 +305,14 @@ class PositionCalculator {
   }
 }
 
-// 模块导出
+// 🔧 SLIM-002: 统一模块导出格式 - 支持ES模块和CommonJS
+export default PositionCalculator;
+
+// 向后兼容：支持CommonJS和浏览器环境
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = PositionCalculator;
-} else if (typeof window !== 'undefined') {
+  module.exports.default = PositionCalculator;
+}
+if (typeof window !== 'undefined') {
   window.PositionCalculator = PositionCalculator;
 }
