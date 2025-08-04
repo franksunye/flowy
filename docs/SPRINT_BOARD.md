@@ -5,8 +5,8 @@
 **Sprint 1: 基础认知与环境准备**
 - **Sprint目标**: 建立对Flowy项目的基础认知，准备好开发环境
 - **Sprint周期**: 2025-08-04 至 2025-08-07 (3天)
-- **团队容量**: 12 Story Points
-- **已承诺**: 12 Story Points
+- **团队容量**: 10 Story Points (调整后)
+- **已承诺**: 10 Story Points
 
 ---
 
@@ -20,7 +20,7 @@
 ### ⚪ To Do (待办)
 | Story | 描述 | Points | 负责人 | 备注 |
 |-------|------|--------|--------|------|
-| US-004 | 搭建开发环境 | 5 | Frank | 优先级中等 |
+| US-004 | 理解开发工作流程 | 3 | Frank | 重新评估后调整 |
 
 ### ✅ Done (已完成)
 | Story | 描述 | Points | 完成日期 | 备注 |
@@ -51,8 +51,8 @@ Story Points剩余
    8/4   8/5   8/6
 ```
 
-**当前剩余**: 7 Story Points
-**预期剩余**: 8 Story Points (略微超前)
+**当前剩余**: 3 Story Points
+**预期剩余**: 4 Story Points (进展良好)
 
 ---
 
