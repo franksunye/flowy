@@ -67,9 +67,130 @@ flowy.deleteBlocks();  // 删除所有块
 4. **浏览器兼容**: 对老版本浏览器的支持程度？
 
 #### 📋 下一步计划
-- [ ] 完成README文档的详细阅读
-- [ ] 运行docs/original-demo演示
-- [ ] 分析演示代码的实现方式
+- [x] 完成README文档的详细阅读
+- [x] 运行docs/original-demo演示
+- [/] 分析项目结构和文件组织
+
+---
+
+## 📁 项目结构分析
+
+### 🏗️ 整体架构
+```
+flowy/
+├── 📂 src/                    # 核心源代码
+│   ├── flowy.js              # 主要逻辑 (478行)
+│   └── flowy.css             # 样式文件
+├── 📂 docs/                   # 文档和演示
+│   ├── LEARNING_NOTES.md     # 学习笔记
+│   ├── PRODUCT_BACKLOG.md    # 产品待办列表
+│   ├── SPRINT_BOARD.md       # Sprint看板
+│   └── original-demo/        # 原始演示项目
+├── 📂 dist/                   # 构建输出 (已忽略)
+│   ├── flowy.es.js           # ES模块版本
+│   ├── flowy.iife.js         # IIFE版本
+│   └── flowy.umd.js          # UMD版本
+├── 📂 coverage/               # 测试覆盖率报告 (已忽略)
+├── 📂 node_modules/           # 依赖包
+├── 📂 .github/                # GitHub配置
+│   └── FUNDING.yml           # 赞助配置
+├── 📄 .gitignore             # Git忽略文件
+├── 📄 .gitattributes         # Git属性配置
+├── 📄 LICENSE                # MIT许可证
+└── 📄 README.md              # 项目文档
+```
+
+### 🎯 核心文件分析
+
+#### 1. 源代码目录 (`src/`)
+- **flowy.js** (478行):
+  - 主函数定义和参数处理
+  - 浏览器兼容性处理 (Element.prototype.matches/closest)
+  - 拖拽事件处理逻辑
+  - 数据导入导出功能
+  - 块管理和布局算法
+- **flowy.css**:
+  - 拖拽状态样式 (.dragging)
+  - 指示器样式 (.indicator)
+  - 箭头连接样式 (.arrowblock)
+  - 动画和过渡效果
+
+#### 2. 构建输出 (`dist/`)
+- **flowy.es.js**: ES6模块格式，用于现代构建工具
+- **flowy.iife.js**: 立即执行函数格式，用于直接引入
+- **flowy.umd.js**: 通用模块格式，兼容多种环境
+- **对应的.map文件**: 用于调试的源码映射
+
+#### 3. 演示项目 (`docs/original-demo/`)
+- **index.html**: 完整的演示页面
+- **main.js**: 演示逻辑和Flowy初始化
+- **styles.css**: 演示页面样式
+- **assets/**: 图标和资源文件
+- **flowy.min.js/css**: 压缩版本的库文件
+
+### 🔧 开发环境配置
+
+#### 依赖管理
+- **node_modules/**: 包含开发依赖
+  - Jest: 测试框架
+  - Rollup: 构建工具
+  - Babel: 代码转换
+  - Vite: 开发服务器
+  - Playwright: 端到端测试
+
+#### 构建系统
+- **多格式输出**: ES6, IIFE, UMD
+- **源码映射**: 支持调试
+- **代码压缩**: 生产环境优化
+
+#### 测试覆盖率
+- **coverage/**: Jest生成的覆盖率报告
+- **HTML报告**: 可视化覆盖率数据
+
+### 📊 项目特点
+
+#### ✅ 优势
+1. **轻量级**: 核心代码仅478行
+2. **无依赖**: 纯JavaScript实现
+3. **多格式支持**: ES6/IIFE/UMD
+4. **完整测试**: 有测试覆盖率
+5. **现代构建**: 使用Rollup/Vite
+
+#### 🤔 待改进
+1. **缺少package.json**: 没有标准的npm配置文件
+2. **文档分散**: 缺少集中的API文档
+3. **TypeScript支持**: 没有类型定义文件
+4. **构建配置隐藏**: 构建配置可能在其他地方或使用默认配置
+
+### 🔧 开发工具链分析
+
+#### 已安装的开发依赖
+从node_modules可以看出项目使用了现代化的开发工具链：
+
+**构建工具**:
+- **Rollup**: 模块打包器，生成多种格式输出
+- **Vite**: 现代前端构建工具，提供开发服务器
+- **Babel**: JavaScript编译器，处理兼容性
+
+**测试框架**:
+- **Jest**: JavaScript测试框架
+- **Playwright**: 端到端测试工具
+- **JSDOM**: DOM环境模拟
+
+**代码质量**:
+- **ESLint相关**: 代码检查 (通过babel插件)
+- **Istanbul**: 代码覆盖率统计
+- **Terser**: 代码压缩
+
+**其他工具**:
+- **PostCSS**: CSS处理器
+- **Core-js**: JavaScript polyfill库
+
+#### 推测的构建流程
+1. **开发**: 使用Vite提供热重载开发服务器
+2. **构建**: 使用Rollup打包生成多种格式
+3. **测试**: Jest单元测试 + Playwright端到端测试
+4. **发布**: 生成压缩版本到dist目录
 
 ---
 
@@ -124,14 +245,15 @@ var flowy = function(canvas, grab, release, snapping, rearrange, spacing_x, spac
 
 ### Sprint 1 进度
 - [x] 项目重组 (100%)
-- [/] US-001: 研读文档 (50%)
-- [ ] US-002: 运行演示 (0%)
-- [ ] US-003: 分析结构 (0%)
+- [x] US-001: 研读文档 (100%)
+- [x] US-002: 运行演示 (100%)
+- [/] US-003: 分析结构 (80%)
 - [ ] US-004: 搭建环境 (0%)
 
 ### 知识掌握程度
-- **基础概念**: ⭐⭐⭐⚪⚪ (60%)
-- **API使用**: ⭐⭐⚪⚪⚪ (40%)
+- **基础概念**: ⭐⭐⭐⭐⚪ (80%)
+- **API使用**: ⭐⭐⭐⚪⚪ (60%)
+- **项目结构**: ⭐⭐⭐⭐⚪ (80%)
 - **代码实现**: ⭐⚪⚪⚪⚪ (20%)
 - **扩展开发**: ⚪⚪⚪⚪⚪ (0%)
 
