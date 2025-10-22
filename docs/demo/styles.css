@@ -142,7 +142,6 @@ body, html {
     height: 100%;
     position: absolute;
     z-index: 2;
-    transition: transform 0.3s ease-in-out;
 }
 #search input {
     width: 318px;
@@ -373,8 +372,6 @@ body, html {
     height: 53px;
     text-align: center;
     z-index: 10;
-    cursor: pointer;
-    transition: background-color 0.2s ease, margin-left 0.3s ease-in-out;
 }
 #closecard:hover {
     background-color: #F1F4FC;
@@ -390,7 +387,6 @@ body, html {
     left: 361px;
     z-index: 0;
     overflow: auto;
-    transition: left 0.3s ease-in-out, width 0.3s ease-in-out;
 }
 #propwrap {
     position: absolute;

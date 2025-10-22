@@ -77,39 +77,6 @@ document.addEventListener("DOMContentLoaded", function(){
 document.getElementById("removeblock").addEventListener("click", function(){
  flowy.deleteBlocks();
 });
-
-// 添加左侧面板折叠功能
-var leftPanelCollapsed = false;
-document.getElementById("closecard").addEventListener("click", function(){
-    const leftcard = document.getElementById("leftcard");
-    const canvas = document.getElementById("canvas");
-    const closecard = document.getElementById("closecard");
-
-    if (!leftPanelCollapsed) {
-        // 完全折叠左侧面板 - 隐藏整个面板，折叠按钮保持在屏幕最左侧可见
-        leftcard.style.setProperty('transform', 'translateX(-363px)', 'important'); // 完全隐藏面板
-        // 将折叠按钮改为固定定位，脱离父容器
-        closecard.style.setProperty('position', 'fixed', 'important');
-        closecard.style.setProperty('left', '0px', 'important');
-        closecard.style.setProperty('top', '85px', 'important');
-        closecard.style.setProperty('margin-left', '0px', 'important');
-        canvas.style.setProperty('left', '54px', 'important'); // 画布从折叠按钮右侧开始
-        canvas.style.setProperty('width', 'calc(100% - 54px)', 'important');
-        leftPanelCollapsed = true;
-    } else {
-        // 展开左侧面板
-        leftcard.style.setProperty('transform', 'translateX(0px)', 'important');
-        // 恢复折叠按钮的原始定位
-        closecard.style.setProperty('position', 'absolute', 'important');
-        closecard.style.removeProperty('left');
-        closecard.style.removeProperty('top');
-        closecard.style.setProperty('margin-left', '340px', 'important');
-        canvas.style.setProperty('left', '361px', 'important');
-        canvas.style.setProperty('width', 'calc(100% - 361px)', 'important');
-        leftPanelCollapsed = false;
-    }
-});
-
 var aclick = false;
 var noinfo = false;
 var beginTouch = function (event) {
