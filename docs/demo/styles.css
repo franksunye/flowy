@@ -370,11 +370,8 @@ body, html {
     border-top: 1px solid #E8E8EF;
     width: 53px;
     height: 53px;
-    text-align: center;
+    text-align: center; 
     z-index: 10;
-}
-#closecard:hover {
-    background-color: #F1F4FC;
 }
 #closecard img {
     margin-top: 15px
